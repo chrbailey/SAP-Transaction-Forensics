@@ -171,7 +171,7 @@ describe('HoldManager', () => {
 
       const pending = manager.listPendingHolds();
       expect(pending).toHaveLength(1);
-      expect(pending[0].holdId).toBe(hold2.holdId);
+      expect(pending[0]!.holdId).toBe(hold2.holdId);
     });
   });
 

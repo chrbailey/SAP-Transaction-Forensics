@@ -197,7 +197,7 @@ describe('Gatekeeper', () => {
 
       const audit = gatekeeper.getAuditLog();
       expect(audit.length).toBeGreaterThan(0);
-      expect(audit[0].tool).toBe('get_doc_text');
+      expect(audit[0]!.tool).toBe('get_doc_text');
     });
   });
 
