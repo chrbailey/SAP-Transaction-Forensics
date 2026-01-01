@@ -1,188 +1,452 @@
-# SAP Latent Workflow Mining Tool
+# SAP Workflow Mining
 
-> **Read-only. Facts-first. Prove/disprove.**
+> Extract process mining insights from SAP ECC 6.0 without S/4HANA migration
 
-## Why This Exists
+**Zero risk** - Read-only access, no data modification
+**Zero cost** - Open source, MIT license
+**Zero migration** - Works with your existing ECC system
+**Fast time to value** - Hours to first insights, not months
 
-ERP systems record **transactions**; humans record **intent** in text fields.
+---
 
-This tool extracts unstructured text from SAP documents (orders, deliveries, invoices), anchors it to structured context (timing, status, org data), and finds repeatable patterns that correlate with business outcomes.
+## 60-Second Quickstart
 
-**This is not an SAP replacement.** It's a read-only lens on how work actually gets done.
+Choose your path:
 
-**If it finds nothing in your system, that is a valid outcome.**
+### Option A: Demo Mode (No SAP Required)
+```bash
+# Generate synthetic SAP data, run analysis, view results
+docker-compose up --build
 
-## What It Does
+# Open browser to http://localhost:8080
+```
 
-1. **Extracts** text fields from SD/MM documents (header notes, item notes, rejection reasons)
-2. **Anchors** text to document flow chains (order → delivery → invoice) with timing
-3. **Clusters** text into themes using embeddings or TF-IDF
-4. **Correlates** clusters to outcomes (delivery delays, invoice lags, partial shipments)
-5. **Outputs** "pattern cards" with explicit evidence and caveats
+### Option B: Analyze Your CSV Exports
+```bash
+# Export from SE16: VBAK, VBAP, LIKP, LIPS, VBRK, VBRP, STXH/STXL
+# Place files in ./input-data/
+docker-compose run pattern-engine --input-dir /app/input-data --output-dir /app/output
+```
+
+### Option C: Live RFC Connection
+```bash
+# Copy and edit configuration
+cp .env.rfc.example .env.rfc
+# Edit .env.rfc with your SAP connection details
+
+# Run with RFC adapter
+docker-compose --profile rfc up mcp-server-rfc
+```
+
+See [Installation Guide](docs/adapter_guide.md) for detailed setup instructions.
+
+---
+
+## What You Get
+
+```
++-----------------------------------------------------------------------------------+
+|                              Pattern Discovery Report                              |
++-----------------------------------------------------------------------------------+
+| Pattern: "Credit Hold Escalation"                                                  |
+| ----------------------------------------------------------------------------------|
+| Finding: Orders with 'CREDIT HOLD' in notes have 3.2x longer fulfillment cycles   |
+|                                                                                    |
+| Occurrence: 234 orders (4.7% of dataset)                                           |
+| Sales Orgs: 1000 (64%), 2000 (36%)                                                 |
+| Confidence: HIGH (p < 0.001)                                                       |
+|                                                                                    |
+| Caveat: Correlation only - does not imply causation                                |
++-----------------------------------------------------------------------------------+
+```
+
+**Key Features:**
+- **Text Pattern Discovery** - Find hidden patterns in order notes, rejection reasons, and delivery instructions
+- **Document Flow Analysis** - Trace complete order-to-cash chains with timing at each step
+- **Outcome Correlation** - Identify text patterns that correlate with delays, partial shipments, or returns
+- **Evidence-Based Reporting** - Every pattern links to specific documents for verification
+- **Privacy-First Design** - PII redaction enabled by default, shareable output mode for external review
+
+---
+
+## Why This Instead of S/4HANA?
+
+| Consideration | S/4HANA Migration | SAP Workflow Mining |
+|--------------|-------------------|---------------------|
+| **Timeline** | 18-36 months | Hours to first insights |
+| **Cost** | $10M-$100M+ | Free (MIT license) |
+| **Risk** | Business disruption | Zero - read-only access |
+| **Data Location** | Cloud/hosted | On-premise only |
+| **Prerequisites** | Greenfield/brownfield project | Works with existing ECC 6.0 |
+| **Process Visibility** | After migration | Before any changes |
+| **Use Case** | Full transformation | Process discovery & optimization |
+
+**This tool does not replace S/4HANA.** It helps you understand your current processes *before* making migration decisions - or find optimization opportunities in your existing ECC system.
+
+---
+
+## Installation
+
+### Prerequisites
+- Docker & Docker Compose (recommended)
+- OR Node.js 18+ and Python 3.10+ for local development
+
+### Quick Install
+```bash
+git clone https://github.com/your-org/sap-workflow-mining.git
+cd sap-workflow-mining
+docker-compose up --build
+```
+
+### Detailed Setup
+See [docs/adapter_guide.md](docs/adapter_guide.md) for:
+- RFC adapter configuration for ECC 6.0
+- OData adapter configuration for S/4HANA
+- CSV import from SE16 exports
+- Air-gapped installation options
+
+---
+
+## Security & Compliance
+
+**This system is designed for enterprise security requirements.**
+
+| Concern | How We Address It |
+|---------|-------------------|
+| **Data Access** | Read-only BAPIs only - no write operations, no arbitrary SQL |
+| **Data Location** | All processing is on-premise - no cloud, no external APIs |
+| **Network** | No outbound connections, no telemetry, no phone-home |
+| **PII Protection** | Automatic redaction of emails, phones, names, addresses |
+| **Audit Trail** | Every query logged with parameters, timestamps, row counts |
+| **Row Limits** | Default 200 rows per query, max 1000 - prevents bulk extraction |
+
+**See [SECURITY.md](SECURITY.md) for complete security documentation.**
+
+---
+
+## For SAP Basis Administrators
+
+### Required Authorizations
+
+The RFC user requires **display-only** access to SD documents:
+
+```
+Authorization Object: S_RFC
+  RFC_TYPE = FUGR
+  RFC_NAME = STXR, 2001, 2051, 2056, 2074, 2077
+  ACTVT = 16 (Execute)
+
+Authorization Object: V_VBAK_VKO
+  VKORG = [Your Sales Organizations]
+  ACTVT = 03 (Display)
+
+Authorization Object: V_VBAK_AAT
+  AUART = * (or specific document types)
+  ACTVT = 03 (Display)
+```
+
+**Copy-paste ready role template:** See [docs/SAP_AUTHORIZATION.md](docs/SAP_AUTHORIZATION.md)
+
+### BAPIs Used (All Read-Only)
+
+| BAPI | Purpose | Tables Accessed |
+|------|---------|-----------------|
+| `BAPI_SALESORDER_GETLIST` | List sales orders | VBAK |
+| `SD_SALESDOCUMENT_READ` | Read order header/items | VBAK, VBAP |
+| `BAPI_SALESDOCU_GETRELATIONS` | Document flow (VBFA) | VBFA |
+| `BAPI_OUTB_DELIVERY_GET_DETAIL` | Delivery details | LIKP, LIPS |
+| `BAPI_BILLINGDOC_GETDETAIL` | Invoice details | VBRK, VBRP |
+| `READ_TEXT` | Long text fields | STXH, STXL |
+| `BAPI_CUSTOMER_GETDETAIL2` | Customer master (stub) | KNA1 |
+| `BAPI_MATERIAL_GET_DETAIL` | Material master (stub) | MARA |
+
+No direct table access. No RFC_READ_TABLE unless explicitly enabled.
+
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         CLI / Viewer                             │
-├─────────────────────────────────────────────────────────────────┤
-│                      Pattern Engine (Python)                     │
-│   ingest → normalize → cluster → correlate → report              │
-├─────────────────────────────────────────────────────────────────┤
-│                      MCP Server (TypeScript)                     │
-│   8 tools: search_doc_text, get_doc_flow, get_delivery_timing... │
-├─────────────────────────────────────────────────────────────────┤
-│                         Data Adapters                            │
-│   synthetic (default) │ ecc_rfc (stub) │ s4_odata (stub)         │
-└─────────────────────────────────────────────────────────────────┘
++------------------------------------------------------------------+
+|                        Your Network                               |
+|  +------------------------------------------------------------+  |
+|  |                                                            |  |
+|  |   +----------------+     +-------------------+             |  |
+|  |   | SAP ECC 6.0    |     | SAP Workflow      |             |  |
+|  |   |                |     | Mining Server     |             |  |
+|  |   |  +----------+  |     |                   |             |  |
+|  |   |  | SD/MM    |  | RFC |  +-------------+  |             |  |
+|  |   |  | Tables   |<--------->| MCP Server  |  |             |  |
+|  |   |  +----------+  | (R/O)|  +-------------+  |             |  |
+|  |   |                |     |         |         |             |  |
+|  |   +----------------+     |         v         |             |  |
+|  |                          |  +-------------+  |             |  |
+|  |                          |  | Pattern     |  |             |  |
+|  |                          |  | Engine      |  |             |  |
+|  |                          |  +-------------+  |             |  |
+|  |                          |         |         |             |  |
+|  |                          |         v         |             |  |
+|  |   +----------------+     |  +-------------+  |             |  |
+|  |   | Browser        |<------>| Web Viewer  |  |             |  |
+|  |   | (localhost)    |     |  +-------------+  |             |  |
+|  |   +----------------+     +-------------------+             |  |
+|  |                                                            |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|                    NO EXTERNAL CONNECTIONS                        |
++------------------------------------------------------------------+
 ```
 
-## Quick Start
+**Data Flow:**
+1. MCP Server connects to SAP via RFC (read-only BAPIs)
+2. Pattern Engine analyzes text fields and document flows
+3. Results stored locally with PII redacted
+4. Web Viewer displays findings on localhost
 
-### Prerequisites
+**Nothing leaves your network.**
 
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.10+ (for local development)
+---
 
-### One-Command Run
+## FAQ
 
-```bash
-# Generate synthetic data, start MCP server, run pattern engine, output reports
-docker-compose up --build
+### Is this tool officially supported by SAP?
 
-# Or use the CLI directly:
-./cli.sh run-all --output ./output
+No. This is an independent open-source project. It uses standard SAP BAPIs that are publicly documented.
+
+### Will this impact SAP system performance?
+
+Minimal impact. All queries are:
+- Read-only (no locks)
+- Row-limited (200 default, 1000 max)
+- Rate-limited (configurable)
+- Use standard BAPIs (not direct table access)
+
+We recommend running initial analysis during off-peak hours.
+
+### What SAP modules are supported?
+
+Currently SD (Sales & Distribution) and MM (Materials Management) document flows. FI/CO integration is planned for future releases.
+
+### Does this work with SAP on any database?
+
+Yes. The tool uses BAPIs which are database-agnostic. Works with HANA, Oracle, DB2, SQL Server, MaxDB.
+
+### Can I run this in an air-gapped environment?
+
+Yes. The Docker images can be built offline and transferred. No external dependencies at runtime.
+
+### How do I validate the findings?
+
+Every pattern card includes:
+- Sample document numbers for verification in SAP (VA03, VL03N, VF03)
+- Statistical confidence intervals
+- Explicit caveats about correlation vs. causation
+
+### What about GDPR/data protection?
+
+- PII redaction is enabled by default
+- No data leaves your network
+- Shareable mode applies additional redaction
+- See [SECURITY.md](SECURITY.md) for compliance considerations
+
+### Can I contribute or request features?
+
+Yes. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Feature requests via GitHub Issues.
+
+---
+
+## Governance (PromptSpeak Integration)
+
+The MCP server includes a governance layer based on **PromptSpeak symbolic frames** for pre-execution blocking and human-in-the-loop approval workflows.
+
+### Why Governance?
+
+When AI agents access SAP data, you need controls to:
+- **Prevent bulk extraction** - Hold requests for large date ranges or row counts
+- **Protect sensitive data** - Require approval for searches containing PII patterns
+- **Halt rogue agents** - Circuit breaker to immediately stop misbehaving agents
+- **Audit everything** - Complete trail of all operations for compliance
+
+### PromptSpeak Frames
+
+Every operation has a symbolic frame indicating mode, domain, action, and entity:
+
+```
+Frame: ⊕◐◀α
+       │ │ │ └── Entity: α (primary agent)
+       │ │ └──── Action: ◀ (retrieve)
+       │ └────── Domain: ◐ (operational)
+       └──────── Mode: ⊕ (strict)
 ```
 
-### Local Development
+| Symbol | Category | Meaning |
+|--------|----------|---------|
+| `⊕` | Mode | Strict - exact compliance required |
+| `⊘` | Mode | Neutral - standard operation |
+| `⊖` | Mode | Flexible - allow interpretation |
+| `⊗` | Mode | **Forbidden** - blocks all actions |
+| `◊` | Domain | Financial (invoices, values) |
+| `◐` | Domain | Operational (orders, deliveries) |
+| `◀` | Action | Retrieve data |
+| `▲` | Action | Analyze/search |
+| `●` | Action | Validate |
+| `α` `β` `γ` | Entity | Primary/secondary/tertiary agent |
 
-```bash
-# 1. Generate synthetic data
-cd synthetic-data
-pip install -r requirements.txt
-python src/generate_sd.py --count 10000 --output sample_output/
+### Hold Triggers
 
-# 2. Start MCP server
-cd ../mcp-server
-npm install
-npm run dev
+Operations are automatically held for human approval when:
 
-# 3. Run pattern engine
-cd ../pattern-engine
-pip install -r requirements.txt
-python -m src.main --input ../synthetic-data/sample_output --output ../output
+| Trigger | Threshold | Example |
+|---------|-----------|---------|
+| Broad date range | >90 days | `date_from: 2024-01-01, date_to: 2024-12-31` |
+| High row limit | >500 rows | `limit: 1000` |
+| Sensitive patterns | SSN, credit card, password | `pattern: "social security"` |
 
-# 4. View results
-ls -la ../output/
-cat ../output/pattern_cards.json
+### Governance Workflow
+
+```
+Agent Request
+     │
+     ▼
+┌─────────────┐     ┌─────────────┐
+│ Circuit     │────▶│ BLOCKED     │ (if agent halted)
+│ Breaker     │     └─────────────┘
+└─────────────┘
+     │ OK
+     ▼
+┌─────────────┐     ┌─────────────┐
+│ Frame       │────▶│ BLOCKED     │ (if ⊗ forbidden)
+│ Validation  │     └─────────────┘
+└─────────────┘
+     │ OK
+     ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ Hold        │────▶│ HELD        │────▶│ Human       │
+│ Check       │     │ (pending)   │     │ Approval    │
+└─────────────┘     └─────────────┘     └─────────────┘
+     │ OK                                      │
+     ▼                                         ▼
+┌─────────────┐                         ┌─────────────┐
+│ EXECUTE     │◀────────────────────────│ APPROVED    │
+└─────────────┘                         └─────────────┘
 ```
 
-## MCP Tools (v0)
+### Governance Tools
+
+| Tool | Purpose |
+|------|---------|
+| `ps_precheck` | Dry-run: check if operation would be allowed |
+| `ps_list_holds` | List pending holds awaiting approval |
+| `ps_approve_hold` | Approve a held operation |
+| `ps_reject_hold` | Reject a held operation with reason |
+| `ps_agent_status` | Check circuit breaker state for an agent |
+| `ps_halt_agent` | Immediately halt an agent (blocks all ops) |
+| `ps_resume_agent` | Resume a halted agent |
+| `ps_stats` | Get governance statistics |
+| `ps_frame_docs` | Get PromptSpeak frame reference |
+
+### Example: Hold and Approval Flow
+
+```typescript
+// 1. Agent makes a request that triggers hold
+const result = await mcp.callTool('search_doc_text', {
+  pattern: 'delivery',
+  date_from: '2024-01-01',
+  date_to: '2024-12-31',  // >90 days triggers hold
+});
+// Returns: { held: true, hold_id: 'hold_abc123', reason: 'broad_date_range' }
+
+// 2. Supervisor reviews pending holds
+const holds = await mcp.callTool('ps_list_holds', {});
+// Returns: [{ holdId: 'hold_abc123', tool: 'search_doc_text', severity: 'medium' }]
+
+// 3. Supervisor approves
+const approved = await mcp.callTool('ps_approve_hold', {
+  hold_id: 'hold_abc123',
+  approved_by: 'supervisor@example.com'
+});
+// Returns: { allowed: true, auditId: 'audit_xyz789' }
+```
+
+### Example: Emergency Agent Halt
+
+```typescript
+// Immediately block a misbehaving agent
+await mcp.callTool('ps_halt_agent', {
+  agent_id: 'agent-123',
+  reason: 'Excessive query rate detected'
+});
+
+// All subsequent requests from this agent are blocked
+const result = await mcp.callTool('get_doc_text', {
+  doc_type: 'order',
+  doc_key: '0000000001',
+  _agent_id: 'agent-123'  // Identifies the agent
+});
+// Returns: { error: 'Governance Blocked', message: 'Agent halted: Excessive query rate' }
+
+// Resume when issue is resolved
+await mcp.callTool('ps_resume_agent', { agent_id: 'agent-123' });
+```
+
+---
+
+## MCP Tools Reference
+
+### SAP Data Tools
 
 | Tool | Purpose | Returns |
 |------|---------|---------|
-| `search_doc_text` | Find documents by text pattern | doc_type, doc_key, snippet, match_score, dates |
+| `search_doc_text` | Find documents by text pattern | doc_type, doc_key, snippet, match_score |
 | `get_doc_text` | Get all text fields for a document | header_texts[], item_texts[] |
-| `get_doc_flow` | Get order→delivery→invoice chain | chain objects with keys, statuses, dates |
-| `get_sales_doc_header` | Get order header details | sales_org, sold_to, doc_date, etc. |
-| `get_sales_doc_items` | Get order line items | posnr, matnr, qty, net_value, etc. |
-| `get_delivery_timing` | Get requested vs actual delivery | timestamps at doc/line level |
-| `get_invoice_timing` | Get invoice creation/posting dates | invoice keys and dates |
-| `get_master_stub` | Get safe master data attributes | industry, region, category (hashed IDs) |
+| `get_doc_flow` | Get order-delivery-invoice chain | chain with keys, statuses, dates |
+| `get_sales_doc_header` | Order header details | sales_org, customer, dates, values |
+| `get_sales_doc_items` | Order line items | materials, quantities, values |
+| `get_delivery_timing` | Requested vs actual delivery | timestamps, variance analysis |
+| `get_invoice_timing` | Invoice creation/posting | invoice dates, accounting refs |
+| `get_master_stub` | Safe master data attributes | hashed IDs, categories (no PII) |
 
-## Safety & Privacy
+### Governance Tools
 
-- **Read-only**: No updates, no arbitrary SQL, no table scanning
-- **Redaction**: Emails, phone numbers, names, addresses masked by default
-- **Row limits**: All queries capped (default 200, max 1000)
-- **Audit logs**: Every tool call logged with parameters and row counts
-- **Evidence ledger**: Every pattern card links to supporting doc_keys
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `ps_precheck` | Check if operation would be allowed | wouldAllow, wouldHold, reason |
+| `ps_list_holds` | List pending holds | Array of hold requests |
+| `ps_approve_hold` | Approve a held operation | Execution result with auditId |
+| `ps_reject_hold` | Reject a held operation | Success boolean |
+| `ps_agent_status` | Get agent circuit breaker state | isAllowed, state, haltReason |
+| `ps_halt_agent` | Halt an agent immediately | halted, agent_id |
+| `ps_resume_agent` | Resume a halted agent | resumed, agent_id |
+| `ps_stats` | Get governance statistics | holds, haltedAgents, auditEntries |
+| `ps_frame_docs` | Get PromptSpeak documentation | Frame format reference |
 
-## Pattern Cards
-
-Each pattern card includes:
-
-```json
-{
-  "id": "pattern_001",
-  "title": "Credit Hold Escalation",
-  "description": "Orders with 'CREDIT HOLD' in notes have 3.2x longer order-to-delivery cycle",
-  "top_phrases": ["credit hold", "hold for credit", "credit block"],
-  "sample_snippets": ["[REDACTED] - credit hold pending approval", "..."],
-  "occurrence": {
-    "count": 234,
-    "by_sales_org": {"1000": 150, "2000": 84},
-    "by_customer_industry": {"RETAIL": 180, "INDUSTRIAL": 54}
-  },
-  "effect": {
-    "metric": "order_to_delivery_days",
-    "baseline": 5.2,
-    "pattern_value": 16.8,
-    "lift": 3.23,
-    "p_value": 0.001
-  },
-  "confidence": "HIGH",
-  "caveats": [
-    "Correlation only - does not imply causation",
-    "Based on 234 observations (4.7% of dataset)",
-    "Text matching is substring-based, may include false positives"
-  ],
-  "evidence": {
-    "doc_keys": ["0000012345", "0000012346", "..."],
-    "fields_used": ["VBAK-BSTKD_E", "VBKD-BSTDK"],
-    "sample_size": 234,
-    "total_population": 5000
-  }
-}
-```
-
-## Prove Me Wrong
-
-This tool is designed to be **falsifiable**:
-
-1. Run it against synthetic data to understand the patterns it can find
-2. Run it against your real SAP system (via RFC/OData adapters)
-3. Compare results - if patterns don't replicate, that's useful information
-4. Drill into evidence to verify individual cases
-
-## Limitations
-
-- **Correlation ≠ Causation**: Patterns indicate association, not cause
-- **Text quality varies**: Garbage in, garbage out
-- **Sampling bias**: Limited to documents returned by tool queries
-- **Language**: v0 optimized for English text fields
-- **ECC/S4 differences**: Document structures may vary by configuration
-
-See [docs/limitations.md](docs/limitations.md) for full discussion.
-
-## Adapter Guide
-
-To run against your own SAP system:
-
-1. Implement the adapter interface for your connection method:
-   - `adapters/ecc_rfc/` - RFC calls to ECC
-   - `adapters/s4_odata/` - OData API calls to S/4HANA
-
-2. Map your table structures to the expected schemas (see [docs/join_maps.md](docs/join_maps.md))
-
-3. Configure connection in `config.yaml`
-
-4. Run with `--adapter ecc_rfc` or `--adapter s4_odata`
-
-See [docs/adapter_guide.md](docs/adapter_guide.md) for detailed instructions.
+---
 
 ## License
 
 MIT License - See [LICENSE](LICENSE)
 
-## Contributing
+This is enterprise-friendly open source:
+- Use commercially without restriction
+- Modify and distribute freely
+- No copyleft obligations
+- No warranty (provided as-is)
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+---
+
+## Support
+
+- **Documentation**: [docs/](docs/)
+- **Issues**: GitHub Issues
+- **Security**: See [SECURITY.md](SECURITY.md) for vulnerability reporting
+
+---
 
 ## Disclaimer
 
-This tool is provided as-is for research and analysis purposes. It does not modify SAP data. Users are responsible for ensuring compliance with their organization's data access policies.
+This tool is provided as-is for process analysis purposes. It does not modify SAP data. Users are responsible for:
+- Ensuring compliance with organizational data access policies
+- Validating findings before making business decisions
+- Proper configuration of SAP authorizations
+
+**Correlation does not imply causation.** All pattern findings should be verified against actual business processes.
