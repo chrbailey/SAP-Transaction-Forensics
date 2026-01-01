@@ -1,0 +1,108 @@
+# SAP Workflow Mining - MCP Server with RFC Support
+# Debian-based image for SAP NetWeaver RFC SDK compatibility
+#
+# IMPORTANT: This image requires the SAP NW RFC SDK to be placed in the
+# build context at ./nwrfc-sdk/ before building. The SDK is not included
+# due to SAP licensing restrictions.
+#
+# To obtain the SDK:
+# 1. Go to SAP Support Portal (https://support.sap.com)
+# 2. Search for "SAP NetWeaver RFC SDK 7.50"
+# 3. Download the Linux x64 version
+# 4. Extract to ./nwrfc-sdk/ directory
+#
+# Build:
+#   docker build -f Dockerfile.rfc -t sap-workflow-mining-mcp-rfc .
+#
+# Run:
+#   docker run -p 3000:3000 --env-file .env.rfc sap-workflow-mining-mcp-rfc
+
+FROM node:20-bookworm-slim
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PORT=3000 \
+    SAPNWRFC_HOME=/usr/local/sap/nwrfcsdk \
+    LD_LIBRARY_PATH=/usr/local/sap/nwrfcsdk/lib
+
+# Set working directory
+WORKDIR /app
+
+# Install required system dependencies for node-rfc
+# - build-essential: Required for native module compilation
+# - python3: Required for node-gyp
+# - libstdc++6: Required for SAP RFC SDK
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3 \
+    libstdc++6 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directory for SAP RFC SDK
+RUN mkdir -p /usr/local/sap/nwrfcsdk
+
+# Copy SAP NW RFC SDK from build context
+# The SDK should be extracted to ./nwrfc-sdk/ in the build context
+# Structure: nwrfc-sdk/lib/*.so, nwrfc-sdk/include/*.h
+COPY nwrfc-sdk/ /usr/local/sap/nwrfcsdk/
+
+# Verify SDK is present and set up library path
+RUN test -f /usr/local/sap/nwrfcsdk/lib/libsapnwrfc.so \
+    || (echo "ERROR: SAP NW RFC SDK not found. Please place the SDK in ./nwrfc-sdk/ before building." && exit 1)
+
+# Configure dynamic linker
+RUN echo "/usr/local/sap/nwrfcsdk/lib" > /etc/ld.so.conf.d/sapnwrfc.conf \
+    && ldconfig
+
+# Copy package files first (for layer caching)
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including optionalDependencies for node-rfc)
+# node-rfc will compile against the SAP RFC SDK
+RUN npm ci --ignore-scripts \
+    && npm cache clean --force
+
+# Rebuild native modules after copying SDK
+RUN npm rebuild node-rfc
+
+# Copy TypeScript config and source
+COPY tsconfig.json ./
+COPY src/ ./src/
+
+# Build TypeScript to JavaScript
+RUN npm run build
+
+# Prune dev dependencies
+RUN npm prune --production
+
+# Remove build tools to reduce image size
+RUN apt-get purge -y build-essential python3 \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN groupadd -g 1001 appgroup \
+    && useradd -u 1001 -g appgroup -s /bin/false appuser \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+
+# Create directories for data and logs
+RUN mkdir -p /app/data /app/logs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
+
+# Default command with RFC adapter
+CMD ["node", "dist/index.js"]
+
+# Labels
+LABEL maintainer="SAP Workflow Mining Team" \
+      version="1.0.0" \
+      description="MCP server for SAP workflow mining with RFC connectivity" \
+      sap.adapter="ecc_rfc"

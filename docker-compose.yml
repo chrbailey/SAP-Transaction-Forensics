@@ -70,6 +70,51 @@ services:
       - sap-wm-network
 
   # ===========================================================================
+  # MCP Server with RFC Support (Profile: rfc)
+  # ===========================================================================
+  # This service requires:
+  # 1. SAP NW RFC SDK in mcp-server/nwrfc-sdk/
+  # 2. .env.rfc file with SAP connection parameters
+  #
+  # Usage:
+  #   docker-compose --profile rfc up mcp-server-rfc
+  #
+  mcp-server-rfc:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile.rfc
+    container_name: sap-wm-mcp-server-rfc
+    profiles:
+      - rfc
+    ports:
+      - "${RFC_SERVER_PORT:-3001}:3000"
+    volumes:
+      - ./output/logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_DIR=/app/logs
+      - SAP_ADAPTER=ecc_rfc
+      - SAP_RFC_ASHOST=${SAP_RFC_ASHOST}
+      - SAP_RFC_SYSNR=${SAP_RFC_SYSNR:-00}
+      - SAP_RFC_CLIENT=${SAP_RFC_CLIENT:-100}
+      - SAP_RFC_USER=${SAP_RFC_USER}
+      - SAP_RFC_PASSWD=${SAP_RFC_PASSWD}
+      - SAP_RFC_LANG=${SAP_RFC_LANG:-EN}
+      - SAP_RFC_POOL_SIZE=${SAP_RFC_POOL_SIZE:-5}
+      - SAP_RFC_TRACE=${SAP_RFC_TRACE:-0}
+      - SAP_RFC_TIMEOUT=${SAP_RFC_TIMEOUT:-30000}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - sap-wm-network
+
+  # ===========================================================================
   # Pattern Engine
   # ===========================================================================
   pattern-engine:

@@ -26,6 +26,9 @@
     "ts-jest": "^29.1.0",
     "tsx": "^4.7.0"
   },
+  "optionalDependencies": {
+    "node-rfc": "^3.3.1"
+  },
   "engines": {
     "node": ">=18.0.0"
   },

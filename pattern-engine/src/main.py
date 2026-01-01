@@ -17,6 +17,7 @@ import numpy as np
 
 from . import DEFAULT_CONFIG, __version__
 from .ingest.loader import DataLoader
+from .ingest.csv_loader import CSVLoader, load_csv_directory
 from .redaction.redactor import Redactor
 from .normalize.text_processor import TextProcessor
 from .cluster.text_clusterer import TextClusterer
@@ -79,23 +80,37 @@ def cli(ctx, seed: int, redaction_mode: str):
 
 @cli.command()
 @click.option('--input-dir', '-i', required=True, type=click.Path(exists=True),
-              help='Directory containing input JSON files')
+              help='Directory containing input JSON files (or CSV files in csv-mode)')
 @click.option('--output', '-o', type=click.Path(), default=None,
               help='Output file for ingested data (optional)')
+@click.option('--csv-mode', is_flag=True, default=False,
+              help='Load data from SAP CSV exports (SE16N format) instead of JSON')
 @pass_context
-def ingest(ctx, input_dir: str, output: Optional[str]):
+def ingest(ctx, input_dir: str, output: Optional[str], csv_mode: bool):
     """Ingest MCP tool outputs or synthetic data.
 
+    In JSON mode (default):
     Loads sales_orders.json, deliveries.json, invoices.json, and doc_flow.json,
     then builds unified document records with consolidated text.
+
+    In CSV mode (--csv-mode):
+    Loads VBAK.csv, VBAP.csv, and optionally texts.csv and VBFA.csv,
+    then builds unified document records. Useful for SE16N table exports.
     """
     input_path = Path(input_dir)
     ctx.data_dir = input_path
 
-    click.echo(f"Loading data from {input_path}...")
-
-    loader = DataLoader()
-    documents = loader.load_all(input_path)
+    if csv_mode:
+        click.echo(f"Loading CSV data from {input_path}...")
+        try:
+            documents = load_csv_directory(input_path, random_seed=ctx.config['random_seed'])
+        except ValueError as e:
+            click.echo(f"Error loading CSV files: {e}", err=True)
+            sys.exit(1)
+    else:
+        click.echo(f"Loading JSON data from {input_path}...")
+        loader = DataLoader()
+        documents = loader.load_all(input_path)
 
     if not documents:
         click.echo("Error: No documents loaded. Check input directory.", err=True)
@@ -330,18 +345,27 @@ def report(ctx, output_format: str, output_dir: str, input_dir: Optional[str]):
 
 @cli.command()
 @click.option('--input-dir', '-i', '--input', required=True, type=click.Path(exists=True),
-              help='Directory containing input JSON files')
+              help='Directory containing input JSON files (or CSV files in csv-mode)')
 @click.option('--output-dir', '-o', '--output', required=True, type=click.Path(),
               help='Directory for all outputs')
 @click.option('--format', '-f', 'output_format', type=click.Choice(['json', 'markdown', 'both']),
               default='both', help='Output format for reports')
 @click.option('--mode', '-m', type=click.Choice(['raw_local', 'shareable']),
               default=None, help='Redaction mode (overrides global setting)')
+@click.option('--csv-mode', is_flag=True, default=False,
+              help='Load data from SAP CSV exports (SE16N format) instead of JSON')
 @pass_context
-def run(ctx, input_dir: str, output_dir: str, output_format: str, mode: str):
+def run(ctx, input_dir: str, output_dir: str, output_format: str, mode: str, csv_mode: bool):
     """Run the complete pipeline: ingest -> analyze -> report.
 
     This is a convenience command that runs all steps in sequence.
+
+    Use --csv-mode to load data from SAP SE16N CSV exports instead of JSON.
+    In CSV mode, the input directory should contain:
+    - VBAK.csv (sales order headers) - required
+    - VBAP.csv (sales order items) - required
+    - texts.csv or STXH.csv (order texts) - optional
+    - VBFA.csv (document flow) - optional
 
     Output files:
     - pattern_cards.json   - Pattern cards in JSON format
@@ -366,12 +390,29 @@ def run(ctx, input_dir: str, output_dir: str, output_format: str, mode: str):
     click.echo(f"Output: {output_path}")
     click.echo(f"Seed: {ctx.config['random_seed']}")
     click.echo(f"Redaction: {redaction_mode}")
+    click.echo(f"Input Mode: {'CSV (SE16N exports)' if csv_mode else 'JSON'}")
     click.echo("=" * 60)
 
     # Step 1: Ingest
     click.echo("\n[1/6] Ingesting data...")
-    loader = DataLoader()
-    documents = loader.load_all(input_path)
+
+    if csv_mode:
+        # Load from CSV exports
+        try:
+            documents = load_csv_directory(input_path, random_seed=ctx.config['random_seed'])
+            click.echo(f"  Loaded {len(documents)} documents from CSV exports")
+        except ValueError as e:
+            click.echo(f"Error loading CSV files: {e}", err=True)
+            click.echo("\nCSV mode requires these files in the input directory:", err=True)
+            click.echo("  - VBAK.csv (sales order headers) - REQUIRED", err=True)
+            click.echo("  - VBAP.csv (sales order items) - REQUIRED", err=True)
+            click.echo("  - texts.csv or STXH.csv (order texts) - optional", err=True)
+            click.echo("  - VBFA.csv (document flow) - optional", err=True)
+            sys.exit(1)
+    else:
+        # Load from JSON files
+        loader = DataLoader()
+        documents = loader.load_all(input_path)
 
     if not documents:
         click.echo("Error: No documents loaded.", err=True)

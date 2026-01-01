@@ -364,3 +364,74 @@ The SAP Workflow Mining system discovers latent patterns in SAP document text fi
 5. Performance impact makes SAP unusable
 
 If any of these occur, the system has failed and must be fixed before production use.
+
+---
+
+## Enterprise Security Architecture
+
+### Network Boundary
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           YOUR NETWORK (On-Premise)                         │
+│                                                                             │
+│  ┌─────────────────────┐         ┌─────────────────────────────────────┐   │
+│  │     SAP ECC 6.0     │         │      SAP Workflow Mining            │   │
+│  │                     │   RFC   │         (Docker)                    │   │
+│  │  ┌──────┐ ┌──────┐  │◄───────►│  ┌─────────────┐  ┌─────────────┐  │   │
+│  │  │  SD  │ │  MM  │  │         │  │ MCP Server  │  │   Pattern   │  │   │
+│  │  └──────┘ └──────┘  │         │  │  (Node.js)  │  │   Engine    │  │   │
+│  │  ┌──────┐ ┌──────┐  │         │  └─────────────┘  │  (Python)   │  │   │
+│  │  │  FI  │ │  PP  │  │         │                   └─────────────┘  │   │
+│  │  └──────┘ └──────┘  │         └─────────────────────────────────────┘   │
+│  └─────────────────────┘                                                    │
+│                                                                             │
+│  ════════════════════════════════════════════════════════════════════════  │
+│                           NETWORK BOUNDARY                                  │
+│                     NO DATA LEAVES THIS BOUNDARY                            │
+│  ════════════════════════════════════════════════════════════════════════  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌─────────────────┐
+                              │   THE CLOUD     │
+                              │                 │
+                              │   ┌─────────┐   │
+                              │   │    ❌   │   │
+                              │   │ NO DATA │   │
+                              │   │  SENT   │   │
+                              │   └─────────┘   │
+                              │                 │
+                              └─────────────────┘
+```
+
+### Security Controls
+
+| Control | Implementation | Verification |
+|---------|---------------|--------------|
+| **Read-Only Access** | Only read BAPIs used | Authorization object S_RFC |
+| **No Cloud Egress** | Docker network: none | Network policy / firewall |
+| **Audit Logging** | Every RFC call logged | Log review / SIEM |
+| **Data Minimization** | 200 row limit per query | Code review |
+| **PII Redaction** | Default-on redaction | Output inspection |
+| **Credential Security** | Env vars, not files | Container inspection |
+
+### Network Requirements
+
+| Connection | Port | Direction | Required |
+|------------|------|-----------|----------|
+| SAP RFC | 33XX | Outbound from Docker | RFC mode only |
+| Docker Internal | - | Local only | Always |
+| Internet | - | **None** | Never required |
+
+**Note**: XX = SAP system number (e.g., 3300 for system 00)
+
+---
+
+## Scaling Guide
+
+| Scenario | Documents | Memory | CPU | Time |
+|----------|-----------|--------|-----|------|
+| Small | 1,000 | 512MB | 1 | <1 min |
+| Medium | 10,000 | 2GB | 2 | 2-3 min |
+| Large | 100,000 | 8GB | 4 | 15-20 min |
+| Enterprise | 1,000,000 | 32GB | 8 | 2-3 hrs |

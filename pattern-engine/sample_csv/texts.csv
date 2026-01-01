@@ -1,0 +1,36 @@
+TDNAME,TDID,TDSPRAS,TDLINE,TDOBJECT
+0000000001,0001,EN,Customer requests expedited delivery for pump components.,VBBK
+0000000001,0002,EN,Check stock availability at warehouse 1000 before confirming.,VBBK
+0000000002,0001,EN,High-value order - manager approval obtained.,VBBK
+0000000002,0002,EN,Priority customer - handle with care.,VBBK
+0000000003,0001,EN,Rush order - ship within 24 hours.,VBBK
+0000000003,0002,EN,Customer on tight production schedule.,VBBK
+0000000004,0001,EN,International shipment - verify export documentation.,VBBK
+0000000004,0002,EN,Customs clearance required for EU delivery.,VBBK
+0000000004,0003,EN,Large equipment - special handling needed.,VBBK
+0000000005,0001,EN,Standard order processing applies.,VBBK
+0000000006,0001,EN,Return order - quality issue reported by customer.,VBBK
+0000000006,0002,EN,Replacement parts already shipped.,VBBK
+0000000007,0001,EN,Asia-Pacific region order - check shipping routes.,VBBK
+0000000007,0002,EN,Electronic components - temperature control required.,VBBK
+0000000008,0001,EN,Repeat customer order - use same packaging as previous.,VBBK
+0000000009,0001,EN,Urgent production requirement - expedite processing.,VBBK
+0000000009,0002,EN,European customer priority account.,VBBK
+0000000010,0001,EN,Small order - consolidated shipping recommended.,VBBK
+0000000011,0001,EN,High-value motor order - requires insurance.,VBBK
+0000000011,0002,EN,Verify customer credit limit before processing.,VBBK
+0000000012,0001,EN,European distribution center fulfillment.,VBBK
+0000000013,0001,EN,Credit memo for returned defective sensors.,VBBK
+0000000014,0001,EN,Major account order - executive attention required.,VBBK
+0000000014,0002,EN,Priority handling - VP approval obtained.,VBBK
+0000000014,0003,EN,Installation support to be scheduled.,VBBK
+0000000015,0001,EN,Japanese customer - packaging requirements apply.,VBBK
+0000000016,0001,EN,Standard replenishment order.,VBBK
+0000000017,0001,EN,Rush order - customer waiting for production.,VBBK
+0000000017,0002,EN,Ship partial if full quantity unavailable.,VBBK
+0000000018,0001,EN,Industrial automation equipment order.,VBBK
+0000000018,0002,EN,Technical specifications verified.,VBBK
+0000000019,0001,EN,Maintenance parts order - routine replenishment.,VBBK
+0000000020,0001,EN,Large multi-item order - coordinate staging.,VBBK
+0000000020,0002,EN,Customer requested specific delivery window.,VBBK
+0000000020,0003,EN,High-value - arrange secure transport.,VBBK
