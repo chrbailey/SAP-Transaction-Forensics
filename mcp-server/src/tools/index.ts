@@ -69,6 +69,14 @@ export {
   type GetMasterStubInput,
 } from './get_master_stub.js';
 
+// Tool 9: Ask Process (Natural Language Interface)
+export {
+  askProcessTool,
+  executeAskProcess,
+  AskProcessSchema,
+  type AskProcessInput,
+} from './ask_process.js';
+
 /**
  * All tool definitions for MCP registration
  */
@@ -80,6 +88,7 @@ import { getSalesDocItemsTool } from './get_sales_doc_items.js';
 import { getDeliveryTimingTool } from './get_delivery_timing.js';
 import { getInvoiceTimingTool } from './get_invoice_timing.js';
 import { getMasterStubTool } from './get_master_stub.js';
+import { askProcessTool } from './ask_process.js';
 
 export const allTools = [
   searchDocTextTool,
@@ -90,6 +99,7 @@ export const allTools = [
   getDeliveryTimingTool,
   getInvoiceTimingTool,
   getMasterStubTool,
+  askProcessTool,
 ];
 
 /**
@@ -103,6 +113,7 @@ import { executeGetSalesDocItems } from './get_sales_doc_items.js';
 import { executeGetDeliveryTiming } from './get_delivery_timing.js';
 import { executeGetInvoiceTiming } from './get_invoice_timing.js';
 import { executeGetMasterStub } from './get_master_stub.js';
+import { executeAskProcess } from './ask_process.js';
 import { SAPAdapter } from '../adapters/adapter.js';
 
 export type ToolExecutor = (adapter: SAPAdapter, input: unknown) => Promise<unknown>;
@@ -116,6 +127,7 @@ export const toolExecutors: Record<string, ToolExecutor> = {
   get_delivery_timing: executeGetDeliveryTiming,
   get_invoice_timing: executeGetInvoiceTiming,
   get_master_stub: executeGetMasterStub,
+  ask_process: executeAskProcess,
 };
 
 /**
