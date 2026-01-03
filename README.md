@@ -8,6 +8,7 @@
 **Fast time to value** - Hours to first insights, not months
 
 [![CI](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/chrbailey/sap-workflow-mining/graph/badge.svg)](https://codecov.io/gh/chrbailey/sap-workflow-mining)
 [![Release](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml)
 [![GitHub release](https://img.shields.io/github/v/release/chrbailey/sap-workflow-mining)](https://github.com/chrbailey/sap-workflow-mining/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
