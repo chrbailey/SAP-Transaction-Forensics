@@ -63,7 +63,11 @@ export async function executeGetDocFlow(
   const input = GetDocFlowSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_doc_flow', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_doc_flow',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

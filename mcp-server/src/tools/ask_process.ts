@@ -212,10 +212,7 @@ function buildO2CContext(
 /**
  * Build P2P process context from BPI stats
  */
-function buildP2PContext(
-  stats: BPIAdapterStats,
-  includePatterns: boolean
-): P2PProcessContext {
+function buildP2PContext(stats: BPIAdapterStats, includePatterns: boolean): P2PProcessContext {
   const context: P2PProcessContext = {
     processType: 'P2P',
     purchaseOrderCount: stats.unique_po_documents,
@@ -244,7 +241,7 @@ function buildP2PContext(
 
   // Check for invoices
   if (activitySet.has('record invoice receipt') || activitySet.has('vendor creates invoice')) {
-    context.invoiceReceiptCount = Math.round(stats.total_events * 0.10); // ~10% are invoice
+    context.invoiceReceiptCount = Math.round(stats.total_events * 0.1); // ~10% are invoice
   }
 
   // Add P2P-specific patterns based on actual activities in data
@@ -255,15 +252,17 @@ function buildP2PContext(
     for (const [_key, pattern] of Object.entries(P2P_PATTERNS)) {
       const patternActivities = pattern.activities.map(a => a.toLowerCase());
       const matchingActivities = patternActivities.filter(pa =>
-        stats.activities.some(a => a.toLowerCase().includes(pa.toLowerCase()) ||
-                                   pa.toLowerCase().includes(a.toLowerCase()))
+        stats.activities.some(
+          a =>
+            a.toLowerCase().includes(pa.toLowerCase()) || pa.toLowerCase().includes(a.toLowerCase())
+        )
       );
 
       if (matchingActivities.length > 0) {
         // Calculate occurrence estimate based on event distribution
         const occurrenceEstimate = Math.round(
           (matchingActivities.length / patternActivities.length) *
-          (stats.total_events / stats.unique_activities)
+            (stats.total_events / stats.unique_activities)
         );
 
         context.patterns.push({
@@ -422,13 +421,59 @@ export async function executeAskProcess(
  */
 function extractKeywords(question: string): string[] {
   const stopWords = new Set([
-    'what', 'why', 'how', 'when', 'where', 'which', 'who',
-    'is', 'are', 'was', 'were', 'be', 'been', 'being',
-    'have', 'has', 'had', 'do', 'does', 'did',
-    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-    'of', 'with', 'by', 'from', 'as', 'about', 'into', 'through',
-    'our', 'my', 'their', 'this', 'that', 'these', 'those',
-    'most', 'more', 'many', 'much', 'some', 'any', 'all',
+    'what',
+    'why',
+    'how',
+    'when',
+    'where',
+    'which',
+    'who',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'from',
+    'as',
+    'about',
+    'into',
+    'through',
+    'our',
+    'my',
+    'their',
+    'this',
+    'that',
+    'these',
+    'those',
+    'most',
+    'more',
+    'many',
+    'much',
+    'some',
+    'any',
+    'all',
   ]);
 
   const words = question

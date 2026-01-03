@@ -32,13 +32,6 @@ import {
   MasterStub,
   OrgFilters,
   DOC_CATEGORY,
-  // Raw file types
-  SalesOrdersFile,
-  DeliveriesFile,
-  InvoicesFile,
-  DocFlowFile,
-  CustomersFile,
-  MaterialsFile,
   RawSalesOrder,
   RawDelivery,
   RawInvoice,
@@ -70,7 +63,8 @@ export class SyntheticAdapter extends BaseDataAdapter {
 
   constructor(dataPath?: string) {
     super();
-    this.dataPath = dataPath || join(__dirname, '..', '..', '..', '..', 'synthetic-data', 'sample_output');
+    this.dataPath =
+      dataPath || join(__dirname, '..', '..', '..', '..', 'synthetic-data', 'sample_output');
   }
 
   protected async doInitialize(): Promise<void> {
@@ -87,10 +81,10 @@ export class SyntheticAdapter extends BaseDataAdapter {
       // Note: Generator produces flat arrays, not wrapped objects
       const [salesOrdersRaw, deliveriesRaw, invoicesRaw, docFlowsRaw, customersRaw, materialsRaw] =
         await Promise.all([
-          this.loadJsonFile<any[]>('orders.json'),        // Generator uses orders.json, not sales_orders.json
+          this.loadJsonFile<any[]>('orders.json'), // Generator uses orders.json, not sales_orders.json
           this.loadJsonFile<any[]>('deliveries.json'),
           this.loadJsonFile<any[]>('invoices.json'),
-          this.loadJsonFile<any[]>('doc_flows.json'),     // Generator uses doc_flows.json, not doc_flow.json
+          this.loadJsonFile<any[]>('doc_flows.json'), // Generator uses doc_flows.json, not doc_flow.json
           this.loadJsonFile<any[]>('customers.json'),
           this.loadJsonFile<any[]>('materials.json'),
         ]);
@@ -105,10 +99,14 @@ export class SyntheticAdapter extends BaseDataAdapter {
         materials: this.transformMaterials(materialsRaw),
       };
 
-      console.log(`Loaded synthetic data: ${this.data.salesOrders.length} orders, ${this.data.deliveries.length} deliveries, ${this.data.invoices.length} invoices`);
+      console.log(
+        `Loaded synthetic data: ${this.data.salesOrders.length} orders, ${this.data.deliveries.length} deliveries, ${this.data.invoices.length} invoices`
+      );
     } catch (error) {
       console.error('Error loading synthetic data:', error);
-      throw new Error(`Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -128,7 +126,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
       created_time: order.erzet,
       created_by: order.ernam,
       requested_delivery_date: order.vdatu,
-      status: 'C',  // Complete - synthetic data doesn't track status
+      status: 'C', // Complete - synthetic data doesn't track status
       net_value: order.netwr || this.sumItemValues(order.items),
       currency: order.waerk || 'USD',
       po_number: '',
@@ -141,7 +139,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
       items: (order.items || []).map((item: any) => ({
         item_number: item.posnr,
         material: item.matnr,
-        description: '',  // Generator doesn't include description
+        description: '', // Generator doesn't include description
         plant: item.werks,
         quantity: item.kwmeng,
         unit: 'EA',
@@ -155,16 +153,16 @@ export class SyntheticAdapter extends BaseDataAdapter {
           language: t.lang || 'EN',
           created_at: t.changed_at || order.erdat,
         })),
-        schedule_lines: item.schedule_lines || [],  // VBEP data
+        schedule_lines: item.schedule_lines || [], // VBEP data
       })),
-      conditions: order.conditions || [],  // KONV data
+      conditions: order.conditions || [], // KONV data
     }));
   }
 
   private transformDeliveries(raw: any[]): RawDelivery[] {
     return raw.map(delivery => ({
       document_number: delivery.vbeln,
-      delivery_type: delivery.lfart || 'LF',  // Standard outbound delivery
+      delivery_type: delivery.lfart || 'LF', // Standard outbound delivery
       shipping_point: delivery.vstel || '0001',
       ship_to: delivery.kunnr,
       planned_gi_date: delivery.wadat,
@@ -174,8 +172,8 @@ export class SyntheticAdapter extends BaseDataAdapter {
       created_by: delivery.ernam || 'SYSTEM',
       total_weight: delivery.btgew || 0,
       weight_unit: delivery.gewei || 'KG',
-      status: delivery.wadat_ist ? 'C' : 'A',  // Complete if actual GI exists
-      texts: [],  // Generator doesn't create delivery texts
+      status: delivery.wadat_ist ? 'C' : 'A', // Complete if actual GI exists
+      texts: [], // Generator doesn't create delivery texts
       items: (delivery.items || []).map((item: any) => ({
         item_number: item.posnr,
         material: item.matnr,
@@ -196,7 +194,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
   private transformInvoices(raw: any[]): RawInvoice[] {
     return raw.map(invoice => ({
       document_number: invoice.vbeln,
-      invoice_type: invoice.fkart || 'F2',  // Standard invoice
+      invoice_type: invoice.fkart || 'F2', // Standard invoice
       billing_date: invoice.fkdat,
       payer: invoice.kunrg,
       net_value: invoice.netwr,
@@ -206,7 +204,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
       created_date: invoice.erdat,
       created_time: invoice.erzet || '00:00:00',
       created_by: invoice.ernam || 'SYSTEM',
-      status: 'C',  // All synthetic invoices are complete
+      status: 'C', // All synthetic invoices are complete
       items: (invoice.items || []).map((item: any) => ({
         item_number: item.posnr,
         material: item.matnr,
@@ -290,7 +288,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
 
     try {
       pattern = new RegExp(params.pattern, 'gi');
-    } catch (e) {
+    } catch {
       throw new Error(`Invalid regex pattern: ${params.pattern}`);
     }
 
@@ -414,9 +412,11 @@ export class SyntheticAdapter extends BaseDataAdapter {
 
     const snippetStart = Math.max(0, matchIndex - 50);
     const snippetEnd = Math.min(text.length, matchIndex + match.length + 50);
-    return (snippetStart > 0 ? '...' : '') +
+    return (
+      (snippetStart > 0 ? '...' : '') +
       text.slice(snippetStart, snippetEnd) +
-      (snippetEnd < text.length ? '...' : '');
+      (snippetEnd < text.length ? '...' : '')
+    );
   }
 
   // =========================================================================

@@ -65,7 +65,11 @@ export async function executeGetSalesDocHeader(
   const input = GetSalesDocHeaderSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_sales_doc_header', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_sales_doc_header',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

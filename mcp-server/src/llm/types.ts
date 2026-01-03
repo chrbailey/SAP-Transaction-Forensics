@@ -62,14 +62,14 @@ export interface O2CProcessContext extends BaseProcessContext {
   processType: 'O2C';
 
   // Document counts
-  orderCount: number;        // Sales Orders (VBAK)
-  deliveryCount: number;     // Deliveries (LIKP)
-  invoiceCount: number;      // Billing Documents (VBRK)
+  orderCount: number; // Sales Orders (VBAK)
+  deliveryCount: number; // Deliveries (LIKP)
+  invoiceCount: number; // Billing Documents (VBRK)
 
   // Organizational structure
-  salesOrgs: string[];       // VKORG - Sales Organizations
-  distributionChannels?: string[];  // VTWEG
-  divisions?: string[];      // SPART
+  salesOrgs: string[]; // VKORG - Sales Organizations
+  distributionChannels?: string[]; // VTWEG
+  divisions?: string[]; // SPART
 }
 
 /**
@@ -80,24 +80,24 @@ export interface P2PProcessContext extends BaseProcessContext {
   processType: 'P2P';
 
   // Document counts
-  purchaseReqCount?: number;  // Purchase Requisitions (EBAN)
+  purchaseReqCount?: number; // Purchase Requisitions (EBAN)
   purchaseOrderCount: number; // Purchase Orders (EKKO)
   goodsReceiptCount?: number; // Goods Receipts (MKPF with BWART=101)
   invoiceReceiptCount?: number; // Invoice Receipts (RBKP)
 
   // Organizational structure
-  companies: string[];        // BUKRS - Company Codes
-  plants?: string[];          // WERKS - Plants
-  purchaseOrgs?: string[];    // EKORG - Purchasing Organizations
+  companies: string[]; // BUKRS - Company Codes
+  plants?: string[]; // WERKS - Plants
+  purchaseOrgs?: string[]; // EKORG - Purchasing Organizations
 
   // P2P-specific metrics
-  vendorCount: number;        // Unique vendors (LFA1)
-  uniqueActivities: number;   // Number of distinct activities
+  vendorCount: number; // Unique vendors (LFA1)
+  uniqueActivities: number; // Number of distinct activities
 
   // Matching configuration indicators
-  threeWayMatchCount?: number;  // Orders requiring 3-way match
-  twoWayMatchCount?: number;    // Orders with 2-way match only
-  grBasedIVCount?: number;      // GR-based Invoice Verification
+  threeWayMatchCount?: number; // Orders requiring 3-way match
+  twoWayMatchCount?: number; // Orders with 2-way match only
+  grBasedIVCount?: number; // GR-based Invoice Verification
 
   // BPI-specific activities (from BPI Challenge 2019)
   activities?: string[];

@@ -28,12 +28,7 @@ export type {
   ModelMetrics,
 } from './types.js';
 
-export {
-  RISK_THRESHOLDS,
-  DEFAULT_MODEL_CONFIG,
-  O2C_MILESTONES,
-  P2P_MILESTONES,
-} from './types.js';
+export { RISK_THRESHOLDS, DEFAULT_MODEL_CONFIG, O2C_MILESTONES, P2P_MILESTONES } from './types.js';
 
 // Feature extraction
 export {
@@ -44,12 +39,7 @@ export {
 } from './feature-extractor.js';
 
 // Prediction models
-export {
-  predict,
-  predictBatch,
-  PREDICTION_TYPES,
-  MODEL_DESCRIPTIONS,
-} from './models.js';
+export { predict, predictBatch, PREDICTION_TYPES, MODEL_DESCRIPTIONS } from './models.js';
 
 // Risk scoring and alerts
 export type { Alert } from './risk-scorer.js';
@@ -106,9 +96,7 @@ export function predictOutcomes(
 /**
  * Quick risk assessment for a single case
  */
-export function assessRisk(
-  processCase: ProcessCase
-): {
+export function assessRisk(processCase: ProcessCase): {
   lateDeliveryRisk: number;
   creditHoldRisk: number;
   estimatedCompletion: number;

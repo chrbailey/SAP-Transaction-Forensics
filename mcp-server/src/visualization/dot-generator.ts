@@ -6,7 +6,6 @@
 import {
   ProcessGraph,
   ActivityNode,
-  ActivityEdge,
   VisualizationOptions,
   VisualizationResult,
   BOTTLENECK_COLORS,
@@ -135,7 +134,11 @@ export function generateDotDiagram(
     } else {
       const opacity = Math.max(0.3, Math.min(1, edge.percentage / 20));
       attrs.push(`penwidth=1`);
-      attrs.push(`color="#666666${Math.round(opacity * 255).toString(16).padStart(2, '0')}"`);
+      attrs.push(
+        `color="#666666${Math.round(opacity * 255)
+          .toString(16)
+          .padStart(2, '0')}"`
+      );
     }
 
     if (attrs.length > 0) {
@@ -156,13 +159,25 @@ export function generateDotDiagram(
     lines.push('        color="#BDBDBD";');
     lines.push('        bgcolor="#FAFAFA";');
     lines.push('');
-    lines.push(`        legend_none [label="Healthy", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.none}", fontcolor="${getFontColor('none')}"];`);
-    lines.push(`        legend_low [label="Minor", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.low}", fontcolor="${getFontColor('low')}"];`);
-    lines.push(`        legend_medium [label="Moderate", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.medium}", fontcolor="${getFontColor('medium')}"];`);
-    lines.push(`        legend_high [label="High", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.high}", fontcolor="${getFontColor('high')}"];`);
-    lines.push(`        legend_critical [label="Critical", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.critical}", fontcolor="${getFontColor('critical')}"];`);
+    lines.push(
+      `        legend_none [label="Healthy", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.none}", fontcolor="${getFontColor('none')}"];`
+    );
+    lines.push(
+      `        legend_low [label="Minor", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.low}", fontcolor="${getFontColor('low')}"];`
+    );
+    lines.push(
+      `        legend_medium [label="Moderate", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.medium}", fontcolor="${getFontColor('medium')}"];`
+    );
+    lines.push(
+      `        legend_high [label="High", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.high}", fontcolor="${getFontColor('high')}"];`
+    );
+    lines.push(
+      `        legend_critical [label="Critical", shape=box, style="filled,rounded", fillcolor="${BOTTLENECK_COLORS.critical}", fontcolor="${getFontColor('critical')}"];`
+    );
     lines.push('');
-    lines.push('        legend_none -> legend_low -> legend_medium -> legend_high -> legend_critical [style=invis];');
+    lines.push(
+      '        legend_none -> legend_low -> legend_medium -> legend_high -> legend_critical [style=invis];'
+    );
     lines.push('    }');
   }
 
@@ -207,10 +222,7 @@ function sanitizeId(id: string): string {
  * Escape special characters in labels
  */
 function escapeLabel(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n');
+  return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 
 /**
@@ -241,7 +253,7 @@ function formatDuration(hours: number): string {
   } else if (hours < 24) {
     return `${Math.round(hours * 10) / 10}h`;
   } else {
-    const days = Math.round(hours / 24 * 10) / 10;
+    const days = Math.round((hours / 24) * 10) / 10;
     return `${days}d`;
   }
 }

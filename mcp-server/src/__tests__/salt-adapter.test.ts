@@ -202,14 +202,9 @@ describe('SALT Schema Mapper', () => {
         { SALESDOCUMENT: '3', PLANT: 'P200' },
       ];
 
-      const customers: SaltCustomer[] = [
-        { CUSTOMER: '100001' },
-        { CUSTOMER: '100002' },
-      ];
+      const customers: SaltCustomer[] = [{ CUSTOMER: '100001' }, { CUSTOMER: '100002' }];
 
-      const addresses: SaltAddress[] = [
-        { ADDRESSID: 'A1' },
-      ];
+      const addresses: SaltAddress[] = [{ ADDRESSID: 'A1' }];
 
       const result = calculateSaltStats(salesDocs, items, customers, addresses);
 

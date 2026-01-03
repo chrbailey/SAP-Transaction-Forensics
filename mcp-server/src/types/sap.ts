@@ -311,14 +311,14 @@ export interface DocFlowEntry {
  * Document category codes (VBTYP)
  */
 export const DOC_CATEGORY = {
-  ORDER: 'C',           // Sales Order
-  DELIVERY: 'J',        // Delivery
-  INVOICE: 'M',         // Invoice
-  CREDIT_MEMO: 'O',     // Credit Memo
-  DEBIT_MEMO: 'P',      // Debit Memo
-  QUOTATION: 'B',       // Quotation
-  CONTRACT: 'G',        // Contract
-  RETURNS: 'H',         // Returns
+  ORDER: 'C', // Sales Order
+  DELIVERY: 'J', // Delivery
+  INVOICE: 'M', // Invoice
+  CREDIT_MEMO: 'O', // Credit Memo
+  DEBIT_MEMO: 'P', // Debit Memo
+  QUOTATION: 'B', // Quotation
+  CONTRACT: 'G', // Contract
+  RETURNS: 'H', // Returns
 } as const;
 
 // ============================================================================
@@ -359,10 +359,10 @@ export interface MasterStub {
 // ============================================================================
 
 export interface OrgFilters {
-  VKORG?: string;  // Sales Organization
-  VTWEG?: string;  // Distribution Channel
-  SPART?: string;  // Division
-  WERKS?: string;  // Plant
+  VKORG?: string; // Sales Organization
+  VTWEG?: string; // Distribution Channel
+  SPART?: string; // Division
+  WERKS?: string; // Plant
 }
 
 export interface SearchDocTextParams {

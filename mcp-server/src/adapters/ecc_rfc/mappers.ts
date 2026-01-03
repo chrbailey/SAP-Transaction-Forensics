@@ -141,10 +141,7 @@ export function mapVBAKToSalesDocHeader(rfcHeader: RFCSalesDocHeader): SalesDocH
 /**
  * Map RFC sales item to standard SalesDocItem
  */
-export function mapVBAPToSalesDocItem(
-  vbeln: string,
-  rfcItem: RFCSalesDocItem
-): SalesDocItem {
+export function mapVBAPToSalesDocItem(vbeln: string, rfcItem: RFCSalesDocItem): SalesDocItem {
   return {
     VBELN: vbeln,
     POSNR: rfcItem.posnr,
@@ -205,7 +202,7 @@ export function mapDeliveryToTiming(
   return {
     delivery_number: rfcHeader.vbeln,
     header_timing: headerTiming,
-    item_timing: rfcItems.map((item) => ({
+    item_timing: rfcItems.map(item => ({
       item_number: item.posnr,
       material: item.matnr,
       // Item-level timing would require additional calls or VBEP schedule lines
@@ -293,17 +290,20 @@ export function mapVBFAToDocFlow(
   rfcEntries: RFCDocFlowEntry[]
 ): DocFlowResult {
   // Group entries by subsequent document
-  const docMap = new Map<string, {
-    vbtyp: string;
-    erdat: string;
-    erzet: string;
-    items: Array<{
-      posnn: string;
-      vbelv: string;
-      posnv: string;
-      rfmng: number;
-    }>;
-  }>();
+  const docMap = new Map<
+    string,
+    {
+      vbtyp: string;
+      erdat: string;
+      erzet: string;
+      items: Array<{
+        posnn: string;
+        vbelv: string;
+        posnv: string;
+        rfmng: number;
+      }>;
+    }
+  >();
 
   for (const entry of rfcEntries) {
     const key = entry.vbeln;
@@ -327,7 +327,7 @@ export function mapVBFAToDocFlow(
   const flow = Array.from(docMap.entries())
     .map(([docNum, data]) => {
       // Build items with conditional optional properties
-      const items = data.items.map((item) => {
+      const items = data.items.map(item => {
         const mappedItem: {
           item_number: string;
           ref_doc?: string;
@@ -473,7 +473,7 @@ export function mapReadTextResult(
   for (const { textId, itemNumber, language, result } of results) {
     // Combine text lines into single string
     const text = result.lines
-      .map((line) => {
+      .map(line => {
         // Handle paragraph markers
         if (line.tdformat === '*') {
           return '\n' + line.tdline;

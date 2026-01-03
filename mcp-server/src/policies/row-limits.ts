@@ -164,7 +164,11 @@ export function enforceRowLimit<T>(
  * @param requestedLimit - The limit to validate
  * @returns Validation result with error message if invalid
  */
-export function validateLimit(requestedLimit: number): { valid: boolean; error?: string; correctedValue?: number } {
+export function validateLimit(requestedLimit: number): {
+  valid: boolean;
+  error?: string;
+  correctedValue?: number;
+} {
   if (typeof requestedLimit !== 'number' || isNaN(requestedLimit)) {
     return {
       valid: false,

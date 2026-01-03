@@ -61,7 +61,8 @@ const logger = winston.createLogger({
         winston.format.colorize(),
         winston.format.printf(({ timestamp, level, message, ...meta }) => {
           const requestIdValue = meta['request_id'];
-          const requestId = typeof requestIdValue === 'string' ? `[${requestIdValue.slice(0, 8)}]` : '';
+          const requestId =
+            typeof requestIdValue === 'string' ? `[${requestIdValue.slice(0, 8)}]` : '';
           const toolValue = meta['tool_name'];
           const tool = typeof toolValue === 'string' ? `<${toolValue}>` : '';
           return `${timestamp} ${level} ${requestId} ${tool} ${message}`;

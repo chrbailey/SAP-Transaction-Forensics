@@ -1,9 +1,4 @@
-import {
-  parseFrame,
-  quickValidate,
-  defaultSAPFrame,
-  validateFrame,
-} from '../validator.js';
+import { parseFrame, quickValidate, defaultSAPFrame, validateFrame } from '../validator.js';
 
 describe('Frame Validator', () => {
   describe('parseFrame', () => {
@@ -88,19 +83,19 @@ describe('Frame Validator', () => {
   describe('defaultSAPFrame', () => {
     it('should generate frame for search_doc_text', () => {
       const frame = defaultSAPFrame('search_doc_text');
-      expect(frame).toContain('◐');  // operational
-      expect(frame).toContain('▲');  // analyze
+      expect(frame).toContain('◐'); // operational
+      expect(frame).toContain('▲'); // analyze
     });
 
     it('should generate frame for get_sales_doc_header', () => {
       const frame = defaultSAPFrame('get_sales_doc_header');
-      expect(frame).toContain('◊');  // financial
-      expect(frame).toContain('◀');  // retrieve
+      expect(frame).toContain('◊'); // financial
+      expect(frame).toContain('◀'); // retrieve
     });
 
     it('should generate frame for get_master_stub', () => {
       const frame = defaultSAPFrame('get_master_stub');
-      expect(frame).toContain('●');  // validate
+      expect(frame).toContain('●'); // validate
     });
 
     it('should respect mode parameter', () => {

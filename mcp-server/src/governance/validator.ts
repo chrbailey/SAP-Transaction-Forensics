@@ -2,13 +2,7 @@
 // SAP WORKFLOW MINING - PROMPTSPEAK FRAME VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════
 
-import {
-  ParsedFrame,
-  ValidationReport,
-  ValidationResult,
-  SYMBOL_ONTOLOGY,
-  SymbolDefinition,
-} from './types.js';
+import { ParsedFrame, ValidationReport, ValidationResult, SYMBOL_ONTOLOGY } from './types.js';
 
 /**
  * Parse a PromptSpeak frame string into structured components.
@@ -229,9 +223,9 @@ export function defaultSAPFrame(
   const domain = financialTools.includes(tool) ? '◊' : '◐';
 
   // Determine action based on tool type
-  let action = '◀';  // retrieve by default
-  if (tool.startsWith('search_')) action = '▲';  // analyze for search
-  if (tool === 'get_master_stub') action = '●';  // validate for master data
+  let action = '◀'; // retrieve by default
+  if (tool.startsWith('search_')) action = '▲'; // analyze for search
+  if (tool === 'get_master_stub') action = '●'; // validate for master data
 
   return `${modeSymbol}${domain}${action}α`;
 }

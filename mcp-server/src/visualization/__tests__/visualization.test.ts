@@ -5,14 +5,8 @@
 import { buildProcessGraph, Trace } from '../graph-builder.js';
 import { generateMermaidDiagram } from '../mermaid-generator.js';
 import { generateDotDiagram } from '../dot-generator.js';
-import { visualizeProcess, visualizeGraph } from '../index.js';
-import {
-  VisualizationOptions,
-  BOTTLENECK_COLORS,
-  ProcessGraph,
-  ActivityNode,
-  ActivityEdge,
-} from '../types.js';
+import { visualizeProcess } from '../index.js';
+import { VisualizationOptions, BOTTLENECK_COLORS, ProcessGraph } from '../types.js';
 
 describe('Visualization Module', () => {
   describe('Graph Builder', () => {
@@ -143,12 +137,32 @@ describe('Visualization Module', () => {
       processType: 'O2C',
       nodes: [
         { id: 'order', name: 'Order Created', frequency: 10, bottleneckSeverity: 'none' },
-        { id: 'delivery', name: 'Delivery Created', frequency: 10, avgDuration: 24, bottleneckSeverity: 'medium' },
-        { id: 'invoice', name: 'Invoice Created', frequency: 10, avgDuration: 2, bottleneckSeverity: 'low', isEnd: true },
+        {
+          id: 'delivery',
+          name: 'Delivery Created',
+          frequency: 10,
+          avgDuration: 24,
+          bottleneckSeverity: 'medium',
+        },
+        {
+          id: 'invoice',
+          name: 'Invoice Created',
+          frequency: 10,
+          avgDuration: 2,
+          bottleneckSeverity: 'low',
+          isEnd: true,
+        },
       ],
       edges: [
         { from: 'order', to: 'delivery', frequency: 10, percentage: 50, isMainPath: true },
-        { from: 'delivery', to: 'invoice', frequency: 10, percentage: 50, avgTime: 24, isMainPath: true },
+        {
+          from: 'delivery',
+          to: 'invoice',
+          frequency: 10,
+          percentage: 50,
+          avgTime: 24,
+          isMainPath: true,
+        },
       ],
       totalCases: 10,
       uniqueVariants: 1,
@@ -246,7 +260,13 @@ describe('Visualization Module', () => {
       processType: 'P2P',
       nodes: [
         { id: 'po', name: 'PO Created', frequency: 10, bottleneckSeverity: 'none', isStart: true },
-        { id: 'gr', name: 'Goods Receipt', frequency: 10, avgDuration: 24, bottleneckSeverity: 'high' },
+        {
+          id: 'gr',
+          name: 'Goods Receipt',
+          frequency: 10,
+          avgDuration: 24,
+          bottleneckSeverity: 'high',
+        },
         { id: 'invoice', name: 'Invoice', frequency: 10, bottleneckSeverity: 'low', isEnd: true },
       ],
       edges: [

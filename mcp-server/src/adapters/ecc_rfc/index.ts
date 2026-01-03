@@ -33,7 +33,7 @@ import {
 
 import { loadECCConfig, isRFCConfigAvailable, sanitizeConfigForLogging } from './config.js';
 import { RFCConnectionPool } from './connection-pool.js';
-import { RFCError, RFCNotFoundError, isNotFoundError } from './errors.js';
+import { RFCNotFoundError, isNotFoundError } from './errors.js';
 import {
   callReadText,
   callBapiSalesorderGetlist,
@@ -206,7 +206,7 @@ export class ECCRFCAdapter extends BaseDataAdapter {
             language: 'EN',
           });
 
-          const fullText = textResult.lines.map((l) => l.tdline).join('\n');
+          const fullText = textResult.lines.map(l => l.tdline).join('\n');
           const match = regex.exec(fullText);
 
           if (match) {
@@ -218,7 +218,8 @@ export class ECCRFCAdapter extends BaseDataAdapter {
             results.push({
               doc_type: 'sales',
               doc_key: order.salesDocument,
-              snippet: (matchStart > 0 ? '...' : '') + snippet + (matchEnd < fullText.length ? '...' : ''),
+              snippet:
+                (matchStart > 0 ? '...' : '') + snippet + (matchEnd < fullText.length ? '...' : ''),
               match_score: 1.0, // Exact match
               dates: {
                 created: mapSAPDate(order.salesDocumentDate),
@@ -400,7 +401,7 @@ export class ECCRFCAdapter extends BaseDataAdapter {
 
     try {
       const { header, items } = await callSDSalesdocumentRead(pool, params.vbeln);
-      return items.map((item) => mapVBAPToSalesDocItem(header.vbeln, item));
+      return items.map(item => mapVBAPToSalesDocItem(header.vbeln, item));
     } catch (err) {
       if (err instanceof RFCNotFoundError) {
         return [];

@@ -57,10 +57,10 @@ interface BPITraceInternal {
   attributes: {
     'concept:name'?: string;
     'Purchasing Document'?: string;
-    'Item'?: string;
-    'Vendor'?: string;
-    'Name'?: string;
-    'Company'?: string;
+    Item?: string;
+    Vendor?: string;
+    Name?: string;
+    Company?: string;
     'Document Type'?: string;
     'Item Category'?: string;
     'Item Type'?: string;
@@ -70,7 +70,7 @@ interface BPITraceInternal {
     'Purch. Doc. Category name'?: string;
     'GR-Based Inv. Verif.'?: string;
     'Goods Receipt'?: string;
-    'Source'?: string;
+    Source?: string;
     [key: string]: unknown;
   };
   events: BPIEvent[];
@@ -103,7 +103,7 @@ export interface BPITrace {
 interface BPIEvent {
   'concept:name'?: string;
   'time:timestamp'?: string;
-  'User'?: string;
+  User?: string;
   'org:resource'?: string;
   'Cumulative net worth (EUR)'?: string;
   [key: string]: unknown;
@@ -178,7 +178,7 @@ export class BPIAdapter extends BaseDataAdapter {
     } catch {
       throw new Error(
         `BPI data not found at ${dataPath}.\n` +
-        'Run: python scripts/convert-bpi-xes.py to convert the dataset.'
+          'Run: python scripts/convert-bpi-xes.py to convert the dataset.'
       );
     }
 
@@ -433,10 +433,12 @@ export class BPIAdapter extends BaseDataAdapter {
           status: activity,
           created_date: datePart,
           created_time: timePart,
-          items: [{
-            item_number: item,
-            quantity: 1,
-          }],
+          items: [
+            {
+              item_number: item,
+              quantity: 1,
+            },
+          ],
         });
       }
     }
@@ -526,7 +528,10 @@ export class BPIAdapter extends BaseDataAdapter {
 
     for (const trace of traces) {
       for (const event of trace.events) {
-        if (event['concept:name']?.includes('Goods Receipt') && !event['concept:name']?.includes('Cancel')) {
+        if (
+          event['concept:name']?.includes('Goods Receipt') &&
+          !event['concept:name']?.includes('Cancel')
+        ) {
           const timestamp = event['time:timestamp'] || '';
           grEvents.push({
             item: trace.attributes['Item'] || '00001',
@@ -572,15 +577,17 @@ export class BPIAdapter extends BaseDataAdapter {
     // Find invoice events
     let invoiceDate = '';
     let clearDate = '';
-    let netWorth = 0;
 
     for (const trace of traces) {
       for (const event of trace.events) {
         const activity = event['concept:name'] || '';
-        if (activity.includes('Record Invoice Receipt') || activity.includes('Vendor creates invoice')) {
+        if (
+          activity.includes('Record Invoice Receipt') ||
+          activity.includes('Vendor creates invoice')
+        ) {
           const timestamp = event['time:timestamp'] || '';
           invoiceDate = timestamp.split('T')[0]?.replace(/-/g, '') || '';
-          netWorth = parseFloat(event['Cumulative net worth (EUR)'] || '0');
+          // Net worth available in event['Cumulative net worth (EUR)'] if needed
         }
         if (activity === 'Clear Invoice') {
           const timestamp = event['time:timestamp'] || '';
@@ -623,7 +630,7 @@ export class BPIAdapter extends BaseDataAdapter {
       return null;
     }
 
-    const firstTrace = traces[0]!;
+    // traces[0] available if needed for additional attributes
     const stub: MasterStub = {
       ENTITY_TYPE: 'vendor',
       ID: params.id.padStart(10, '0'),

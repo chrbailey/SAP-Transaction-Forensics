@@ -12,12 +12,12 @@ export type DeviationSeverity = 'critical' | 'major' | 'minor';
  * Types of process deviations
  */
 export type DeviationType =
-  | 'skipped_activity'      // Required activity was skipped
-  | 'wrong_order'           // Activities executed in incorrect sequence
-  | 'unexpected_activity'   // Activity not in reference model
-  | 'missing_activity'      // Expected activity not found
-  | 'repeated_activity'     // Activity executed multiple times
-  | 'timing_violation';     // Activity timing outside expected bounds
+  | 'skipped_activity' // Required activity was skipped
+  | 'wrong_order' // Activities executed in incorrect sequence
+  | 'unexpected_activity' // Activity not in reference model
+  | 'missing_activity' // Expected activity not found
+  | 'repeated_activity' // Activity executed multiple times
+  | 'timing_violation'; // Activity timing outside expected bounds
 
 /**
  * Process types supported

@@ -19,7 +19,7 @@ import {
   DEFAULT_GOVERNANCE_CONFIG,
   HoldRequest,
 } from './types.js';
-import { parseFrame, quickValidate, defaultSAPFrame } from './validator.js';
+import { quickValidate, defaultSAPFrame } from './validator.js';
 import { CircuitBreaker } from './circuit-breaker.js';
 import { HoldManager } from './hold-manager.js';
 

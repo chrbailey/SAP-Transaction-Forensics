@@ -3,7 +3,7 @@
 // Pre-built process models for SAP O2C and P2P conformance checking
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { ReferenceModel, ReferenceActivity } from './types.js';
+import { ReferenceModel } from './types.js';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ORDER-TO-CASH (O2C) MODELS
@@ -55,20 +55,20 @@ export const O2C_SIMPLE_MODEL: ReferenceModel = {
   ],
   activityMappings: {
     // SAP document categories
-    'C': 'order_created',
-    'J': 'delivery_created',
-    'M': 'invoice_created',
+    C: 'order_created',
+    J: 'delivery_created',
+    M: 'invoice_created',
     // Common names
-    'order': 'order_created',
-    'sales': 'order_created',
-    'order_created': 'order_created',
-    'delivery': 'delivery_created',
-    'delivery_created': 'delivery_created',
-    'goods_issued': 'goods_issued',
-    'gi': 'goods_issued',
-    'invoice': 'invoice_created',
-    'invoice_created': 'invoice_created',
-    'billing': 'invoice_created',
+    order: 'order_created',
+    sales: 'order_created',
+    order_created: 'order_created',
+    delivery: 'delivery_created',
+    delivery_created: 'delivery_created',
+    goods_issued: 'goods_issued',
+    gi: 'goods_issued',
+    invoice: 'invoice_created',
+    invoice_created: 'invoice_created',
+    billing: 'invoice_created',
   },
 };
 
@@ -156,16 +156,16 @@ export const O2C_DETAILED_MODEL: ReferenceModel = {
   ],
   activityMappings: {
     ...O2C_SIMPLE_MODEL.activityMappings,
-    'credit_check': 'credit_check',
-    'credit': 'credit_check',
-    'order_confirmed': 'order_confirmed',
-    'confirmed': 'order_confirmed',
-    'picking': 'picking',
-    'pick': 'picking',
-    'packing': 'packing',
-    'pack': 'packing',
-    'payment': 'payment_received',
-    'payment_received': 'payment_received',
+    credit_check: 'credit_check',
+    credit: 'credit_check',
+    order_confirmed: 'order_confirmed',
+    confirmed: 'order_confirmed',
+    picking: 'picking',
+    pick: 'picking',
+    packing: 'packing',
+    pack: 'packing',
+    payment: 'payment_received',
+    payment_received: 'payment_received',
   },
 };
 
@@ -237,14 +237,14 @@ export const P2P_SIMPLE_MODEL: ReferenceModel = {
     'SRM: Change was Transmitted': 'po_created',
     'SRM: Awaiting Approval': 'po_created',
     // Common variations
-    'po_created': 'po_created',
-    'purchase_order': 'po_created',
-    'goods_receipt': 'goods_receipt',
-    'gr': 'goods_receipt',
-    'invoice_receipt': 'invoice_receipt',
-    'invoice': 'invoice_receipt',
-    'invoice_cleared': 'invoice_cleared',
-    'payment': 'invoice_cleared',
+    po_created: 'po_created',
+    purchase_order: 'po_created',
+    goods_receipt: 'goods_receipt',
+    gr: 'goods_receipt',
+    invoice_receipt: 'invoice_receipt',
+    invoice: 'invoice_receipt',
+    invoice_cleared: 'invoice_cleared',
+    payment: 'invoice_cleared',
   },
 };
 
@@ -364,16 +364,16 @@ export const P2P_DETAILED_MODEL: ReferenceModel = {
     'Change Price': 'change_price',
     'Change Approval for Purchase Order': 'approval_pending',
     // Common variations
-    'po_created': 'po_created',
-    'purchase_order': 'po_created',
-    'goods_receipt': 'goods_receipt',
-    'gr': 'goods_receipt',
-    'invoice_receipt': 'invoice_receipt',
-    'invoice': 'invoice_receipt',
-    'invoice_cleared': 'invoice_cleared',
-    'payment': 'invoice_cleared',
-    'pr_created': 'pr_created',
-    'requisition': 'pr_created',
+    po_created: 'po_created',
+    purchase_order: 'po_created',
+    goods_receipt: 'goods_receipt',
+    gr: 'goods_receipt',
+    invoice_receipt: 'invoice_receipt',
+    invoice: 'invoice_receipt',
+    invoice_cleared: 'invoice_cleared',
+    payment: 'invoice_cleared',
+    pr_created: 'pr_created',
+    requisition: 'pr_created',
   },
 };
 

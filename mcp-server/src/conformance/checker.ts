@@ -93,10 +93,7 @@ export class ConformanceChecker {
   /**
    * Determine severity based on deviation type and context
    */
-  private determineSeverity(
-    deviationType: DeviationType,
-    activityId?: string
-  ): DeviationSeverity {
+  private determineSeverity(deviationType: DeviationType, activityId?: string): DeviationSeverity {
     // Missing required activities are critical
     if (deviationType === 'missing_activity' && activityId && this.isRequired(activityId)) {
       return 'critical';
@@ -230,9 +227,7 @@ export class ConformanceChecker {
     }
 
     // Calculate fitness score
-    const expectedSequence = this.model.activities
-      .filter(a => a.required)
-      .map(a => a.id);
+    const expectedSequence = this.model.activities.filter(a => a.required).map(a => a.id);
 
     const fitness = this.calculateFitness(actualSequence, expectedSequence, deviations);
 
@@ -250,11 +245,7 @@ export class ConformanceChecker {
    * Calculate fitness score (0-1)
    * Based on ratio of conforming activities to expected activities
    */
-  private calculateFitness(
-    actual: string[],
-    expected: string[],
-    deviations: Deviation[]
-  ): number {
+  private calculateFitness(actual: string[], expected: string[], deviations: Deviation[]): number {
     if (expected.length === 0) return 1;
 
     // Count how many expected activities are present in correct order
@@ -325,12 +316,9 @@ export class ConformanceChecker {
 
     // Calculate rates
     const totalCases = traces.length;
-    const conformanceRate = totalCases > 0
-      ? Math.round((conformingCount / totalCases) * 100 * 100) / 100
-      : 0;
-    const fitnessScore = totalCases > 0
-      ? Math.round((totalFitness / totalCases) * 100) / 100
-      : 0;
+    const conformanceRate =
+      totalCases > 0 ? Math.round((conformingCount / totalCases) * 100 * 100) / 100 : 0;
+    const fitnessScore = totalCases > 0 ? Math.round((totalFitness / totalCases) * 100) / 100 : 0;
 
     // Get top deviations
     const topDeviations = Array.from(deviationPatterns.entries())

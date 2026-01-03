@@ -19,7 +19,6 @@ import {
   visualizeProcess as visualizeP2PProcess,
   Trace as VisualizationTrace,
   VisualizationOptions,
-  VisualizationResult as P2PVisualizationResult,
 } from '../visualization/index.js';
 
 /**
@@ -84,21 +83,30 @@ interface ProcessEdge {
  * Zod schema for input validation
  */
 export const VisualizeProcessSchema = z.object({
-  doc_numbers: z.array(z.string().min(1)).optional().describe(
-    'Document numbers to visualize (required for O2C, optional for P2P)'
-  ),
+  doc_numbers: z
+    .array(z.string().min(1))
+    .optional()
+    .describe('Document numbers to visualize (required for O2C, optional for P2P)'),
   format: z.enum(['mermaid', 'dot', 'svg']).default('mermaid'),
   include_timing: z.boolean().default(true),
   highlight_bottlenecks: z.boolean().default(true),
-  max_traces: z.number().int().min(1).max(10000).default(100).describe(
-    'Maximum traces to analyze (for P2P mode)'
-  ),
-  main_path_only: z.boolean().default(false).describe(
-    'Only show the main process path (most frequent transitions)'
-  ),
-  min_edge_frequency: z.number().min(0).max(1).default(0.01).describe(
-    'Minimum edge frequency to include (0-1)'
-  ),
+  max_traces: z
+    .number()
+    .int()
+    .min(1)
+    .max(10000)
+    .default(100)
+    .describe('Maximum traces to analyze (for P2P mode)'),
+  main_path_only: z
+    .boolean()
+    .default(false)
+    .describe('Only show the main process path (most frequent transitions)'),
+  min_edge_frequency: z
+    .number()
+    .min(0)
+    .max(1)
+    .default(0.01)
+    .describe('Minimum edge frequency to include (0-1)'),
 });
 
 export type VisualizeProcessInput = z.infer<typeof VisualizeProcessSchema>;
@@ -210,13 +218,16 @@ function calculateDurationHours(from: Date, to: Date): number {
  * Determine bottleneck severity based on duration thresholds
  * Thresholds are based on typical SAP O2C process benchmarks
  */
-function getBottleneckSeverity(durationHours: number, stepType: string): 'low' | 'medium' | 'high' | null {
+function getBottleneckSeverity(
+  durationHours: number,
+  stepType: string
+): 'low' | 'medium' | 'high' | null {
   // Define thresholds by step type (in hours)
   const thresholds: Record<string, { medium: number; high: number }> = {
-    'order_to_delivery': { medium: 24, high: 72 },     // 1-3 days typical
-    'delivery_to_gi': { medium: 8, high: 24 },          // Same day to 1 day
-    'gi_to_invoice': { medium: 24, high: 48 },          // 1-2 days typical
-    'default': { medium: 24, high: 72 },
+    order_to_delivery: { medium: 24, high: 72 }, // 1-3 days typical
+    delivery_to_gi: { medium: 8, high: 24 }, // Same day to 1 day
+    gi_to_invoice: { medium: 24, high: 48 }, // 1-2 days typical
+    default: { medium: 24, high: 72 },
   };
 
   const threshold = thresholds[stepType] ?? thresholds['default']!;
@@ -236,14 +247,14 @@ function getBottleneckSeverity(durationHours: number, stepType: string): 'low' |
  */
 function getDocCategoryLabel(category: string, docType: string): string {
   const labels: Record<string, string> = {
-    'C': 'Sales Order',
-    'J': 'Delivery',
-    'M': 'Invoice',
-    'O': 'Credit Memo',
-    'P': 'Debit Memo',
-    'B': 'Quotation',
-    'G': 'Contract',
-    'H': 'Returns',
+    C: 'Sales Order',
+    J: 'Delivery',
+    M: 'Invoice',
+    O: 'Credit Memo',
+    P: 'Debit Memo',
+    B: 'Quotation',
+    G: 'Contract',
+    H: 'Returns',
   };
 
   return labels[category] || docType || 'Document';
@@ -451,10 +462,14 @@ function generateDotDiagram(
       return '#d4edda'; // Normal green
     }
     switch (node.bottleneck_severity) {
-      case 'low': return '#fff3cd';      // Yellow
-      case 'medium': return '#ffe5d0';   // Orange
-      case 'high': return '#f8d7da';     // Red
-      default: return '#d4edda';
+      case 'low':
+        return '#fff3cd'; // Yellow
+      case 'medium':
+        return '#ffe5d0'; // Orange
+      case 'high':
+        return '#f8d7da'; // Red
+      default:
+        return '#d4edda';
     }
   };
 
@@ -463,10 +478,14 @@ function generateDotDiagram(
       return '#28a745';
     }
     switch (node.bottleneck_severity) {
-      case 'low': return '#ffc107';
-      case 'medium': return '#fd7e14';
-      case 'high': return '#dc3545';
-      default: return '#28a745';
+      case 'low':
+        return '#ffc107';
+      case 'medium':
+        return '#fd7e14';
+      case 'high':
+        return '#dc3545';
+      default:
+        return '#28a745';
     }
   };
 
@@ -479,7 +498,9 @@ function generateDotDiagram(
     const borderColor = getBorderColor(node);
     const penWidth = node.is_bottleneck && node.bottleneck_severity === 'high' ? 3 : 1;
 
-    lines.push(`  ${safeId} [label="${label}", fillcolor="${fillColor}", color="${borderColor}", penwidth=${penWidth}];`);
+    lines.push(
+      `  ${safeId} [label="${label}", fillcolor="${fillColor}", color="${borderColor}", penwidth=${penWidth}];`
+    );
   }
   lines.push('');
 
@@ -536,10 +557,14 @@ function generateSvgDiagram(
       return '#d4edda';
     }
     switch (node.bottleneck_severity) {
-      case 'low': return '#fff3cd';
-      case 'medium': return '#ffe5d0';
-      case 'high': return '#f8d7da';
-      default: return '#d4edda';
+      case 'low':
+        return '#fff3cd';
+      case 'medium':
+        return '#ffe5d0';
+      case 'high':
+        return '#f8d7da';
+      default:
+        return '#d4edda';
     }
   };
 
@@ -548,10 +573,14 @@ function generateSvgDiagram(
       return '#28a745';
     }
     switch (node.bottleneck_severity) {
-      case 'low': return '#ffc107';
-      case 'medium': return '#fd7e14';
-      case 'high': return '#dc3545';
-      default: return '#28a745';
+      case 'low':
+        return '#ffc107';
+      case 'medium':
+        return '#fd7e14';
+      case 'high':
+        return '#dc3545';
+      default:
+        return '#28a745';
     }
   };
 
@@ -581,13 +610,17 @@ function generateSvgDiagram(
       const x2 = toPos.x;
       const y2 = toPos.y + nodeHeight / 2;
 
-      lines.push(`  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>`);
+      lines.push(
+        `  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>`
+      );
 
       if (includeTiming && edge.duration_hours > 0) {
         const midX = (x1 + x2) / 2;
         const midY = (y1 + y2) / 2 - 10;
         const durationLabel = formatDuration(edge.duration_hours);
-        lines.push(`  <text x="${midX}" y="${midY}" class="edge-text" text-anchor="middle">${durationLabel}</text>`);
+        lines.push(
+          `  <text x="${midX}" y="${midY}" class="edge-text" text-anchor="middle">${durationLabel}</text>`
+        );
       }
     }
   }
@@ -602,15 +635,19 @@ function generateSvgDiagram(
     const borderColor = getBorderColor(node);
     const strokeWidth = node.is_bottleneck && node.bottleneck_severity === 'high' ? 3 : 1;
 
-    lines.push(`  <rect x="${pos.x}" y="${pos.y}" width="${nodeWidth}" height="${nodeHeight}" rx="8" fill="${fillColor}" stroke="${borderColor}" stroke-width="${strokeWidth}"/>`);
+    lines.push(
+      `  <rect x="${pos.x}" y="${pos.y}" width="${nodeWidth}" height="${nodeHeight}" rx="8" fill="${fillColor}" stroke="${borderColor}" stroke-width="${strokeWidth}"/>`
+    );
 
     // Split label for multi-line text
     const labelParts = node.label.split('\\n');
-    const textY = pos.y + (nodeHeight / 2) - ((labelParts.length - 1) * 7);
+    const textY = pos.y + nodeHeight / 2 - (labelParts.length - 1) * 7;
 
     for (let i = 0; i < labelParts.length; i++) {
       const part = labelParts[i] ?? '';
-      lines.push(`  <text x="${pos.x + nodeWidth / 2}" y="${textY + i * 14}" class="node-text">${escapeXml(part)}</text>`);
+      lines.push(
+        `  <text x="${pos.x + nodeWidth / 2}" y="${textY + i * 14}" class="node-text">${escapeXml(part)}</text>`
+      );
     }
   }
 
@@ -618,14 +655,20 @@ function generateSvgDiagram(
   if (highlightBottlenecks) {
     lines.push('  <!-- Legend -->');
     lines.push('  <g transform="translate(10, 10)">');
-    lines.push('    <text x="0" y="12" style="font-family: Arial; font-size: 10px; font-weight: bold;">Legend:</text>');
+    lines.push(
+      '    <text x="0" y="12" style="font-family: Arial; font-size: 10px; font-weight: bold;">Legend:</text>'
+    );
     lines.push('    <rect x="0" y="20" width="15" height="15" fill="#d4edda" stroke="#28a745"/>');
     lines.push('    <text x="20" y="32" style="font-family: Arial; font-size: 9px;">Normal</text>');
     lines.push('    <rect x="60" y="20" width="15" height="15" fill="#fff3cd" stroke="#ffc107"/>');
     lines.push('    <text x="80" y="32" style="font-family: Arial; font-size: 9px;">Low</text>');
     lines.push('    <rect x="110" y="20" width="15" height="15" fill="#ffe5d0" stroke="#fd7e14"/>');
-    lines.push('    <text x="130" y="32" style="font-family: Arial; font-size: 9px;">Medium</text>');
-    lines.push('    <rect x="175" y="20" width="15" height="15" fill="#f8d7da" stroke="#dc3545" stroke-width="2"/>');
+    lines.push(
+      '    <text x="130" y="32" style="font-family: Arial; font-size: 9px;">Medium</text>'
+    );
+    lines.push(
+      '    <rect x="175" y="20" width="15" height="15" fill="#f8d7da" stroke="#dc3545" stroke-width="2"/>'
+    );
     lines.push('    <text x="195" y="32" style="font-family: Arial; font-size: 9px;">High</text>');
     lines.push('  </g>');
   }
@@ -668,8 +711,10 @@ function escapeXml(str: string): string {
  * Check if adapter is a BPI adapter (P2P)
  */
 function isBPIAdapter(adapter: SAPAdapter): adapter is SAPAdapter & { getTraces(): BPITrace[] } {
-  return adapter.name === 'BPI Challenge 2019' &&
-         typeof (adapter as unknown as { getTraces?: () => BPITrace[] }).getTraces === 'function';
+  return (
+    adapter.name === 'BPI Challenge 2019' &&
+    typeof (adapter as unknown as { getTraces?: () => BPITrace[] }).getTraces === 'function'
+  );
 }
 
 /**
@@ -784,7 +829,12 @@ async function executeO2CVisualization(
       break;
     case 'mermaid':
     default:
-      diagram = generateMermaidDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
+      diagram = generateMermaidDiagram(
+        nodes,
+        edges,
+        input.include_timing,
+        input.highlight_bottlenecks
+      );
       break;
   }
 
@@ -797,9 +847,10 @@ async function executeO2CVisualization(
     .map(n => {
       // Find average incoming edge duration
       const incomingEdges = edges.filter(e => e.to === n.id);
-      const avgDuration = incomingEdges.length > 0
-        ? incomingEdges.reduce((sum, e) => sum + e.duration_hours, 0) / incomingEdges.length
-        : 0;
+      const avgDuration =
+        incomingEdges.length > 0
+          ? incomingEdges.reduce((sum, e) => sum + e.duration_hours, 0) / incomingEdges.length
+          : 0;
 
       return {
         step: `${getDocCategoryLabel(n.doc_category, n.doc_type)} (${n.id.split('_').pop()})`,
@@ -837,7 +888,11 @@ export async function executeVisualizeProcess(
   const input = VisualizeProcessSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('visualize_process', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'visualize_process',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Detect adapter type and route to appropriate implementation

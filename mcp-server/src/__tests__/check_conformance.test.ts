@@ -6,10 +6,7 @@
  * Uses Jest with ESM support.
  */
 
-import {
-  CheckConformanceSchema,
-  checkConformanceTool,
-} from '../tools/check_conformance.js';
+import { CheckConformanceSchema, checkConformanceTool } from '../tools/check_conformance.js';
 
 describe('CheckConformanceSchema', () => {
   describe('input validation', () => {
@@ -39,7 +36,10 @@ describe('CheckConformanceSchema', () => {
 
     it('should accept specific severity filter values', () => {
       const severities: Array<'all' | 'critical' | 'major' | 'minor'> = [
-        'all', 'critical', 'major', 'minor'
+        'all',
+        'critical',
+        'major',
+        'minor',
       ];
 
       for (const severity of severities) {
@@ -155,7 +155,12 @@ describe('O2C Reference Model', () => {
 });
 
 describe('Deviation Detection Logic', () => {
-  type DeviationType = 'missing_activity' | 'wrong_order' | 'skipped_step' | 'repeated_activity' | 'unexpected_activity';
+  type DeviationType =
+    | 'missing_activity'
+    | 'wrong_order'
+    | 'skipped_step'
+    | 'repeated_activity'
+    | 'unexpected_activity';
   type DeviationSeverity = 'critical' | 'major' | 'minor';
 
   interface Deviation {
@@ -267,7 +272,9 @@ describe('Deviation Detection Logic', () => {
     const invoiceDate = new Date('2024-01-16');
 
     const deviations = detectWrongOrder('0000012345', orderDate, deliveryDate, invoiceDate);
-    expect(deviations.some(d => d.description.includes('Delivery created before order'))).toBe(true);
+    expect(deviations.some(d => d.description.includes('Delivery created before order'))).toBe(
+      true
+    );
   });
 
   it('should detect wrong order: invoice before delivery', () => {
@@ -276,7 +283,9 @@ describe('Deviation Detection Logic', () => {
     const invoiceDate = new Date('2024-01-15');
 
     const deviations = detectWrongOrder('0000012345', orderDate, deliveryDate, invoiceDate);
-    expect(deviations.some(d => d.description.includes('Invoice created before delivery'))).toBe(true);
+    expect(deviations.some(d => d.description.includes('Invoice created before delivery'))).toBe(
+      true
+    );
   });
 
   it('should classify wrong order as major severity', () => {
@@ -290,10 +299,7 @@ describe('Deviation Detection Logic', () => {
 });
 
 describe('Conformance Rate Calculation', () => {
-  function calculateConformanceRate(
-    totalCases: number,
-    conformingCases: number
-  ): number {
+  function calculateConformanceRate(totalCases: number, conformingCases: number): number {
     if (totalCases === 0) return 0;
     return Math.round((conformingCases / totalCases) * 10000) / 100;
   }
@@ -333,9 +339,7 @@ describe('Deviation Severity Summary', () => {
     minor: number;
   }
 
-  function summarizeSeverities(
-    severities: DeviationSeverity[]
-  ): SeveritySummary {
+  function summarizeSeverities(severities: DeviationSeverity[]): SeveritySummary {
     return {
       critical: severities.filter(s => s === 'critical').length,
       major: severities.filter(s => s === 'major').length,
@@ -387,9 +391,7 @@ describe('Deviation Type Summary', () => {
     repeated_activity: number;
   }
 
-  function summarizeDeviationTypes(
-    types: DeviationType[]
-  ): DeviationTypeSummary {
+  function summarizeDeviationTypes(types: DeviationType[]): DeviationTypeSummary {
     return {
       missing_activity: types.filter(t => t === 'missing_activity').length,
       wrong_order: types.filter(t => t === 'wrong_order').length,

@@ -258,9 +258,10 @@ export function isNotFoundError(error: unknown): boolean {
  * Extract return messages from BAPI responses
  * BAPIs return a RETURN table/structure with messages
  */
-export function extractBapiErrors(
-  returnData: unknown
-): { hasErrors: boolean; messages: Array<{ type: string; message: string }> } {
+export function extractBapiErrors(returnData: unknown): {
+  hasErrors: boolean;
+  messages: Array<{ type: string; message: string }>;
+} {
   const messages: Array<{ type: string; message: string }> = [];
   let hasErrors = false;
 
@@ -306,7 +307,7 @@ export function createErrorFromBapiReturn(returnData: unknown, context: string):
   }
 
   // Find the first error message
-  const errorMsg = messages.find((m) => m.type === 'E' || m.type === 'A');
+  const errorMsg = messages.find(m => m.type === 'E' || m.type === 'A');
 
   if (errorMsg) {
     // Check for common "not found" patterns

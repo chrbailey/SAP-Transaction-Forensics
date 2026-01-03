@@ -22,14 +22,22 @@ import {
 export const SearchDocTextSchema = z.object({
   pattern: z.string().min(2, 'Pattern must be at least 2 characters'),
   doc_type: z.enum(['sales', 'delivery', 'invoice']).optional(),
-  date_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format').optional(),
-  date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format').optional(),
-  org_filters: z.object({
-    VKORG: z.string().optional(),
-    VTWEG: z.string().optional(),
-    SPART: z.string().optional(),
-    WERKS: z.string().optional(),
-  }).optional(),
+  date_from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format')
+    .optional(),
+  date_to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format')
+    .optional(),
+  org_filters: z
+    .object({
+      VKORG: z.string().optional(),
+      VTWEG: z.string().optional(),
+      SPART: z.string().optional(),
+      WERKS: z.string().optional(),
+    })
+    .optional(),
   limit: z.number().int().min(1).max(200).default(200),
 });
 
@@ -104,7 +112,11 @@ export async function executeSearchDocText(
   const input = SearchDocTextSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('search_doc_text', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'search_doc_text',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Enforce policies

@@ -275,7 +275,7 @@ export class HoldManager {
     const now = Date.now();
     let count = 0;
 
-    for (const [holdId, hold] of this.holds) {
+    for (const [, hold] of this.holds) {
       if (hold.status === 'pending' && now > hold.expiresAt) {
         hold.status = 'expired';
         count++;
@@ -295,14 +295,25 @@ export class HoldManager {
     rejected: number;
     expired: number;
   } {
-    let pending = 0, approved = 0, rejected = 0, expired = 0;
+    let pending = 0,
+      approved = 0,
+      rejected = 0,
+      expired = 0;
 
     for (const hold of this.holds.values()) {
       switch (hold.status) {
-        case 'pending': pending++; break;
-        case 'approved': approved++; break;
-        case 'rejected': rejected++; break;
-        case 'expired': expired++; break;
+        case 'pending':
+          pending++;
+          break;
+        case 'approved':
+          approved++;
+          break;
+        case 'rejected':
+          rejected++;
+          break;
+        case 'expired':
+          expired++;
+          break;
       }
     }
 

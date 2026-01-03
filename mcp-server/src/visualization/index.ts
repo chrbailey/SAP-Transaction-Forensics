@@ -29,7 +29,7 @@ export function visualizeProcess(
       return generateMermaidDiagram(graph, options);
     case 'dot':
       return generateDotDiagram(graph, options);
-    case 'svg':
+    case 'svg': {
       // SVG generation would require additional tooling (e.g., calling graphviz)
       // For now, return DOT format with a note
       const dotResult = generateDotDiagram(graph, options);
@@ -38,6 +38,7 @@ export function visualizeProcess(
         format: 'svg',
         content: `<!-- SVG generation requires GraphViz. Use the DOT source below with 'dot -Tsvg' -->\n${dotResult.content}`,
       };
+    }
     default:
       throw new Error(`Unsupported format: ${options.format}`);
   }
@@ -55,13 +56,14 @@ export function visualizeGraph(
       return generateMermaidDiagram(graph, options);
     case 'dot':
       return generateDotDiagram(graph, options);
-    case 'svg':
+    case 'svg': {
       const dotResult = generateDotDiagram(graph, options);
       return {
         ...dotResult,
         format: 'svg',
         content: `<!-- SVG generation requires GraphViz. Use the DOT source below with 'dot -Tsvg' -->\n${dotResult.content}`,
       };
+    }
     default:
       throw new Error(`Unsupported format: ${options.format}`);
   }

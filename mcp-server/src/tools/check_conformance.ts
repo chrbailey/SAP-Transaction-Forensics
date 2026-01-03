@@ -14,17 +14,10 @@
 import { z } from 'zod';
 import { SAPAdapter } from '../adapters/adapter.js';
 import { createAuditContext } from '../logging/audit.js';
+import { enforceRowLimit, withTimeout, getPolicyConfig } from '../policies/limits.js';
 import {
-  enforceRowLimit,
-  withTimeout,
-  getPolicyConfig,
-} from '../policies/limits.js';
-import {
-  ConformanceChecker,
   createChecker,
   Trace,
-  TraceEvent,
-  ConformanceResult as CheckerResult,
   getDefaultModel,
   getModelById,
   listModels,
@@ -175,25 +168,25 @@ const O2C_REFERENCE_MODEL: ReferenceActivity[] = [
  */
 const ACTIVITY_MAPPING: Record<string, string> = {
   // Sales Order related
-  'C': 'order_created',       // VBTYP_N = C (Sales Order)
-  'order': 'order_created',
-  'sales': 'order_created',
-  'order_created': 'order_created',
+  C: 'order_created', // VBTYP_N = C (Sales Order)
+  order: 'order_created',
+  sales: 'order_created',
+  order_created: 'order_created',
 
   // Delivery related
-  'J': 'delivery_created',    // VBTYP_N = J (Delivery)
-  'delivery': 'delivery_created',
-  'delivery_created': 'delivery_created',
+  J: 'delivery_created', // VBTYP_N = J (Delivery)
+  delivery: 'delivery_created',
+  delivery_created: 'delivery_created',
 
   // Goods Issue
-  'goods_issued': 'goods_issued',
-  'gi': 'goods_issued',
+  goods_issued: 'goods_issued',
+  gi: 'goods_issued',
 
   // Invoice related
-  'M': 'invoice_created',     // VBTYP_N = M (Invoice)
-  'invoice': 'invoice_created',
-  'invoice_created': 'invoice_created',
-  'billing': 'invoice_created',
+  M: 'invoice_created', // VBTYP_N = M (Invoice)
+  invoice: 'invoice_created',
+  invoice_created: 'invoice_created',
+  billing: 'invoice_created',
 };
 
 // ============================================================================
@@ -204,21 +197,29 @@ const ACTIVITY_MAPPING: Record<string, string> = {
  * Zod schema for input validation
  */
 export const CheckConformanceSchema = z.object({
-  doc_numbers: z.array(z.string()).optional().describe(
-    'Specific document numbers to check. If omitted, checks recent documents.'
-  ),
-  model_id: z.string().optional().describe(
-    'Reference model ID (e.g., "o2c-simple", "p2p-detailed"). Auto-detected if omitted.'
-  ),
-  include_deviations: z.boolean().default(true).describe(
-    'Include detailed deviation information in results'
-  ),
-  severity_filter: z.enum(['all', 'critical', 'major', 'minor']).default('all').describe(
-    'Filter results by severity level'
-  ),
-  max_traces: z.number().int().min(1).max(10000).default(100).describe(
-    'Maximum number of traces to analyze'
-  ),
+  doc_numbers: z
+    .array(z.string())
+    .optional()
+    .describe('Specific document numbers to check. If omitted, checks recent documents.'),
+  model_id: z
+    .string()
+    .optional()
+    .describe('Reference model ID (e.g., "o2c-simple", "p2p-detailed"). Auto-detected if omitted.'),
+  include_deviations: z
+    .boolean()
+    .default(true)
+    .describe('Include detailed deviation information in results'),
+  severity_filter: z
+    .enum(['all', 'critical', 'major', 'minor'])
+    .default('all')
+    .describe('Filter results by severity level'),
+  max_traces: z
+    .number()
+    .int()
+    .min(1)
+    .max(10000)
+    .default(100)
+    .describe('Maximum number of traces to analyze'),
 });
 
 export type CheckConformanceInput = z.infer<typeof CheckConformanceSchema>;
@@ -337,10 +338,7 @@ function isActivityRequired(activityName: string): boolean {
 /**
  * Determine severity based on deviation type and activity
  */
-function determineSeverity(
-  deviationType: DeviationType,
-  activityName?: string
-): DeviationSeverity {
+function determineSeverity(deviationType: DeviationType, activityName?: string): DeviationSeverity {
   // Critical: Missing required activities or fundamental sequence violations
   if (deviationType === 'missing_activity' && activityName) {
     if (isActivityRequired(activityName)) {
@@ -572,8 +570,10 @@ async function analyzeCase(
  * Check if adapter is a BPI adapter (supports P2P)
  */
 function isBPIAdapter(adapter: SAPAdapter): adapter is SAPAdapter & { getTraces(): BPITrace[] } {
-  return adapter.name === 'BPI Challenge 2019' &&
-         typeof (adapter as unknown as { getTraces?: () => BPITrace[] }).getTraces === 'function';
+  return (
+    adapter.name === 'BPI Challenge 2019' &&
+    typeof (adapter as unknown as { getTraces?: () => BPITrace[] }).getTraces === 'function'
+  );
 }
 
 /**
@@ -623,7 +623,11 @@ async function executeP2PConformance(
   if (input.model_id) {
     const selectedModel = getModelById(input.model_id);
     if (!selectedModel) {
-      throw new Error(`Unknown model: ${input.model_id}. Available: ${listModels().map(m => m.id).join(', ')}`);
+      throw new Error(
+        `Unknown model: ${input.model_id}. Available: ${listModels()
+          .map(m => m.id)
+          .join(', ')}`
+      );
     }
     model = selectedModel;
   } else {
@@ -656,19 +660,24 @@ async function executeP2PConformance(
       repeated_activity: result.deviation_type_summary.repeated_activity || 0,
       timing_violation: result.deviation_type_summary.timing_violation || 0,
     },
-    deviations: input.include_deviations ? deviations.map(d => {
-      const deviation: Deviation = {
-        case_id: d.case_id,
-        deviation_type: d.deviation_type === 'skipped_activity' ? 'skipped_step' : d.deviation_type as DeviationType,
-        severity: d.severity,
-        description: d.description,
-        expected: d.expected,
-        actual: d.actual,
-      };
-      if (d.activity) deviation.activity = d.activity;
-      if (d.position !== undefined) deviation.position = d.position;
-      return deviation;
-    }) : [],
+    deviations: input.include_deviations
+      ? deviations.map(d => {
+          const deviation: Deviation = {
+            case_id: d.case_id,
+            deviation_type:
+              d.deviation_type === 'skipped_activity'
+                ? 'skipped_step'
+                : (d.deviation_type as DeviationType),
+            severity: d.severity,
+            description: d.description,
+            expected: d.expected,
+            actual: d.actual,
+          };
+          if (d.activity) deviation.activity = d.activity;
+          if (d.position !== undefined) deviation.position = d.position;
+          return deviation;
+        })
+      : [],
     metadata: {
       analyzed_at: result.metadata.analyzed_at,
       reference_model: `${result.metadata.reference_model} v${result.metadata.model_version}`,
@@ -714,11 +723,13 @@ async function executeO2CConformance(
         'check_conformance:search'
       ).catch(() => []);
 
-      docNumbers = [...new Set(
-        searchResults
-          .filter(r => r.doc_type === 'sales' || r.doc_type === 'order')
-          .map(r => r.doc_key)
-      )];
+      docNumbers = [
+        ...new Set(
+          searchResults
+            .filter(r => r.doc_type === 'sales' || r.doc_type === 'order')
+            .map(r => r.doc_key)
+        ),
+      ];
     } catch {
       docNumbers = [];
     }
@@ -749,9 +760,7 @@ async function executeO2CConformance(
     } else {
       let filteredDeviations = result.deviations;
       if (input.severity_filter !== 'all') {
-        filteredDeviations = result.deviations.filter(
-          d => d.severity === input.severity_filter
-        );
+        filteredDeviations = result.deviations.filter(d => d.severity === input.severity_filter);
       }
 
       for (const deviation of result.deviations) {
@@ -766,9 +775,8 @@ async function executeO2CConformance(
   }
 
   const totalCases = docNumbers.length;
-  const conformanceRate = totalCases > 0
-    ? Math.round((conformingCases / totalCases) * 100 * 100) / 100
-    : 0;
+  const conformanceRate =
+    totalCases > 0 ? Math.round((conformingCases / totalCases) * 100 * 100) / 100 : 0;
 
   // Select reference model name
   let modelName = 'SAP O2C Standard v1.0';

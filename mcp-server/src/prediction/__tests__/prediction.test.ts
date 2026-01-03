@@ -24,15 +24,16 @@ import {
   formatRiskLevel,
   getRiskColor,
   ProcessCase,
-  CaseFeatures,
   PredictionResult,
-  RiskLevel,
   RISK_THRESHOLDS,
 } from '../index.js';
 
 describe('Predictive Monitoring Module', () => {
   // Sample test data
-  const createSampleCase = (caseId: string, events: Array<{ activity: string; timestamp: string; resource?: string }>): ProcessCase => ({
+  const createSampleCase = (
+    caseId: string,
+    events: Array<{ activity: string; timestamp: string; resource?: string }>
+  ): ProcessCase => ({
     caseId,
     events: events.map(e => {
       const event: ProcessCase['events'][0] = {
@@ -254,9 +255,36 @@ describe('Predictive Monitoring Module', () => {
 
     it('should calculate risk distribution', () => {
       const predictions: PredictionResult[] = [
-        { caseId: 'A', predictionType: 'late_delivery', prediction: true, probability: 0.8, riskLevel: 'high', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'B', predictionType: 'late_delivery', prediction: false, probability: 0.2, riskLevel: 'low', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'C', predictionType: 'late_delivery', prediction: true, probability: 0.9, riskLevel: 'critical', factors: [], recommendations: [], timestamp: '' },
+        {
+          caseId: 'A',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.8,
+          riskLevel: 'high',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'B',
+          predictionType: 'late_delivery',
+          prediction: false,
+          probability: 0.2,
+          riskLevel: 'low',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'C',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.9,
+          riskLevel: 'critical',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
       ];
 
       const distribution = calculateRiskDistribution(predictions);
@@ -269,8 +297,26 @@ describe('Predictive Monitoring Module', () => {
 
     it('should get high risk cases', () => {
       const predictions: PredictionResult[] = [
-        { caseId: 'HIGH', predictionType: 'late_delivery', prediction: true, probability: 0.8, riskLevel: 'high', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'LOW', predictionType: 'late_delivery', prediction: false, probability: 0.2, riskLevel: 'low', factors: [], recommendations: [], timestamp: '' },
+        {
+          caseId: 'HIGH',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.8,
+          riskLevel: 'high',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'LOW',
+          predictionType: 'late_delivery',
+          prediction: false,
+          probability: 0.2,
+          riskLevel: 'low',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
       ];
 
       const highRisk = getHighRiskCases(predictions, 'high');
@@ -288,8 +334,20 @@ describe('Predictive Monitoring Module', () => {
           probability: 0.8,
           riskLevel: 'high',
           factors: [
-            { name: 'stalled', value: true, impact: 'negative', weight: 0.2, description: 'Stalled' },
-            { name: 'credit_hold', value: true, impact: 'negative', weight: 0.3, description: 'Hold' },
+            {
+              name: 'stalled',
+              value: true,
+              impact: 'negative',
+              weight: 0.2,
+              description: 'Stalled',
+            },
+            {
+              name: 'credit_hold',
+              value: true,
+              impact: 'negative',
+              weight: 0.3,
+              description: 'Hold',
+            },
           ],
           recommendations: [],
           timestamp: '',
@@ -301,7 +359,13 @@ describe('Predictive Monitoring Module', () => {
           probability: 0.7,
           riskLevel: 'high',
           factors: [
-            { name: 'stalled', value: true, impact: 'negative', weight: 0.2, description: 'Stalled' },
+            {
+              name: 'stalled',
+              value: true,
+              impact: 'negative',
+              weight: 0.2,
+              description: 'Stalled',
+            },
           ],
           recommendations: [],
           timestamp: '',
@@ -343,8 +407,26 @@ describe('Predictive Monitoring Module', () => {
 
     it('should calculate composite risk score', () => {
       const predictions: PredictionResult[] = [
-        { caseId: 'A', predictionType: 'late_delivery', prediction: true, probability: 0.8, riskLevel: 'high', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'A', predictionType: 'credit_hold', prediction: false, probability: 0.4, riskLevel: 'medium', factors: [], recommendations: [], timestamp: '' },
+        {
+          caseId: 'A',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.8,
+          riskLevel: 'high',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'A',
+          predictionType: 'credit_hold',
+          prediction: false,
+          probability: 0.4,
+          riskLevel: 'medium',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
       ];
 
       const score = calculateCompositeRiskScore(predictions);
@@ -355,9 +437,36 @@ describe('Predictive Monitoring Module', () => {
 
     it('should rank cases by risk', () => {
       const predictions: PredictionResult[] = [
-        { caseId: 'LOW', predictionType: 'late_delivery', prediction: false, probability: 0.1, riskLevel: 'low', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'HIGH', predictionType: 'late_delivery', prediction: true, probability: 0.9, riskLevel: 'critical', factors: [], recommendations: [], timestamp: '' },
-        { caseId: 'MED', predictionType: 'late_delivery', prediction: true, probability: 0.5, riskLevel: 'medium', factors: [], recommendations: [], timestamp: '' },
+        {
+          caseId: 'LOW',
+          predictionType: 'late_delivery',
+          prediction: false,
+          probability: 0.1,
+          riskLevel: 'low',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'HIGH',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.9,
+          riskLevel: 'critical',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
+        {
+          caseId: 'MED',
+          predictionType: 'late_delivery',
+          prediction: true,
+          probability: 0.5,
+          riskLevel: 'medium',
+          factors: [],
+          recommendations: [],
+          timestamp: '',
+        },
       ];
 
       const ranked = rankByRisk(predictions);
@@ -384,7 +493,7 @@ describe('Predictive Monitoring Module', () => {
   describe('Integration', () => {
     it('should run full prediction pipeline', () => {
       const cases = [healthyCase, riskyCase, stalledCase];
-      const { result, alerts } = predictOutcomes(cases, 'late_delivery');
+      const { result } = predictOutcomes(cases, 'late_delivery');
 
       expect(result.predictions).toHaveLength(3);
       expect(result.summary.totalCases).toBe(3);

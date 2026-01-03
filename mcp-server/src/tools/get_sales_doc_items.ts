@@ -66,7 +66,11 @@ export async function executeGetSalesDocItems(
   const input = GetSalesDocItemsSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_sales_doc_items', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_sales_doc_items',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

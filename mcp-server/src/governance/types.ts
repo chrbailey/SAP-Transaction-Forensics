@@ -8,17 +8,17 @@
 // SYMBOL DEFINITIONS (SAP-Specific subset of PromptSpeak)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type Mode = '⊕' | '⊘' | '⊖' | '⊗';  // strict | neutral | flexible | forbidden
-export type Domain = '◊' | '◐';              // financial | operational
-export type Action = '◀' | '▲' | '●';        // retrieve | analyze | validate
-export type Constraint = '⛔' | '✗' | '⚠' | '✓';  // forbidden | rejected | warning | approved
-export type Entity = 'α' | 'β' | 'γ';        // primary | secondary | tertiary agent
+export type Mode = '⊕' | '⊘' | '⊖' | '⊗'; // strict | neutral | flexible | forbidden
+export type Domain = '◊' | '◐'; // financial | operational
+export type Action = '◀' | '▲' | '●'; // retrieve | analyze | validate
+export type Constraint = '⛔' | '✗' | '⚠' | '✓'; // forbidden | rejected | warning | approved
+export type Entity = 'α' | 'β' | 'γ'; // primary | secondary | tertiary agent
 
 export interface SymbolDefinition {
   symbol: string;
   name: string;
   category: 'mode' | 'domain' | 'action' | 'constraint' | 'entity';
-  strength?: number;  // For mode ordering
+  strength?: number; // For mode ordering
 }
 
 export const SYMBOL_ONTOLOGY: Record<string, SymbolDefinition> = {
@@ -40,9 +40,9 @@ export const SYMBOL_ONTOLOGY: Record<string, SymbolDefinition> = {
   '⚠': { symbol: '⚠', name: 'warning', category: 'constraint' },
   '✓': { symbol: '✓', name: 'approved', category: 'constraint' },
   // Entities
-  'α': { symbol: 'α', name: 'primary', category: 'entity' },
-  'β': { symbol: 'β', name: 'secondary', category: 'entity' },
-  'γ': { symbol: 'γ', name: 'tertiary', category: 'entity' },
+  α: { symbol: 'α', name: 'primary', category: 'entity' },
+  β: { symbol: 'β', name: 'secondary', category: 'entity' },
+  γ: { symbol: 'γ', name: 'tertiary', category: 'entity' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,17 +191,15 @@ export interface GovernanceConfig {
 export const DEFAULT_GOVERNANCE_CONFIG: GovernanceConfig = {
   enableCircuitBreaker: true,
   maxFailuresBeforeOpen: 5,
-  circuitResetTimeMs: 60000,  // 1 minute
+  circuitResetTimeMs: 60000, // 1 minute
 
   enableHolds: true,
   dateRangeHoldThresholdDays: 90,
   rowLimitHoldThreshold: 500,
-  sensitiveTextPatterns: [
-    /\b(ssn|social.?security|password|secret|credit.?card)\b/i,
-  ],
+  sensitiveTextPatterns: [/\b(ssn|social.?security|password|secret|credit.?card)\b/i],
 
   enableAuditLogging: true,
-  auditRetentionMs: 24 * 60 * 60 * 1000,  // 24 hours
+  auditRetentionMs: 24 * 60 * 60 * 1000, // 24 hours
 
-  holdExpirationMs: 30 * 60 * 1000,  // 30 minutes
+  holdExpirationMs: 30 * 60 * 1000, // 30 minutes
 };

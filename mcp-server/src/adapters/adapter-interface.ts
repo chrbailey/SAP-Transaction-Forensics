@@ -213,7 +213,9 @@ export function registerAdapter(name: string, factory: AdapterFactory): void {
 export function getAdapter(name: string): IDataAdapter {
   const factory = adapterRegistry.get(name);
   if (!factory) {
-    throw new Error(`Unknown adapter: ${name}. Available: ${Array.from(adapterRegistry.keys()).join(', ')}`);
+    throw new Error(
+      `Unknown adapter: ${name}. Available: ${Array.from(adapterRegistry.keys()).join(', ')}`
+    );
   }
   return factory();
 }

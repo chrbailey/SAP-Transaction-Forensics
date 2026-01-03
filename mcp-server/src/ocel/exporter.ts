@@ -7,16 +7,12 @@ import {
   OCELEvent,
   OCELObject,
   OCELEventType,
-  OCELObjectType,
   OCELEventAttribute,
-  OCELObjectAttribute,
   OCELEventRelationship,
   OCELObjectRelationship,
   P2P_EVENT_TYPES,
   P2P_OBJECT_TYPES,
-  O2C_OBJECT_TYPES,
   SAP_P2P_OBJECT_TYPES,
-  SAP_O2C_OBJECT_TYPES,
   SAP_QUALIFIERS,
 } from './types.js';
 
@@ -109,19 +105,35 @@ export class OCELExporter {
         id: poObjectId,
         type: SAP_P2P_OBJECT_TYPES.PURCHASE_ORDER,
         attributes: [
-          { name: 'document_number', time: trace.events[0]?.timestamp || new Date().toISOString(), value: poId },
+          {
+            name: 'document_number',
+            time: trace.events[0]?.timestamp || new Date().toISOString(),
+            value: poId,
+          },
         ],
       };
 
       // Add optional attributes if present
       if (trace.company) {
-        poObject.attributes.push({ name: 'company_code', time: trace.events[0]?.timestamp || new Date().toISOString(), value: trace.company });
+        poObject.attributes.push({
+          name: 'company_code',
+          time: trace.events[0]?.timestamp || new Date().toISOString(),
+          value: trace.company,
+        });
       }
       if (trace.vendor) {
-        poObject.attributes.push({ name: 'vendor_id', time: trace.events[0]?.timestamp || new Date().toISOString(), value: trace.vendor });
+        poObject.attributes.push({
+          name: 'vendor_id',
+          time: trace.events[0]?.timestamp || new Date().toISOString(),
+          value: trace.vendor,
+        });
       }
       if (trace.spend_area_text) {
-        poObject.attributes.push({ name: 'spend_area', time: trace.events[0]?.timestamp || new Date().toISOString(), value: trace.spend_area_text });
+        poObject.attributes.push({
+          name: 'spend_area',
+          time: trace.events[0]?.timestamp || new Date().toISOString(),
+          value: trace.spend_area_text,
+        });
       }
 
       // Add O2O relationships
@@ -129,9 +141,7 @@ export class OCELExporter {
         const vendorObjectId = `vendor_${trace.vendor}`;
         this.ensureVendorObject(vendorObjectId, trace.vendor, trace.events[0]?.timestamp);
 
-        poObject.relationships = [
-          { objectId: vendorObjectId, qualifier: SAP_QUALIFIERS.VENDOR },
-        ];
+        poObject.relationships = [{ objectId: vendorObjectId, qualifier: SAP_QUALIFIERS.VENDOR }];
       }
 
       this.objects.set(poObjectId, poObject);
@@ -223,7 +233,10 @@ export class OCELExporter {
       // Include additional attributes if requested
       if (options.includeAllAttributes) {
         for (const [key, value] of Object.entries(event)) {
-          if (!['activity', 'timestamp', 'user', 'org', 'resource'].includes(key) && value !== undefined) {
+          if (
+            !['activity', 'timestamp', 'user', 'org', 'resource'].includes(key) &&
+            value !== undefined
+          ) {
             attributes.push({ name: key, value: String(value) });
           }
         }

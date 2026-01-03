@@ -63,7 +63,11 @@ export async function executeGetDeliveryTiming(
   const input = GetDeliveryTimingSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_delivery_timing', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_delivery_timing',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

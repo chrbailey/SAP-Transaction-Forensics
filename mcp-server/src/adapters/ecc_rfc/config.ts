@@ -45,7 +45,13 @@ export class ConfigValidationError extends Error {
 /**
  * Required environment variable names
  */
-const REQUIRED_VARS = ['SAP_RFC_ASHOST', 'SAP_RFC_SYSNR', 'SAP_RFC_CLIENT', 'SAP_RFC_USER', 'SAP_RFC_PASSWD'] as const;
+const REQUIRED_VARS = [
+  'SAP_RFC_ASHOST',
+  'SAP_RFC_SYSNR',
+  'SAP_RFC_CLIENT',
+  'SAP_RFC_USER',
+  'SAP_RFC_PASSWD',
+] as const;
 
 /**
  * Load and validate ECC RFC configuration from environment variables.
@@ -69,13 +75,13 @@ export function loadECCConfig(): ECCConnectionConfig {
   const env = process.env;
 
   // Check for missing required variables
-  const missing = REQUIRED_VARS.filter((name) => !env[name]);
+  const missing = REQUIRED_VARS.filter(name => !env[name]);
 
   if (missing.length > 0) {
     throw new ConfigValidationError(
       `Missing required SAP RFC configuration: ${missing.join(', ')}. ` +
         'Please set the following environment variables: ' +
-        missing.map((name) => `${name}=<value>`).join(', '),
+        missing.map(name => `${name}=<value>`).join(', '),
       missing as unknown as string[]
     );
   }
@@ -114,7 +120,9 @@ export function loadECCConfig(): ECCConnectionConfig {
 /**
  * Get connection parameters formatted for node-rfc Client
  */
-export function toRfcConnectionParams(config: ECCConnectionConfig): Record<string, string | number> {
+export function toRfcConnectionParams(
+  config: ECCConnectionConfig
+): Record<string, string | number> {
   return {
     ashost: config.ashost,
     sysnr: config.sysnr,
@@ -148,5 +156,5 @@ export function sanitizeConfigForLogging(config: ECCConnectionConfig): Record<st
  * without throwing an error
  */
 export function isRFCConfigAvailable(): boolean {
-  return REQUIRED_VARS.every((name) => !!process.env[name]);
+  return REQUIRED_VARS.every(name => !!process.env[name]);
 }

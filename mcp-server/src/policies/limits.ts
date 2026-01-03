@@ -59,38 +59,126 @@ export function getPolicyConfig(): PolicyConfig {
  */
 export const ALLOWED_FIELDS = {
   sales_header: [
-    'VBELN', 'AUART', 'VKORG', 'VTWEG', 'SPART', 'KUNNR', 'KUNWE',
-    'AUDAT', 'VDATU', 'ERNAM', 'ERDAT', 'ERZET', 'AENAM', 'AEDAT',
-    'GBSTK', 'NETWR', 'WAERK', 'BSTKD', 'BSTNK',
+    'VBELN',
+    'AUART',
+    'VKORG',
+    'VTWEG',
+    'SPART',
+    'KUNNR',
+    'KUNWE',
+    'AUDAT',
+    'VDATU',
+    'ERNAM',
+    'ERDAT',
+    'ERZET',
+    'AENAM',
+    'AEDAT',
+    'GBSTK',
+    'NETWR',
+    'WAERK',
+    'BSTKD',
+    'BSTNK',
   ],
   sales_item: [
-    'VBELN', 'POSNR', 'MATNR', 'ARKTX', 'WERKS', 'LGORT',
-    'KWMENG', 'VRKME', 'NETWR', 'WAERK', 'PSTYV', 'ABGRU',
-    'EDATU', 'KBMENG', 'LIFSP', 'FAKSP',
+    'VBELN',
+    'POSNR',
+    'MATNR',
+    'ARKTX',
+    'WERKS',
+    'LGORT',
+    'KWMENG',
+    'VRKME',
+    'NETWR',
+    'WAERK',
+    'PSTYV',
+    'ABGRU',
+    'EDATU',
+    'KBMENG',
+    'LIFSP',
+    'FAKSP',
   ],
   delivery_header: [
-    'VBELN', 'LFART', 'VSTEL', 'ROUTE', 'KUNNR',
-    'WADAT', 'WADAT_IST', 'LFDAT', 'LDDAT', 'TDDAT',
-    'KOSTK', 'WBSTK', 'GBSTK', 'BTGEW', 'GEWEI',
-    'ERNAM', 'ERDAT', 'ERZET',
+    'VBELN',
+    'LFART',
+    'VSTEL',
+    'ROUTE',
+    'KUNNR',
+    'WADAT',
+    'WADAT_IST',
+    'LFDAT',
+    'LDDAT',
+    'TDDAT',
+    'KOSTK',
+    'WBSTK',
+    'GBSTK',
+    'BTGEW',
+    'GEWEI',
+    'ERNAM',
+    'ERDAT',
+    'ERZET',
   ],
   delivery_item: [
-    'VBELN', 'POSNR', 'MATNR', 'ARKTX', 'WERKS', 'LGORT',
-    'LFIMG', 'VRKME', 'PIKMG', 'VGBEL', 'VGPOS', 'CHARG', 'SERAIL',
+    'VBELN',
+    'POSNR',
+    'MATNR',
+    'ARKTX',
+    'WERKS',
+    'LGORT',
+    'LFIMG',
+    'VRKME',
+    'PIKMG',
+    'VGBEL',
+    'VGPOS',
+    'CHARG',
+    'SERAIL',
   ],
   invoice_header: [
-    'VBELN', 'FKART', 'FKDAT', 'KUNRG', 'KUNAG',
-    'VKORG', 'VTWEG', 'SPART', 'NETWR', 'WAERK', 'MWSBK',
-    'BELNR', 'GJAHR', 'BUDAT', 'FKSTO',
-    'ERNAM', 'ERDAT', 'ERZET',
+    'VBELN',
+    'FKART',
+    'FKDAT',
+    'KUNRG',
+    'KUNAG',
+    'VKORG',
+    'VTWEG',
+    'SPART',
+    'NETWR',
+    'WAERK',
+    'MWSBK',
+    'BELNR',
+    'GJAHR',
+    'BUDAT',
+    'FKSTO',
+    'ERNAM',
+    'ERDAT',
+    'ERZET',
   ],
   invoice_item: [
-    'VBELN', 'POSNR', 'MATNR', 'ARKTX', 'FKIMG', 'VRKME',
-    'NETWR', 'WAERK', 'VGBEL', 'VGPOS', 'AUBEL', 'AUPOS', 'WERKS',
+    'VBELN',
+    'POSNR',
+    'MATNR',
+    'ARKTX',
+    'FKIMG',
+    'VRKME',
+    'NETWR',
+    'WAERK',
+    'VGBEL',
+    'VGPOS',
+    'AUBEL',
+    'AUPOS',
+    'WERKS',
   ],
   master_stub: [
-    'ENTITY_TYPE', 'ID', 'HASHED_ID', 'INDUSTRY', 'REGION',
-    'CATEGORY', 'KTOKD', 'MTART', 'MATKL', 'SPART', 'ERDAT',
+    'ENTITY_TYPE',
+    'ID',
+    'HASHED_ID',
+    'INDUSTRY',
+    'REGION',
+    'CATEGORY',
+    'KTOKD',
+    'MTART',
+    'MATKL',
+    'SPART',
+    'ERDAT',
   ],
 } as const;
 
@@ -99,18 +187,41 @@ export const ALLOWED_FIELDS = {
  */
 export const FORBIDDEN_FIELDS = [
   // Personal data
-  'NAME1', 'NAME2', 'NAME3', 'NAME4', // Names
-  'STRAS', 'PSTLZ', 'ORT01', // Address
-  'TELF1', 'TELF2', 'TELFX', // Phone/Fax
-  'SMTP_ADDR', 'EMAIL', // Email
+  'NAME1',
+  'NAME2',
+  'NAME3',
+  'NAME4', // Names
+  'STRAS',
+  'PSTLZ',
+  'ORT01', // Address
+  'TELF1',
+  'TELF2',
+  'TELFX', // Phone/Fax
+  'SMTP_ADDR',
+  'EMAIL', // Email
   // Banking
-  'BANKL', 'BANKN', 'BKONT', 'BANKA', 'IBAN', 'SWIFT',
+  'BANKL',
+  'BANKN',
+  'BKONT',
+  'BANKA',
+  'IBAN',
+  'SWIFT',
   // Tax IDs
-  'STCEG', 'STCD1', 'STCD2', 'STCD3', 'STCD4',
+  'STCEG',
+  'STCD1',
+  'STCD2',
+  'STCD3',
+  'STCD4',
   // Credit/Financial
-  'KDGRP', 'KLIMK', 'SKFOR', 'SESSION',
+  'KDGRP',
+  'KLIMK',
+  'SKFOR',
+  'SESSION',
   // Authentication
-  'USNAM', 'ERNAM_FULL', 'PASS', 'BNAME',
+  'USNAM',
+  'ERNAM_FULL',
+  'PASS',
+  'BNAME',
 ];
 
 /**
@@ -153,10 +264,7 @@ export function enforceRowLimit<T>(
   auditContext?: AuditContext
 ): T[] {
   const maxLimit = currentConfig.maxRowsPerQuery;
-  const effectiveLimit = Math.min(
-    requestedLimit ?? maxLimit,
-    maxLimit
-  );
+  const effectiveLimit = Math.min(requestedLimit ?? maxLimit, maxLimit);
 
   if (results.length > effectiveLimit) {
     if (auditContext) {
@@ -217,7 +325,7 @@ export function validateFields(
 export async function withTimeout<T>(
   operation: Promise<T>,
   timeoutMs?: number,
-  operationName?: string
+  _operationName?: string
 ): Promise<T> {
   const effectiveTimeout = Math.min(
     timeoutMs ?? currentConfig.defaultTimeoutMs,
@@ -297,10 +405,7 @@ export function checkRateLimit(auditContext?: AuditContext): void {
 /**
  * Validate search pattern is not too broad
  */
-export function validateSearchPattern(
-  pattern: string,
-  auditContext?: AuditContext
-): void {
+export function validateSearchPattern(pattern: string, auditContext?: AuditContext): void {
   // Check for overly broad patterns
   const broadPatterns = ['^.*$', '.*', '.+', '.', '^$'];
   if (broadPatterns.includes(pattern)) {

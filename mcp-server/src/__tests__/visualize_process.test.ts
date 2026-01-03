@@ -5,10 +5,7 @@
  * Uses Jest with ESM support.
  */
 
-import {
-  VisualizeProcessSchema,
-  visualizeProcessTool,
-} from '../tools/visualize_process.js';
+import { VisualizeProcessSchema, visualizeProcessTool } from '../tools/visualize_process.js';
 
 describe('VisualizeProcessSchema', () => {
   describe('input validation', () => {
@@ -194,9 +191,7 @@ describe('Mermaid Diagram Generation', () => {
   });
 
   it('should generate node definitions', () => {
-    const nodes: ProcessNode[] = [
-      { id: 'order', label: 'Order Created', type: 'order' },
-    ];
+    const nodes: ProcessNode[] = [{ id: 'order', label: 'Order Created', type: 'order' }];
     const diagram = generateMermaidDiagram(nodes, [], false);
     expect(diagram).toContain('order["Order Created"]');
   });
@@ -206,9 +201,7 @@ describe('Mermaid Diagram Generation', () => {
       { id: 'order', label: 'Order', type: 'order' },
       { id: 'delivery', label: 'Delivery', type: 'delivery' },
     ];
-    const edges: ProcessEdge[] = [
-      { from: 'order', to: 'delivery' },
-    ];
+    const edges: ProcessEdge[] = [{ from: 'order', to: 'delivery' }];
     const diagram = generateMermaidDiagram(nodes, edges, false);
     expect(diagram).toContain('order --> delivery');
   });
@@ -218,9 +211,7 @@ describe('Mermaid Diagram Generation', () => {
       { id: 'order', label: 'Order', type: 'order' },
       { id: 'delivery', label: 'Delivery', type: 'delivery' },
     ];
-    const edges: ProcessEdge[] = [
-      { from: 'order', to: 'delivery', label: '2d' },
-    ];
+    const edges: ProcessEdge[] = [{ from: 'order', to: 'delivery', label: '2d' }];
     const diagram = generateMermaidDiagram(nodes, edges, true);
     expect(diagram).toContain('order -->|2d| delivery');
   });
@@ -230,9 +221,7 @@ describe('Mermaid Diagram Generation', () => {
       { id: 'order', label: 'Order', type: 'order' },
       { id: 'delivery', label: 'Delivery', type: 'delivery' },
     ];
-    const edges: ProcessEdge[] = [
-      { from: 'order', to: 'delivery', label: '2d' },
-    ];
+    const edges: ProcessEdge[] = [{ from: 'order', to: 'delivery', label: '2d' }];
     const diagram = generateMermaidDiagram(nodes, edges, false);
     expect(diagram).not.toContain('|2d|');
     expect(diagram).toContain('order --> delivery');
@@ -291,34 +280,26 @@ describe('DOT Diagram Generation', () => {
   });
 
   it('should generate node with normal color', () => {
-    const nodes: ProcessNode[] = [
-      { id: 'order', label: 'Order', isBottleneck: false },
-    ];
+    const nodes: ProcessNode[] = [{ id: 'order', label: 'Order', isBottleneck: false }];
     const diagram = generateDOTDiagram(nodes, [], false);
     expect(diagram).toContain('#d4edda');
   });
 
   it('should highlight bottleneck nodes', () => {
-    const nodes: ProcessNode[] = [
-      { id: 'delivery', label: 'Delivery', isBottleneck: true },
-    ];
+    const nodes: ProcessNode[] = [{ id: 'delivery', label: 'Delivery', isBottleneck: true }];
     const diagram = generateDOTDiagram(nodes, [], true);
     expect(diagram).toContain('#f8d7da');
   });
 
   it('should not highlight bottlenecks when disabled', () => {
-    const nodes: ProcessNode[] = [
-      { id: 'delivery', label: 'Delivery', isBottleneck: true },
-    ];
+    const nodes: ProcessNode[] = [{ id: 'delivery', label: 'Delivery', isBottleneck: true }];
     const diagram = generateDOTDiagram(nodes, [], false);
     expect(diagram).toContain('#d4edda');
     expect(diagram).not.toContain('#f8d7da');
   });
 
   it('should generate edges with labels', () => {
-    const edges: ProcessEdge[] = [
-      { from: 'order', to: 'delivery', label: '24h' },
-    ];
+    const edges: ProcessEdge[] = [{ from: 'order', to: 'delivery', label: '24h' }];
     const diagram = generateDOTDiagram([], edges, false);
     expect(diagram).toContain('order -> delivery [label="24h"]');
   });
@@ -339,12 +320,7 @@ describe('SVG Diagram Generation', () => {
     return `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}" rx="5"/>`;
   }
 
-  function generateLineElement(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number
-  ): string {
+  function generateLineElement(x1: number, y1: number, x2: number, y2: number): string {
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>`;
   }
 
@@ -423,18 +399,13 @@ describe('Bottleneck Detection', () => {
     durationHours: number;
   }
 
-  function detectBottlenecks(
-    steps: ProcessStep[],
-    thresholdMultiplier: number = 2
-  ): string[] {
+  function detectBottlenecks(steps: ProcessStep[], thresholdMultiplier: number = 2): string[] {
     if (steps.length < 2) return [];
 
     const avgDuration = steps.reduce((sum, s) => sum + s.durationHours, 0) / steps.length;
     const threshold = avgDuration * thresholdMultiplier;
 
-    return steps
-      .filter(s => s.durationHours > threshold)
-      .map(s => s.id);
+    return steps.filter(s => s.durationHours > threshold).map(s => s.id);
   }
 
   it('should detect steps significantly above average', () => {
@@ -460,9 +431,7 @@ describe('Bottleneck Detection', () => {
   });
 
   it('should handle single step', () => {
-    const steps: ProcessStep[] = [
-      { id: 'order', durationHours: 100 },
-    ];
+    const steps: ProcessStep[] = [{ id: 'order', durationHours: 100 }];
 
     const bottlenecks = detectBottlenecks(steps);
     expect(bottlenecks).toHaveLength(0);

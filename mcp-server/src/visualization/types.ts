@@ -22,11 +22,11 @@ export type BottleneckSeverity = 'none' | 'low' | 'medium' | 'high' | 'critical'
  * Color scheme for bottleneck visualization
  */
 export const BOTTLENECK_COLORS = {
-  none: '#4CAF50',      // Green - healthy
-  low: '#8BC34A',       // Light green - minor delays
-  medium: '#FFC107',    // Yellow/amber - moderate delays
-  high: '#FF9800',      // Orange - significant delays
-  critical: '#F44336',  // Red - critical bottlenecks
+  none: '#4CAF50', // Green - healthy
+  low: '#8BC34A', // Light green - minor delays
+  medium: '#FFC107', // Yellow/amber - moderate delays
+  high: '#FF9800', // Orange - significant delays
+  critical: '#F44336', // Red - critical bottlenecks
 } as const;
 
 /**

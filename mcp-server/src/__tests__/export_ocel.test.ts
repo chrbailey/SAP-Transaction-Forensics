@@ -5,10 +5,7 @@
  * Uses Jest with ESM support.
  */
 
-import {
-  ExportOcelSchema,
-  exportOcelTool,
-} from '../tools/export_ocel.js';
+import { ExportOcelSchema, exportOcelTool } from '../tools/export_ocel.js';
 
 describe('ExportOcelSchema', () => {
   describe('input validation', () => {
@@ -194,19 +191,40 @@ describe('OCEL Object Types', () => {
   };
 
   it('should have order object type with required attributes', () => {
-    expect(objectTypesWithItems.order.attributes).toContainEqual({ name: 'order_type', type: 'string' });
-    expect(objectTypesWithItems.order.attributes).toContainEqual({ name: 'sales_org', type: 'string' });
-    expect(objectTypesWithItems.order.attributes).toContainEqual({ name: 'customer', type: 'string' });
+    expect(objectTypesWithItems.order.attributes).toContainEqual({
+      name: 'order_type',
+      type: 'string',
+    });
+    expect(objectTypesWithItems.order.attributes).toContainEqual({
+      name: 'sales_org',
+      type: 'string',
+    });
+    expect(objectTypesWithItems.order.attributes).toContainEqual({
+      name: 'customer',
+      type: 'string',
+    });
   });
 
   it('should have delivery object type with required attributes', () => {
-    expect(objectTypesWithItems.delivery.attributes).toContainEqual({ name: 'delivery_type', type: 'string' });
-    expect(objectTypesWithItems.delivery.attributes).toContainEqual({ name: 'status', type: 'string' });
+    expect(objectTypesWithItems.delivery.attributes).toContainEqual({
+      name: 'delivery_type',
+      type: 'string',
+    });
+    expect(objectTypesWithItems.delivery.attributes).toContainEqual({
+      name: 'status',
+      type: 'string',
+    });
   });
 
   it('should have invoice object type with required attributes', () => {
-    expect(objectTypesWithItems.invoice.attributes).toContainEqual({ name: 'invoice_type', type: 'string' });
-    expect(objectTypesWithItems.invoice.attributes).toContainEqual({ name: 'net_value', type: 'float' });
+    expect(objectTypesWithItems.invoice.attributes).toContainEqual({
+      name: 'invoice_type',
+      type: 'string',
+    });
+    expect(objectTypesWithItems.invoice.attributes).toContainEqual({
+      name: 'net_value',
+      type: 'float',
+    });
   });
 
   it('should have item types when include_items is true', () => {
@@ -371,11 +389,7 @@ describe('OCEL Event Structure', () => {
     }>;
   }
 
-  function createOrderCreatedEvent(
-    orderId: string,
-    time: string,
-    user: string
-  ): OCELEvent {
+  function createOrderCreatedEvent(orderId: string, time: string, user: string): OCELEvent {
     return {
       type: 'order_created',
       time,

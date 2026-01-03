@@ -7,7 +7,7 @@
 
 import type { ECCConnectionConfig } from './config.js';
 import { toRfcConnectionParams, sanitizeConfigForLogging } from './config.js';
-import { RFCConnectionError, RFCError, mapSAPException } from './errors.js';
+import { RFCConnectionError, mapSAPException } from './errors.js';
 
 /**
  * RFC Client interface matching node-rfc Client
@@ -79,7 +79,8 @@ export class RFCConnectionPool {
   private readonly config: ECCConnectionConfig;
   private readonly options: Required<PoolOptions>;
   private readonly connections: PooledConnection[] = [];
-  private RFCClientClass: (new (params: Record<string, unknown>) => RFCClientInterface) | null = null;
+  private RFCClientClass: (new (params: Record<string, unknown>) => RFCClientInterface) | null =
+    null;
   private rfcAvailable: boolean = false;
 
   private connectionIdCounter: number = 0;
@@ -183,7 +184,7 @@ export class RFCConnectionPool {
 
     // Start the pruning interval
     this.pruneInterval = setInterval(() => {
-      this.pruneStaleConnections().catch((err) => {
+      this.pruneStaleConnections().catch(err => {
         this.logger.error('Error during connection pruning', {
           error: err instanceof Error ? err.message : String(err),
         });
@@ -204,7 +205,7 @@ export class RFCConnectionPool {
    * Get pool statistics
    */
   getStats(): PoolStats {
-    const inUse = this.connections.filter((c) => c.inUse).length;
+    const inUse = this.connections.filter(c => c.inUse).length;
     return {
       total: this.connections.length,
       inUse,
@@ -233,7 +234,7 @@ export class RFCConnectionPool {
 
     while (Date.now() - startTime < this.options.acquireTimeoutMs) {
       // Try to find an available connection
-      const available = this.connections.find((c) => !c.inUse && c.client.alive);
+      const available = this.connections.find(c => !c.inUse && c.client.alive);
 
       if (available) {
         available.inUse = true;
@@ -325,14 +326,14 @@ export class RFCConnectionPool {
     // Wait for in-use connections (with timeout)
     const waitStart = Date.now();
     while (
-      this.connections.some((c) => c.inUse) &&
+      this.connections.some(c => c.inUse) &&
       Date.now() - waitStart < 10000 // 10 second max wait
     ) {
       await this.sleep(100);
     }
 
     // Close all connections
-    const closePromises = this.connections.map(async (conn) => {
+    const closePromises = this.connections.map(async conn => {
       try {
         await conn.client.close();
         this.stats.connectionsClosed++;
@@ -463,6 +464,6 @@ export class RFCConnectionPool {
    * Helper to sleep for a given number of milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

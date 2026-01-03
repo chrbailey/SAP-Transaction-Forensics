@@ -103,12 +103,7 @@ describe('HoldManager', () => {
         params: { pattern: 'test' },
       };
 
-      const hold = manager.createHold(
-        request,
-        'broad_date_range',
-        'medium',
-        { days: 120 }
-      );
+      const hold = manager.createHold(request, 'broad_date_range', 'medium', { days: 120 });
 
       expect(hold.holdId).toMatch(/^hold_/);
       expect(hold.status).toBe('pending');

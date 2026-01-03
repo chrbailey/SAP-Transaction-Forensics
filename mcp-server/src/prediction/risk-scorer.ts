@@ -11,7 +11,6 @@ import {
   RiskLevel,
   PredictionType,
   AlertConfig,
-  RISK_THRESHOLDS,
 } from './types.js';
 
 /**
@@ -84,9 +83,7 @@ export function getHighRiskCases(
   predictions: PredictionResult[],
   threshold: RiskLevel = 'high'
 ): string[] {
-  return predictions
-    .filter((p) => meetsRiskThreshold(p.riskLevel, threshold))
-    .map((p) => p.caseId);
+  return predictions.filter(p => meetsRiskThreshold(p.riskLevel, threshold)).map(p => p.caseId);
 }
 
 /**
@@ -216,9 +213,7 @@ export function generateAlerts(
   }
 
   // Sort by risk level (critical first)
-  alerts.sort(
-    (a, b) => RISK_LEVEL_VALUES[b.riskLevel] - RISK_LEVEL_VALUES[a.riskLevel]
-  );
+  alerts.sort((a, b) => RISK_LEVEL_VALUES[b.riskLevel] - RISK_LEVEL_VALUES[a.riskLevel]);
 
   return alerts;
 }
@@ -242,7 +237,7 @@ function generateAlertMessage(pred: PredictionResult): string {
       }
       return `Case ${pred.caseId} has ${probability}% probability of being put on credit hold.`;
 
-    case 'completion_time':
+    case 'completion_time': {
       // For completion time, probability represents normalized time
       const estimatedHours = pred.prediction as number;
       const days = Math.round(estimatedHours / 24);
@@ -250,6 +245,7 @@ function generateAlertMessage(pred: PredictionResult): string {
         return `CRITICAL: Case ${pred.caseId} estimated to take ${days} more days. Exceeds SLA threshold.`;
       }
       return `Case ${pred.caseId} estimated to complete in ${days} days.`;
+    }
 
     default:
       return `Alert for case ${pred.caseId}: ${pred.riskLevel} risk detected.`;

@@ -19,10 +19,7 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 import { IDataAdapter } from './adapters/adapter-interface.js';
 import { SyntheticAdapter } from './adapters/synthetic/index.js';
@@ -58,16 +55,17 @@ function getConfig(): ServerConfig {
  */
 async function createAdapter(config: ServerConfig): Promise<IDataAdapter> {
   switch (config.adapterType) {
-    case 'synthetic':
+    case 'synthetic': {
       const adapter = new SyntheticAdapter(config.syntheticDataPath);
       await adapter.initialize();
       return adapter;
+    }
 
     case 'ecc_rfc':
     case 's4_odata':
       throw new Error(
         `Adapter '${config.adapterType}' is not yet implemented. ` +
-        `Use 'synthetic' adapter for testing or implement the adapter.`
+          `Use 'synthetic' adapter for testing or implement the adapter.`
       );
 
     default:
@@ -100,7 +98,8 @@ function createMCPServer(): Server {
 const governanceTools = [
   {
     name: 'ps_precheck',
-    description: 'Check if an SAP operation would be allowed without executing. Returns governance decision including hold status.',
+    description:
+      'Check if an SAP operation would be allowed without executing. Returns governance decision including hold status.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -199,10 +198,7 @@ const governanceTools = [
 /**
  * Execute a governance tool
  */
-function executeGovernanceTool(
-  name: string,
-  args: Record<string, unknown>
-): unknown {
+function executeGovernanceTool(name: string, args: Record<string, unknown>): unknown {
   switch (name) {
     case 'ps_precheck':
       return gatekeeper.precheck({
@@ -236,9 +232,10 @@ function executeGovernanceTool(
       gatekeeper.haltAgent(args['agent_id'] as string, args['reason'] as string);
       return { halted: true, agent_id: args['agent_id'] };
 
-    case 'ps_resume_agent':
+    case 'ps_resume_agent': {
       const resumed = gatekeeper.resumeAgent(args['agent_id'] as string);
       return { resumed, agent_id: args['agent_id'] };
+    }
 
     case 'ps_stats':
       return gatekeeper.getStats();
@@ -263,7 +260,7 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
   });
 
   // Register tool call handler
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
 
     try {
@@ -292,7 +289,7 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
       // Execute governance check
       const govResult = gatekeeper.execute({
         agentId,
-        frame: frame || '',  // Empty frame will get default
+        frame: frame || '', // Empty frame will get default
         tool: name,
         params: cleanArgs || {},
       });
@@ -303,14 +300,19 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify({
-                held: true,
-                hold_id: govResult.holdRequest?.holdId,
-                reason: govResult.holdRequest?.reason,
-                severity: govResult.holdRequest?.severity,
-                message: 'Operation held for human approval. Use ps_approve_hold or ps_reject_hold to proceed.',
-                expires_at: govResult.holdRequest?.expiresAt,
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  held: true,
+                  hold_id: govResult.holdRequest?.holdId,
+                  reason: govResult.holdRequest?.reason,
+                  severity: govResult.holdRequest?.severity,
+                  message:
+                    'Operation held for human approval. Use ps_approve_hold or ps_reject_hold to proceed.',
+                  expires_at: govResult.holdRequest?.expiresAt,
+                },
+                null,
+                2
+              ),
             },
           ],
         };
@@ -322,12 +324,16 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify({
-                error: 'Governance Blocked',
-                code: 'GOVERNANCE_BLOCKED',
-                message: govResult.error,
-                audit_id: govResult.auditId,
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  error: 'Governance Blocked',
+                  code: 'GOVERNANCE_BLOCKED',
+                  message: govResult.error,
+                  audit_id: govResult.auditId,
+                },
+                null,
+                2
+              ),
             },
           ],
           isError: true,
@@ -354,13 +360,17 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify({
-                error: 'Policy Violation',
-                code: 'POLICY_VIOLATION',
-                message: error.message,
-                violation: error.violation,
-                details: error.details,
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  error: 'Policy Violation',
+                  code: 'POLICY_VIOLATION',
+                  message: error.message,
+                  violation: error.violation,
+                  details: error.details,
+                },
+                null,
+                2
+              ),
             },
           ],
           isError: true,
@@ -373,12 +383,16 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify({
-                error: 'Timeout',
-                code: 'TIMEOUT',
-                message: error.message,
-                timeout_ms: error.timeoutMs,
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  error: 'Timeout',
+                  code: 'TIMEOUT',
+                  message: error.message,
+                  timeout_ms: error.timeoutMs,
+                },
+                null,
+                2
+              ),
             },
           ],
           isError: true,
@@ -391,12 +405,16 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify({
-                error: 'Validation Error',
-                code: 'VALIDATION_ERROR',
-                message: 'Invalid tool parameters',
-                issues: (error as { issues: unknown[] }).issues,
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  error: 'Validation Error',
+                  code: 'VALIDATION_ERROR',
+                  message: 'Invalid tool parameters',
+                  issues: (error as { issues: unknown[] }).issues,
+                },
+                null,
+                2
+              ),
             },
           ],
           isError: true,
@@ -411,12 +429,16 @@ function setupHandlers(server: Server, adapter: IDataAdapter): void {
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify({
-              error: 'Tool Execution Error',
-              code: 'EXECUTION_ERROR',
-              error_type: errorName,
-              message: errorMessage,
-            }, null, 2),
+            text: JSON.stringify(
+              {
+                error: 'Tool Execution Error',
+                code: 'EXECUTION_ERROR',
+                error_type: errorName,
+                message: errorMessage,
+              },
+              null,
+              2
+            ),
           },
         ],
         isError: true,
@@ -477,7 +499,7 @@ async function main(): Promise<void> {
 }
 
 // Run the server
-main().catch((error) => {
+main().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

@@ -85,7 +85,11 @@ export async function executeGetMasterStub(
   const input = GetMasterStubSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_master_stub', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_master_stub',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

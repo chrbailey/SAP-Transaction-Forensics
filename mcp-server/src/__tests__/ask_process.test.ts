@@ -5,10 +5,7 @@
  * Uses Jest with ESM support.
  */
 
-import {
-  AskProcessSchema,
-  askProcessTool,
-} from '../tools/ask_process.js';
+import { AskProcessSchema, askProcessTool } from '../tools/ask_process.js';
 
 describe('AskProcessSchema', () => {
   describe('input validation', () => {
@@ -117,13 +114,59 @@ describe('askProcessTool', () => {
 describe('Keyword extraction logic', () => {
   // Test the keyword extraction patterns used in ask_process
   const stopWords = new Set([
-    'what', 'why', 'how', 'when', 'where', 'which', 'who',
-    'is', 'are', 'was', 'were', 'be', 'been', 'being',
-    'have', 'has', 'had', 'do', 'does', 'did',
-    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-    'of', 'with', 'by', 'from', 'as', 'about', 'into', 'through',
-    'our', 'my', 'their', 'this', 'that', 'these', 'those',
-    'most', 'more', 'many', 'much', 'some', 'any', 'all',
+    'what',
+    'why',
+    'how',
+    'when',
+    'where',
+    'which',
+    'who',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'from',
+    'as',
+    'about',
+    'into',
+    'through',
+    'our',
+    'my',
+    'their',
+    'this',
+    'that',
+    'these',
+    'those',
+    'most',
+    'more',
+    'many',
+    'much',
+    'some',
+    'any',
+    'all',
   ]);
 
   function extractKeywords(question: string): string[] {

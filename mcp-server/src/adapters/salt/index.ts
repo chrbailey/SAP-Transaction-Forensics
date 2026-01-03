@@ -62,14 +62,16 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// HuggingFace dataset URLs (parquet files)
-const HUGGINGFACE_BASE = 'https://huggingface.co/datasets/SAP/SALT/resolve/main/data';
-const DATASET_FILES = {
+// HuggingFace dataset URLs (parquet files) - reserved for future direct download
+const _HUGGINGFACE_BASE = 'https://huggingface.co/datasets/SAP/SALT/resolve/main/data';
+void _HUGGINGFACE_BASE;
+const _DATASET_FILES = {
   salesDocuments: 'I_SalesDocument_train.parquet',
   salesDocumentItems: 'I_SalesDocumentItem_train.parquet',
   customers: 'I_Customer.parquet',
   addresses: 'I_AddrOrgNamePostalAddress.parquet',
 };
+void _DATASET_FILES;
 
 // Default cache directory
 const DEFAULT_CACHE_DIR = join(__dirname, '..', '..', '..', '..', 'data', 'salt');
@@ -170,12 +172,15 @@ export class SaltAdapter extends BaseDataAdapter {
 
     // Cache for future use
     console.log(`[SALT] Caching data to: ${cachedDataPath}`);
-    await writeFile(cachedDataPath, JSON.stringify({
-      salesDocuments: rawData.salesDocuments.slice(0, this.config.maxDocuments),
-      salesDocumentItems: rawData.salesDocumentItems,
-      customers: rawData.customers,
-      addresses: rawData.addresses,
-    }));
+    await writeFile(
+      cachedDataPath,
+      JSON.stringify({
+        salesDocuments: rawData.salesDocuments.slice(0, this.config.maxDocuments),
+        salesDocumentItems: rawData.salesDocumentItems,
+        customers: rawData.customers,
+        addresses: rawData.addresses,
+      })
+    );
 
     console.log(`[SALT] Initialization complete`);
     console.log(`[SALT] Stats:`, this.data.stats);
@@ -260,8 +265,8 @@ except Exception as e:
       if (err.message.includes('datasets')) {
         throw new Error(
           'SALT adapter requires Python with datasets package.\n' +
-          'Install with: pip install datasets pyarrow\n' +
-          'Then retry initialization.'
+            'Install with: pip install datasets pyarrow\n' +
+            'Then retry initialization.'
         );
       }
       throw new Error(`Failed to download SALT dataset: ${err.message}`);
@@ -345,12 +350,9 @@ except Exception as e:
       if (params.org_filters?.SPART && header.SPART !== params.org_filters.SPART) continue;
 
       // Search in document fields
-      const searchableText = [
-        header.VBELN,
-        header.AUART,
-        header.KUNNR,
-        header.BSTNK || '',
-      ].join(' ');
+      const searchableText = [header.VBELN, header.AUART, header.KUNNR, header.BSTNK || ''].join(
+        ' '
+      );
 
       if (pattern.test(searchableText)) {
         const result: SearchResult = {
@@ -377,17 +379,19 @@ except Exception as e:
     return results;
   }
 
-  async getDocText(params: DocTextParams): Promise<DocTextResult> {
+  async getDocText(_params: DocTextParams): Promise<DocTextResult> {
     this.ensureInitialized();
 
     // SALT doesn't include document texts
     // Return empty result with informative message
     return {
-      header_texts: [{
-        text_id: '0001',
-        lang: 'EN',
-        text: '[SALT dataset does not include document texts. Use synthetic adapter for text analysis testing.]',
-      }],
+      header_texts: [
+        {
+          text_id: '0001',
+          lang: 'EN',
+          text: '[SALT dataset does not include document texts. Use synthetic adapter for text analysis testing.]',
+        },
+      ],
       item_texts: [],
     };
   }
@@ -410,18 +414,20 @@ except Exception as e:
     // SALT only has sales orders, so flow is just the order itself
     return {
       root_document: vbeln,
-      flow: [{
-        doc_type: 'Sales Order',
-        doc_number: vbeln,
-        doc_category: DOC_CATEGORY.ORDER,
-        status: 'SALT Data',
-        created_date: header.ERDAT,
-        created_time: header.ERZET,
-        items: items.map(item => ({
-          item_number: item.POSNR,
-          quantity: item.KWMENG,
-        })),
-      }],
+      flow: [
+        {
+          doc_type: 'Sales Order',
+          doc_number: vbeln,
+          doc_category: DOC_CATEGORY.ORDER,
+          status: 'SALT Data',
+          created_date: header.ERDAT,
+          created_time: header.ERZET,
+          items: items.map(item => ({
+            item_number: item.POSNR,
+            quantity: item.KWMENG,
+          })),
+        },
+      ],
     };
   }
 
@@ -513,8 +519,7 @@ except Exception as e:
    */
   getDocumentsBySalesOrg(salesOrg: string): SalesDocHeader[] {
     if (!this.data) return [];
-    return Array.from(this.data.salesHeaders.values())
-      .filter(h => h.VKORG === salesOrg);
+    return Array.from(this.data.salesHeaders.values()).filter(h => h.VKORG === salesOrg);
   }
 }
 

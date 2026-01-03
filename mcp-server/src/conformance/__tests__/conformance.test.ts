@@ -1,12 +1,7 @@
 /**
  * Conformance Checking Module Tests
  */
-import {
-  ConformanceChecker,
-  createChecker,
-  Trace,
-  TraceEvent,
-} from '../checker.js';
+import { createChecker, Trace } from '../checker.js';
 import {
   O2C_SIMPLE_MODEL,
   O2C_DETAILED_MODEL,
@@ -16,11 +11,6 @@ import {
   getModelById,
   listModels,
 } from '../models.js';
-import {
-  DeviationType,
-  DeviationSeverity,
-  ReferenceModel,
-} from '../types.js';
 
 describe('Conformance Checking Module', () => {
   describe('Reference Models', () => {
@@ -35,7 +25,9 @@ describe('Conformance Checking Module', () => {
       expect(O2C_DETAILED_MODEL).toBeDefined();
       expect(O2C_DETAILED_MODEL.id).toBe('o2c-detailed');
       expect(O2C_DETAILED_MODEL.processType).toBe('O2C');
-      expect(O2C_DETAILED_MODEL.activities.length).toBeGreaterThan(O2C_SIMPLE_MODEL.activities.length);
+      expect(O2C_DETAILED_MODEL.activities.length).toBeGreaterThan(
+        O2C_SIMPLE_MODEL.activities.length
+      );
     });
 
     it('should have P2P simple model', () => {
@@ -49,7 +41,9 @@ describe('Conformance Checking Module', () => {
       expect(P2P_DETAILED_MODEL).toBeDefined();
       expect(P2P_DETAILED_MODEL.id).toBe('p2p-detailed');
       expect(P2P_DETAILED_MODEL.processType).toBe('P2P');
-      expect(P2P_DETAILED_MODEL.activities.length).toBeGreaterThan(P2P_SIMPLE_MODEL.activities.length);
+      expect(P2P_DETAILED_MODEL.activities.length).toBeGreaterThan(
+        P2P_SIMPLE_MODEL.activities.length
+      );
     });
 
     it('should get default model for O2C', () => {
@@ -350,10 +344,12 @@ describe('Conformance Checking Module', () => {
     });
 
     it('should include metadata', () => {
-      const traces: Trace[] = [{
-        caseId: 'TEST',
-        events: [{ activity: 'order_created', timestamp: '2024-01-01T10:00:00' }],
-      }];
+      const traces: Trace[] = [
+        {
+          caseId: 'TEST',
+          events: [{ activity: 'order_created', timestamp: '2024-01-01T10:00:00' }],
+        },
+      ];
 
       const result = checker.analyzeTraces(traces);
 
@@ -381,7 +377,9 @@ describe('Conformance Checking Module', () => {
       };
 
       const result = checker.analyzeTrace(trace);
-      const missingDeviations = result.deviations.filter(d => d.deviation_type === 'missing_activity');
+      const missingDeviations = result.deviations.filter(
+        d => d.deviation_type === 'missing_activity'
+      );
 
       expect(missingDeviations.some(d => d.severity === 'critical')).toBe(true);
     });
@@ -396,7 +394,9 @@ describe('Conformance Checking Module', () => {
       };
 
       const result = checker.analyzeTrace(trace);
-      const wrongOrderDeviations = result.deviations.filter(d => d.deviation_type === 'wrong_order');
+      const wrongOrderDeviations = result.deviations.filter(
+        d => d.deviation_type === 'wrong_order'
+      );
 
       expect(wrongOrderDeviations.some(d => d.severity === 'critical')).toBe(true);
     });
@@ -411,7 +411,9 @@ describe('Conformance Checking Module', () => {
       };
 
       const result = checker.analyzeTrace(trace);
-      const unexpectedDeviations = result.deviations.filter(d => d.deviation_type === 'unexpected_activity');
+      const unexpectedDeviations = result.deviations.filter(
+        d => d.deviation_type === 'unexpected_activity'
+      );
 
       expect(unexpectedDeviations[0]!.severity).toBe('major');
     });
@@ -429,7 +431,9 @@ describe('Conformance Checking Module', () => {
       };
 
       const result = checker.analyzeTrace(trace);
-      const repeatedDeviations = result.deviations.filter(d => d.deviation_type === 'repeated_activity');
+      const repeatedDeviations = result.deviations.filter(
+        d => d.deviation_type === 'repeated_activity'
+      );
 
       expect(repeatedDeviations[0]!.severity).toBe('minor');
     });

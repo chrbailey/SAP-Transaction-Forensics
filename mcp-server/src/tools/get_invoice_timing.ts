@@ -67,7 +67,11 @@ export async function executeGetInvoiceTiming(
   const input = GetInvoiceTimingSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_invoice_timing', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_invoice_timing',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

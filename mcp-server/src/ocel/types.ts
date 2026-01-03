@@ -185,9 +185,7 @@ export const P2P_EVENT_TYPES: OCELEventType[] = [
   },
   {
     name: 'Clear Invoice',
-    attributes: [
-      { name: 'user', type: 'string' },
-    ],
+    attributes: [{ name: 'user', type: 'string' }],
   },
   {
     name: 'Vendor creates invoice',
@@ -221,9 +219,7 @@ export const P2P_EVENT_TYPES: OCELEventType[] = [
   },
   {
     name: 'SRM: Complete',
-    attributes: [
-      { name: 'user', type: 'string' },
-    ],
+    attributes: [{ name: 'user', type: 'string' }],
   },
 ];
 

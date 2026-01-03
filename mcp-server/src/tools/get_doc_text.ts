@@ -65,7 +65,11 @@ export async function executeGetDocText(
   const input = GetDocTextSchema.parse(rawInput);
 
   // Create audit context
-  const auditContext = createAuditContext('get_doc_text', input as Record<string, unknown>, adapter.name);
+  const auditContext = createAuditContext(
+    'get_doc_text',
+    input as Record<string, unknown>,
+    adapter.name
+  );
 
   try {
     // Build params

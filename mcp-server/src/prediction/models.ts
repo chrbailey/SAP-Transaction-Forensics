@@ -402,7 +402,7 @@ function generateRecommendations(
   factors: PredictionFactor[]
 ): string[] {
   const recommendations: string[] = [];
-  const negativeFactors = factors.filter((f) => f.impact === 'negative');
+  const negativeFactors = factors.filter(f => f.impact === 'negative');
 
   if (type === 'late_delivery') {
     if (probability > 0.5) {
@@ -509,7 +509,7 @@ export function predictBatch(
   type: PredictionType,
   config?: Partial<ModelConfig>
 ): PredictionResult[] {
-  return featuresArray.map((features) => predict(features, type, config));
+  return featuresArray.map(features => predict(features, type, config));
 }
 
 /**

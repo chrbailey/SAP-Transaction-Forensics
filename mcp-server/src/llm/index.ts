@@ -177,7 +177,8 @@ export class LLMService {
 export function createLLMServiceFromEnv(): LLMService {
   const provider = (process.env.LLM_PROVIDER as LLMConfig['provider']) || 'ollama';
   const model = process.env.LLM_MODEL;
-  const apiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const apiKey =
+    process.env.LLM_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
 
   return new LLMService({
     provider,

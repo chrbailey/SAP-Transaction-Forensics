@@ -37,172 +37,172 @@ export type DocumentType =
  */
 export const ALLOWED_FIELDS: Record<DocumentType, readonly string[]> = {
   sales_header: [
-    'VBELN',    // Document number
-    'AUART',    // Document type
-    'VKORG',    // Sales organization
-    'VTWEG',    // Distribution channel
-    'SPART',    // Division
-    'KUNNR',    // Customer (ID only, no name)
-    'KUNWE',    // Ship-to party (ID only)
-    'AUDAT',    // Document date
-    'VDATU',    // Requested delivery date
-    'ERNAM',    // Created by (user ID)
-    'ERDAT',    // Created on
-    'ERZET',    // Created at
-    'AENAM',    // Changed by
-    'AEDAT',    // Changed on
-    'GBSTK',    // Overall status
-    'NETWR',    // Net value
-    'WAERK',    // Currency
-    'BSTNK',    // PO number
+    'VBELN', // Document number
+    'AUART', // Document type
+    'VKORG', // Sales organization
+    'VTWEG', // Distribution channel
+    'SPART', // Division
+    'KUNNR', // Customer (ID only, no name)
+    'KUNWE', // Ship-to party (ID only)
+    'AUDAT', // Document date
+    'VDATU', // Requested delivery date
+    'ERNAM', // Created by (user ID)
+    'ERDAT', // Created on
+    'ERZET', // Created at
+    'AENAM', // Changed by
+    'AEDAT', // Changed on
+    'GBSTK', // Overall status
+    'NETWR', // Net value
+    'WAERK', // Currency
+    'BSTNK', // PO number
   ] as const,
 
   sales_item: [
-    'VBELN',    // Document number
-    'POSNR',    // Item number
-    'MATNR',    // Material number
-    'ARKTX',    // Item description
-    'WERKS',    // Plant
-    'LGORT',    // Storage location
-    'KWMENG',   // Order quantity
-    'VRKME',    // Sales unit
-    'NETWR',    // Net value
-    'WAERK',    // Currency
-    'PSTYV',    // Item category
-    'ABGRU',    // Rejection reason
-    'EDATU',    // Schedule line date
-    'KBMENG',   // Confirmed quantity
-    'LIFSP',    // Delivery block
-    'FAKSP',    // Billing block
+    'VBELN', // Document number
+    'POSNR', // Item number
+    'MATNR', // Material number
+    'ARKTX', // Item description
+    'WERKS', // Plant
+    'LGORT', // Storage location
+    'KWMENG', // Order quantity
+    'VRKME', // Sales unit
+    'NETWR', // Net value
+    'WAERK', // Currency
+    'PSTYV', // Item category
+    'ABGRU', // Rejection reason
+    'EDATU', // Schedule line date
+    'KBMENG', // Confirmed quantity
+    'LIFSP', // Delivery block
+    'FAKSP', // Billing block
   ] as const,
 
   sales_text: [
-    'VBELN',    // Document number
-    'POSNR',    // Item number
-    'TDID',     // Text ID
-    'SPRAS',    // Language
-    'TEXT',     // Text content
-    'AENAM',    // Changed by
-    'AEDAT',    // Changed on
+    'VBELN', // Document number
+    'POSNR', // Item number
+    'TDID', // Text ID
+    'SPRAS', // Language
+    'TEXT', // Text content
+    'AENAM', // Changed by
+    'AEDAT', // Changed on
   ] as const,
 
   delivery_header: [
-    'VBELN',    // Delivery number
-    'LFART',    // Delivery type
-    'VSTEL',    // Shipping point
-    'ROUTE',    // Route
-    'KUNNR',    // Ship-to party (ID only)
-    'WADAT',    // Planned GI date
+    'VBELN', // Delivery number
+    'LFART', // Delivery type
+    'VSTEL', // Shipping point
+    'ROUTE', // Route
+    'KUNNR', // Ship-to party (ID only)
+    'WADAT', // Planned GI date
     'WADAT_IST', // Actual GI date
-    'LFDAT',    // Delivery date
-    'LDDAT',    // Loading date
-    'TDDAT',    // Transport date
-    'KOSTK',    // Pick/pack status
-    'WBSTK',    // Goods movement status
-    'GBSTK',    // Overall status
-    'BTGEW',    // Total weight
-    'GEWEI',    // Weight unit
-    'ERNAM',    // Created by
-    'ERDAT',    // Created on
-    'ERZET',    // Created at
+    'LFDAT', // Delivery date
+    'LDDAT', // Loading date
+    'TDDAT', // Transport date
+    'KOSTK', // Pick/pack status
+    'WBSTK', // Goods movement status
+    'GBSTK', // Overall status
+    'BTGEW', // Total weight
+    'GEWEI', // Weight unit
+    'ERNAM', // Created by
+    'ERDAT', // Created on
+    'ERZET', // Created at
   ] as const,
 
   delivery_item: [
-    'VBELN',    // Delivery number
-    'POSNR',    // Item number
-    'MATNR',    // Material number
-    'ARKTX',    // Description
-    'WERKS',    // Plant
-    'LGORT',    // Storage location
-    'LFIMG',    // Delivery quantity
-    'VRKME',    // Sales unit
-    'PIKMG',    // Picked quantity
-    'VGBEL',    // Reference document
-    'VGPOS',    // Reference item
-    'CHARG',    // Batch
+    'VBELN', // Delivery number
+    'POSNR', // Item number
+    'MATNR', // Material number
+    'ARKTX', // Description
+    'WERKS', // Plant
+    'LGORT', // Storage location
+    'LFIMG', // Delivery quantity
+    'VRKME', // Sales unit
+    'PIKMG', // Picked quantity
+    'VGBEL', // Reference document
+    'VGPOS', // Reference item
+    'CHARG', // Batch
   ] as const,
 
   invoice_header: [
-    'VBELN',    // Invoice number
-    'FKART',    // Billing type
-    'FKDAT',    // Billing date
-    'KUNRG',    // Payer (ID only)
-    'KUNAG',    // Sold-to (ID only)
-    'VKORG',    // Sales organization
-    'VTWEG',    // Distribution channel
-    'SPART',    // Division
-    'NETWR',    // Net value
-    'WAERK',    // Currency
-    'MWSBK',    // Tax amount
-    'BELNR',    // Accounting document
-    'GJAHR',    // Fiscal year
-    'BUDAT',    // Posting date
-    'FKSTO',    // Billing status
-    'ERNAM',    // Created by
-    'ERDAT',    // Created on
-    'ERZET',    // Created at
+    'VBELN', // Invoice number
+    'FKART', // Billing type
+    'FKDAT', // Billing date
+    'KUNRG', // Payer (ID only)
+    'KUNAG', // Sold-to (ID only)
+    'VKORG', // Sales organization
+    'VTWEG', // Distribution channel
+    'SPART', // Division
+    'NETWR', // Net value
+    'WAERK', // Currency
+    'MWSBK', // Tax amount
+    'BELNR', // Accounting document
+    'GJAHR', // Fiscal year
+    'BUDAT', // Posting date
+    'FKSTO', // Billing status
+    'ERNAM', // Created by
+    'ERDAT', // Created on
+    'ERZET', // Created at
   ] as const,
 
   invoice_item: [
-    'VBELN',    // Invoice number
-    'POSNR',    // Item number
-    'MATNR',    // Material number
-    'ARKTX',    // Description
-    'FKIMG',    // Billed quantity
-    'VRKME',    // Sales unit
-    'NETWR',    // Net value
-    'WAERK',    // Currency
-    'VGBEL',    // Reference document
-    'VGPOS',    // Reference item
-    'AUBEL',    // Sales order
-    'AUPOS',    // Sales order item
-    'WERKS',    // Plant
+    'VBELN', // Invoice number
+    'POSNR', // Item number
+    'MATNR', // Material number
+    'ARKTX', // Description
+    'FKIMG', // Billed quantity
+    'VRKME', // Sales unit
+    'NETWR', // Net value
+    'WAERK', // Currency
+    'VGBEL', // Reference document
+    'VGPOS', // Reference item
+    'AUBEL', // Sales order
+    'AUPOS', // Sales order item
+    'WERKS', // Plant
   ] as const,
 
   master_customer: [
     'ENTITY_TYPE', // Entity type
-    'ID',          // Customer ID
-    'HASHED_ID',   // Hashed ID
-    'INDUSTRY',    // Industry classification
-    'REGION',      // Geographic region (coarse)
-    'CATEGORY',    // Customer category/tier
-    'KTOKD',       // Account group
-    'ERDAT',       // Created on
+    'ID', // Customer ID
+    'HASHED_ID', // Hashed ID
+    'INDUSTRY', // Industry classification
+    'REGION', // Geographic region (coarse)
+    'CATEGORY', // Customer category/tier
+    'KTOKD', // Account group
+    'ERDAT', // Created on
   ] as const,
 
   master_vendor: [
     'ENTITY_TYPE', // Entity type
-    'ID',          // Vendor ID
-    'HASHED_ID',   // Hashed ID
-    'INDUSTRY',    // Industry classification
-    'REGION',      // Geographic region (coarse)
-    'CATEGORY',    // Vendor category
-    'KTOKK',       // Account group
-    'ERDAT',       // Created on
+    'ID', // Vendor ID
+    'HASHED_ID', // Hashed ID
+    'INDUSTRY', // Industry classification
+    'REGION', // Geographic region (coarse)
+    'CATEGORY', // Vendor category
+    'KTOKK', // Account group
+    'ERDAT', // Created on
   ] as const,
 
   master_material: [
     'ENTITY_TYPE', // Entity type
-    'ID',          // Material ID
-    'HASHED_ID',   // Hashed ID
-    'CATEGORY',    // Material category
-    'MTART',       // Material type
-    'MATKL',       // Material group
-    'SPART',       // Division
-    'ERDAT',       // Created on
+    'ID', // Material ID
+    'HASHED_ID', // Hashed ID
+    'CATEGORY', // Material category
+    'MTART', // Material type
+    'MATKL', // Material group
+    'SPART', // Division
+    'ERDAT', // Created on
   ] as const,
 
   doc_flow: [
-    'VBELV',    // Preceding document
-    'POSNV',    // Preceding item
-    'VBELN',    // Subsequent document
-    'POSNN',    // Subsequent item
-    'VBTYP_V',  // Preceding category
-    'VBTYP_N',  // Subsequent category
-    'RFMNG',    // Reference quantity
-    'RFWRT',    // Reference value
-    'ERDAT',    // Created on
-    'ERZET',    // Created at
+    'VBELV', // Preceding document
+    'POSNV', // Preceding item
+    'VBELN', // Subsequent document
+    'POSNN', // Subsequent item
+    'VBTYP_V', // Preceding category
+    'VBTYP_N', // Subsequent category
+    'RFMNG', // Reference quantity
+    'RFWRT', // Reference value
+    'ERDAT', // Created on
+    'ERZET', // Created at
   ] as const,
 } as const;
 
@@ -212,22 +212,67 @@ export const ALLOWED_FIELDS: Record<DocumentType, readonly string[]> = {
  */
 export const FORBIDDEN_FIELDS: readonly string[] = [
   // Personal names
-  'NAME1', 'NAME2', 'NAME3', 'NAME4', 'NAMEV', 'MCOD1', 'MCOD2', 'MCOD3',
+  'NAME1',
+  'NAME2',
+  'NAME3',
+  'NAME4',
+  'NAMEV',
+  'MCOD1',
+  'MCOD2',
+  'MCOD3',
   // Addresses
-  'STRAS', 'STRS2', 'HAUSN', 'PSTLZ', 'ORT01', 'ORT02', 'LAND1', 'REGIO',
-  'PSTL2', 'PFACH', 'PFORT',
+  'STRAS',
+  'STRS2',
+  'HAUSN',
+  'PSTLZ',
+  'ORT01',
+  'ORT02',
+  'LAND1',
+  'REGIO',
+  'PSTL2',
+  'PFACH',
+  'PFORT',
   // Contact information
-  'TELF1', 'TELF2', 'TELFX', 'TELX1', 'TELTX', 'TELBX', 'SMTP_ADDR', 'EMAIL',
+  'TELF1',
+  'TELF2',
+  'TELFX',
+  'TELX1',
+  'TELTX',
+  'TELBX',
+  'SMTP_ADDR',
+  'EMAIL',
   // Banking information
-  'BANKL', 'BANKN', 'BKONT', 'BANKA', 'IBAN', 'SWIFT', 'KOINH',
+  'BANKL',
+  'BANKN',
+  'BKONT',
+  'BANKA',
+  'IBAN',
+  'SWIFT',
+  'KOINH',
   // Tax IDs and government IDs
-  'STCEG', 'STCD1', 'STCD2', 'STCD3', 'STCD4', 'STCD5', 'STKZN', 'STKZU',
+  'STCEG',
+  'STCD1',
+  'STCD2',
+  'STCD3',
+  'STCD4',
+  'STCD5',
+  'STKZN',
+  'STKZU',
   // Credit and financial
-  'KLIMK', 'CTLPC', 'SKFOR', 'CRBLB',
+  'KLIMK',
+  'CTLPC',
+  'SKFOR',
+  'CRBLB',
   // Authentication/Security
-  'USNAM', 'BNAME', 'PASS', 'CODVN', 'USTYP',
+  'USNAM',
+  'BNAME',
+  'PASS',
+  'CODVN',
+  'USTYP',
   // GPS/Location
-  'LATITUDE', 'LONGITUDE', 'ALTITUDE',
+  'LATITUDE',
+  'LONGITUDE',
+  'ALTITUDE',
 ] as const;
 
 /**

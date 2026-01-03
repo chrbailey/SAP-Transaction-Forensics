@@ -96,7 +96,11 @@ export class CircuitBreaker {
       this.transitionTo(agentId, 'open', 'Failed during recovery test');
     } else if (state.failureCount >= this.config.maxFailuresBeforeOpen) {
       // Open circuit after max failures
-      this.transitionTo(agentId, 'open', `Exceeded ${this.config.maxFailuresBeforeOpen} consecutive failures`);
+      this.transitionTo(
+        agentId,
+        'open',
+        `Exceeded ${this.config.maxFailuresBeforeOpen} consecutive failures`
+      );
     }
   }
 
@@ -114,7 +118,7 @@ export class CircuitBreaker {
     const state = this.getState(agentId);
 
     if (state.state === 'closed') {
-      return false;  // Already running
+      return false; // Already running
     }
 
     this.transitionTo(agentId, 'closed');
@@ -144,7 +148,7 @@ export class CircuitBreaker {
     // Log transition
     console.log(
       `[CircuitBreaker] Agent ${agentId}: ${previousState} → ${newState}` +
-      (reason ? ` (${reason})` : '')
+        (reason ? ` (${reason})` : '')
     );
   }
 

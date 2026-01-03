@@ -81,8 +81,12 @@ You have access to SAP SD data with the following scope:
 - Sales Organizations: ${context.salesOrgs.join(', ')}
 ${context.distributionChannels ? `- Distribution Channels: ${context.distributionChannels.join(', ')}` : ''}
 
-${context.patterns && context.patterns.length > 0 ? `## Discovered Patterns
-${context.patterns.map(p => `- **${p.name}**: ${p.description} (${p.occurrence} occurrences, ${p.confidence} confidence)`).join('\n')}` : ''}
+${
+  context.patterns && context.patterns.length > 0
+    ? `## Discovered Patterns
+${context.patterns.map(p => `- **${p.name}**: ${p.description} (${p.occurrence} occurrences, ${p.confidence} confidence)`).join('\n')}`
+    : ''
+}
 
 ## O2C Process Flow
 1. Sales Order Creation → 2. Credit Check → 3. Delivery Creation → 4. Picking/Packing → 5. Goods Issue → 6. Billing → 7. Payment
@@ -127,12 +131,23 @@ ${context.invoiceReceiptCount ? `- Invoice Receipts: ${context.invoiceReceiptCou
 - Companies: ${context.companies.join(', ')}
 ${context.plants ? `- Plants: ${context.plants.join(', ')}` : ''}
 
-${context.activities && context.activities.length > 0 ? `## Process Activities (${context.uniqueActivities} unique)
-${context.activities.slice(0, 20).map(a => `- ${a}`).join('\n')}
-${context.activities.length > 20 ? `... and ${context.activities.length - 20} more` : ''}` : ''}
+${
+  context.activities && context.activities.length > 0
+    ? `## Process Activities (${context.uniqueActivities} unique)
+${context.activities
+  .slice(0, 20)
+  .map(a => `- ${a}`)
+  .join('\n')}
+${context.activities.length > 20 ? `... and ${context.activities.length - 20} more` : ''}`
+    : ''
+}
 
-${context.patterns && context.patterns.length > 0 ? `## Discovered Patterns
-${context.patterns.map(p => `- **${p.name}**: ${p.description} (${p.occurrence} occurrences, ${p.confidence} confidence)`).join('\n')}` : ''}
+${
+  context.patterns && context.patterns.length > 0
+    ? `## Discovered Patterns
+${context.patterns.map(p => `- **${p.name}**: ${p.description} (${p.occurrence} occurrences, ${p.confidence} confidence)`).join('\n')}`
+    : ''
+}
 
 ## P2P Process Flow
 1. Purchase Requisition (ME51N) → 2. RFQ/Vendor Selection → 3. Purchase Order (ME21N) → 4. Goods Receipt (MIGO) → 5. Invoice Receipt (MIRO) → 6. Payment (F-53)
@@ -199,10 +214,7 @@ export function getSystemPrompt(context: ProcessQueryContext): string {
 /**
  * Format the user query with relevant data context
  */
-export function formatUserQuery(
-  question: string,
-  relevantData?: Record<string, unknown>
-): string {
+export function formatUserQuery(question: string, relevantData?: Record<string, unknown>): string {
   let query = question;
 
   if (relevantData && Object.keys(relevantData).length > 0) {
@@ -225,7 +237,11 @@ export function parseResponse(content: string): {
   let confidence: 'high' | 'medium' | 'low' = 'medium';
   if (content.toLowerCase().includes('high confidence') || content.includes('HIGH')) {
     confidence = 'high';
-  } else if (content.toLowerCase().includes('low confidence') || content.includes('LOW') || content.includes('insufficient')) {
+  } else if (
+    content.toLowerCase().includes('low confidence') ||
+    content.includes('LOW') ||
+    content.includes('insufficient')
+  ) {
     confidence = 'low';
   }
 
@@ -242,7 +258,9 @@ export function parseResponse(content: string): {
   }
 
   // SAP table references
-  const tableMatches = content.match(/\b(VBAK|VBAP|LIKP|LIPS|VBRK|VBRP|EKKO|EKPO|EBAN|MKPF|MSEG|RBKP|RSEG)\b/g);
+  const tableMatches = content.match(
+    /\b(VBAK|VBAP|LIKP|LIPS|VBRK|VBRP|EKKO|EKPO|EBAN|MKPF|MSEG|RBKP|RSEG)\b/g
+  );
   if (tableMatches) {
     evidence.push({
       source: 'sap_tables',

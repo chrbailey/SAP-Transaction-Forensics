@@ -17,11 +17,7 @@
 import { z } from 'zod';
 import { SAPAdapter } from '../adapters/adapter.js';
 import { createAuditContext } from '../logging/audit.js';
-import {
-  enforceRowLimit,
-  withTimeout,
-  getPolicyConfig,
-} from '../policies/limits.js';
+import { enforceRowLimit, withTimeout, getPolicyConfig } from '../policies/limits.js';
 
 // Import prediction module
 import {
@@ -30,8 +26,6 @@ import {
   predictOutcomes,
   assessRisk,
   extractFeatures,
-  PREDICTION_TYPES,
-  MODEL_DESCRIPTIONS,
   formatRiskLevel,
 } from '../prediction/index.js';
 
@@ -148,15 +142,17 @@ export interface PredictionResult {
  * Zod schema for input validation
  */
 export const PredictOutcomeSchema = z.object({
-  doc_numbers: z.array(z.string()).min(1).describe(
-    'Sales order numbers to predict outcomes for'
-  ),
-  prediction_type: z.enum(['late_delivery', 'credit_hold', 'completion_time', 'all']).default('all').describe(
-    'Type of prediction to make'
-  ),
-  alert_threshold: z.number().min(0).max(1).default(0.7).describe(
-    'Risk threshold for generating alerts (0-1)'
-  ),
+  doc_numbers: z.array(z.string()).min(1).describe('Sales order numbers to predict outcomes for'),
+  prediction_type: z
+    .enum(['late_delivery', 'credit_hold', 'completion_time', 'all'])
+    .default('all')
+    .describe('Type of prediction to make'),
+  alert_threshold: z
+    .number()
+    .min(0)
+    .max(1)
+    .default(0.7)
+    .describe('Risk threshold for generating alerts (0-1)'),
 });
 
 export type PredictOutcomeInput = z.infer<typeof PredictOutcomeSchema>;
@@ -334,7 +330,8 @@ function generateLateDeliveryFactors(
 
   // Factor 3: Delivery status
   if (deliveryData) {
-    const giDate = (deliveryData as Record<string, Record<string, unknown>>)?.header_timing?.actual_gi_date;
+    const giDate = (deliveryData as Record<string, Record<string, unknown>>)?.header_timing
+      ?.actual_gi_date;
     if (!giDate) {
       factors.push({
         name: 'pending_goods_issue',
@@ -515,7 +512,8 @@ function generateCompletionTimePrediction(
 
   // Factor 3: Seasonal adjustment (simulated)
   const month = new Date().getMonth();
-  if (month === 11 || month === 0) { // December or January
+  if (month === 11 || month === 0) {
+    // December or January
     factors.push({
       name: 'seasonal_factor',
       value: 'Holiday season',
@@ -665,9 +663,14 @@ async function predictForDocument(
           docFlow
         );
         // For completion time, risk is based on how long it will take
-        const timeRiskLevel: RiskLevel = predictedDays > 21 ? 'critical' :
-          predictedDays > 14 ? 'high' :
-            predictedDays > 7 ? 'medium' : 'low';
+        const timeRiskLevel: RiskLevel =
+          predictedDays > 21
+            ? 'critical'
+            : predictedDays > 14
+              ? 'high'
+              : predictedDays > 7
+                ? 'medium'
+                : 'low';
         predictions.push({
           doc_number: docNumber,
           prediction_type: 'completion_time',
@@ -724,12 +727,7 @@ export async function executePredictOutcome(
     // Generate predictions for all documents
     const allPredictions: Prediction[] = [];
     for (const docNumber of docNumbers) {
-      const docPredictions = await predictForDocument(
-        adapter,
-        docNumber,
-        predictionTypes,
-        config
-      );
+      const docPredictions = await predictForDocument(adapter, docNumber, predictionTypes, config);
       allPredictions.push(...docPredictions);
     }
 
@@ -754,26 +752,28 @@ export async function executePredictOutcome(
     const highRiskCount = allPredictions.filter(
       p => p.risk_level === 'high' || p.risk_level === 'critical'
     ).length;
-    const avgRiskScore = allPredictions.length > 0
-      ? allPredictions.reduce((sum, p) => sum + p.probability, 0) / allPredictions.length
-      : 0;
+    const avgRiskScore =
+      allPredictions.length > 0
+        ? allPredictions.reduce((sum, p) => sum + p.probability, 0) / allPredictions.length
+        : 0;
 
     // Build model info (combined for 'all' type)
-    const modelInfo: ModelInfo = input.prediction_type === 'all'
-      ? {
-        model_type: 'Ensemble (Multiple Models)',
-        accuracy: 0.87,
-        last_trained: '2024-12-20',
-        version: '2.1.0',
-        features: [
-          ...new Set([
-            ...MODEL_CONFIG.late_delivery.features,
-            ...MODEL_CONFIG.credit_hold.features,
-            ...MODEL_CONFIG.completion_time.features,
-          ]),
-        ],
-      }
-      : MODEL_CONFIG[input.prediction_type];
+    const modelInfo: ModelInfo =
+      input.prediction_type === 'all'
+        ? {
+            model_type: 'Ensemble (Multiple Models)',
+            accuracy: 0.87,
+            last_trained: '2024-12-20',
+            version: '2.1.0',
+            features: [
+              ...new Set([
+                ...MODEL_CONFIG.late_delivery.features,
+                ...MODEL_CONFIG.credit_hold.features,
+                ...MODEL_CONFIG.completion_time.features,
+              ]),
+            ],
+          }
+        : MODEL_CONFIG[input.prediction_type];
 
     const result: PredictionResult = {
       predictions: allPredictions,
@@ -868,7 +868,7 @@ export async function executePredictOutcomeFromEvents(
 
   // Handle "all" prediction type - return composite assessment
   if (options.prediction_type === 'all') {
-    const assessments = cases.slice(0, 10).map((c) => assessRisk(c));
+    const assessments = cases.slice(0, 10).map(c => assessRisk(c));
     const lines: string[] = [
       '# Composite Risk Assessment',
       '',
@@ -932,7 +932,7 @@ export async function executePredictOutcomeFromEvents(
   if (result.summary.highRiskCases.length > 0) {
     lines.push('## High Risk Cases');
     for (const caseId of result.summary.highRiskCases.slice(0, 10)) {
-      const pred = result.predictions.find((p) => p.caseId === caseId);
+      const pred = result.predictions.find(p => p.caseId === caseId);
       if (pred) {
         lines.push(
           `- **${caseId}**: ${formatRiskLevel(pred.riskLevel)} (${Math.round(pred.probability * 100)}%)`
@@ -949,7 +949,7 @@ export async function executePredictOutcomeFromEvents(
   if (result.summary.topRiskFactors.length > 0) {
     lines.push('## Top Risk Factors');
     for (const { factor, count } of result.summary.topRiskFactors) {
-      const factorName = factor.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const factorName = factor.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       lines.push(`- **${factorName}**: ${count} cases`);
     }
     lines.push('');
@@ -990,7 +990,8 @@ export async function executePredictOutcomeFromEvents(
       if (pred.factors.length > 0) {
         lines.push('- **Contributing Factors**:');
         for (const factor of pred.factors.slice(0, 5)) {
-          const icon = factor.impact === 'positive' ? '✅' : factor.impact === 'negative' ? '❌' : '➖';
+          const icon =
+            factor.impact === 'positive' ? '✅' : factor.impact === 'negative' ? '❌' : '➖';
           lines.push(`  - ${icon} ${factor.description}`);
         }
       }
@@ -1031,7 +1032,7 @@ export function assessCaseRisk(
   const caseId = events[0]?.case_id || 'unknown';
   const processCase: ProcessCase = {
     caseId,
-    events: events.map((e) => {
+    events: events.map(e => {
       const event: import('../prediction/index.js').ProcessEvent = {
         caseId,
         activity: e.activity,

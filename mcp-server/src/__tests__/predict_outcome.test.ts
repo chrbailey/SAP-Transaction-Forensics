@@ -5,10 +5,7 @@
  * Uses Jest with ESM support.
  */
 
-import {
-  PredictOutcomeSchema,
-  predictOutcomeTool,
-} from '../tools/predict_outcome.js';
+import { PredictOutcomeSchema, predictOutcomeTool } from '../tools/predict_outcome.js';
 
 describe('PredictOutcomeSchema', () => {
   describe('input validation', () => {
@@ -145,9 +142,13 @@ describe('predictOutcomeTool', () => {
 
   it('should have enum for prediction_type property', () => {
     expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain('all');
-    expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain('late_delivery');
+    expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain(
+      'late_delivery'
+    );
     expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain('credit_hold');
-    expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain('completion_time');
+    expect(predictOutcomeTool.inputSchema.properties.prediction_type.enum).toContain(
+      'completion_time'
+    );
   });
 
   it('should have number type for alert_threshold property', () => {
@@ -537,7 +538,9 @@ describe('Alert Generation', () => {
     const lateDeliveryAlert = generateAlert('0000012345', 'late_delivery', 0.8, 0.7);
     const creditHoldAlert = generateAlert('0000012345', 'credit_hold', 0.8, 0.7);
 
-    expect(lateDeliveryAlert?.recommended_actions).not.toEqual(creditHoldAlert?.recommended_actions);
+    expect(lateDeliveryAlert?.recommended_actions).not.toEqual(
+      creditHoldAlert?.recommended_actions
+    );
   });
 });
 
@@ -615,9 +618,10 @@ describe('Summary Statistics Calculation', () => {
     types: string[]
   ): PredictionSummary {
     const highRiskCount = probabilities.filter(p => p >= 0.7).length;
-    const avgScore = probabilities.length > 0
-      ? Math.round((probabilities.reduce((a, b) => a + b, 0) / probabilities.length) * 100) / 100
-      : 0;
+    const avgScore =
+      probabilities.length > 0
+        ? Math.round((probabilities.reduce((a, b) => a + b, 0) / probabilities.length) * 100) / 100
+        : 0;
 
     return {
       total_documents: docCount,
@@ -643,7 +647,11 @@ describe('Summary Statistics Calculation', () => {
   });
 
   it('should list unique prediction types', () => {
-    const summary = calculateSummary(3, [0.5, 0.5, 0.5], ['late_delivery', 'credit_hold', 'late_delivery']);
+    const summary = calculateSummary(
+      3,
+      [0.5, 0.5, 0.5],
+      ['late_delivery', 'credit_hold', 'late_delivery']
+    );
     expect(summary.prediction_types_run).toContain('late_delivery');
     expect(summary.prediction_types_run).toContain('credit_hold');
     expect(summary.prediction_types_run.length).toBe(2);

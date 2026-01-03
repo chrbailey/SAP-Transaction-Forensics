@@ -6,7 +6,6 @@
 import {
   ProcessGraph,
   ActivityNode,
-  ActivityEdge,
   VisualizationOptions,
   VisualizationResult,
   BOTTLENECK_COLORS,
@@ -111,7 +110,7 @@ export function generateMermaidDiagram(
     // Edge style based on frequency
     let arrow = '-->';
     if (edge.isMainPath) {
-      arrow = '==>';  // Thick arrow for main path
+      arrow = '==>'; // Thick arrow for main path
     }
 
     if (edgeLabel) {
@@ -139,7 +138,9 @@ export function generateMermaidDiagram(
     // Add class definitions
     for (const [severity, color] of Object.entries(BOTTLENECK_COLORS)) {
       const textColor = severity === 'none' || severity === 'low' ? '#000' : '#fff';
-      lines.push(`    classDef ${severity} fill:${color},stroke:#333,stroke-width:2px,color:${textColor}`);
+      lines.push(
+        `    classDef ${severity} fill:${color},stroke:#333,stroke-width:2px,color:${textColor}`
+      );
     }
 
     // Apply classes to nodes
@@ -198,7 +199,7 @@ function formatDuration(hours: number): string {
   } else if (hours < 24) {
     return `${Math.round(hours * 10) / 10}h`;
   } else {
-    const days = Math.round(hours / 24 * 10) / 10;
+    const days = Math.round((hours / 24) * 10) / 10;
     return `${days}d`;
   }
 }

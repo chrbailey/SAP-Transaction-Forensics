@@ -6,7 +6,7 @@
  */
 
 import type { RFCConnectionPool } from './connection-pool.js';
-import { RFCError, RFCNotFoundError, createErrorFromBapiReturn } from './errors.js';
+import { RFCNotFoundError, createErrorFromBapiReturn } from './errors.js';
 
 /**
  * Document number padding utility
@@ -74,7 +74,7 @@ export async function callReadText(
   const header = (result.HEADER as Record<string, string>) || {};
 
   return {
-    lines: lines.map((line) => ({
+    lines: lines.map(line => ({
       tdformat: line.TDFORMAT || '',
       tdline: line.TDLINE || '',
     })),
@@ -155,7 +155,7 @@ export async function callBapiSalesorderGetlist(
 
   const orders = (result.SALES_ORDERS as Array<Record<string, unknown>>) || [];
 
-  return orders.map((order) => ({
+  return orders.map(order => ({
     salesDocument: String(order.SD_DOC || ''),
     soldToParty: String(order.SOLD_TO || ''),
     shipToParty: String(order.SHIP_TO || ''),
@@ -246,7 +246,7 @@ export async function callSDSalesdocumentRead(
   };
 
   const itemsRaw = (result.SALES_ITEMS as Array<Record<string, unknown>>) || [];
-  const items: SalesDocItem[] = itemsRaw.map((item) => ({
+  const items: SalesDocItem[] = itemsRaw.map(item => ({
     posnr: String(item.POSNR || ''),
     matnr: String(item.MATNR || ''),
     arktx: String(item.ARKTX || ''),
@@ -302,7 +302,7 @@ export async function callBapiSalesdocuGetrelations(
 
   const relations = (result.DOC_FLOW as Array<Record<string, unknown>>) || [];
 
-  return relations.map((rel) => ({
+  return relations.map(rel => ({
     vbelv: String(rel.VBELV || ''),
     posnv: String(rel.POSNV || ''),
     vbeln: String(rel.VBELN || ''),
@@ -392,7 +392,7 @@ export async function callBapiOutbDeliveryGetDetail(
   };
 
   const itemsRaw = (result.ITEM_DATA as Array<Record<string, unknown>>) || [];
-  const items: DeliveryItem[] = itemsRaw.map((item) => ({
+  const items: DeliveryItem[] = itemsRaw.map(item => ({
     posnr: String(item.DELIV_ITEM || ''),
     matnr: String(item.MATERIAL || ''),
     arktx: String(item.MATL_DESC || ''),
@@ -472,7 +472,7 @@ export async function callBapiBillingdocGetdetail(
   };
 
   const itemsRaw = (result.BILLINGDOCUMENTITEM as Array<Record<string, unknown>>) || [];
-  const items: InvoiceItem[] = itemsRaw.map((item) => ({
+  const items: InvoiceItem[] = itemsRaw.map(item => ({
     posnr: String(item.ITM_NUMBER || ''),
     matnr: String(item.MATERIAL || ''),
     arktx: String(item.SHORT_TEXT || ''),
@@ -635,8 +635,8 @@ export async function callRfcReadTable(
 ): Promise<Array<Record<string, string>>> {
   const delimiter = params.delimiter || '|';
 
-  const fields = (params.fields || []).map((f) => ({ FIELDNAME: f }));
-  const options = (params.options || []).map((o) => ({ TEXT: o }));
+  const fields = (params.fields || []).map(f => ({ FIELDNAME: f }));
+  const options = (params.options || []).map(o => ({ TEXT: o }));
 
   const result = await pool.call<Record<string, unknown>>('RFC_READ_TABLE', {
     QUERY_TABLE: params.tableName,
@@ -650,9 +650,9 @@ export async function callRfcReadTable(
   const dataRows = (result.DATA as Array<{ WA: string }>) || [];
   const fieldDefs = (result.FIELDS as Array<{ FIELDNAME: string }>) || [];
 
-  const fieldNames = fieldDefs.map((f) => f.FIELDNAME.trim());
+  const fieldNames = fieldDefs.map(f => f.FIELDNAME.trim());
 
-  return dataRows.map((row) => {
+  return dataRows.map(row => {
     const values = row.WA.split(delimiter);
     const record: Record<string, string> = {};
     fieldNames.forEach((name, idx) => {

@@ -32,10 +32,7 @@ export interface Trace {
 /**
  * Build a process graph from traces
  */
-export function buildProcessGraph(
-  traces: Trace[],
-  processType: ProcessType = 'O2C'
-): ProcessGraph {
+export function buildProcessGraph(traces: Trace[], processType: ProcessType = 'O2C'): ProcessGraph {
   // Count activity frequencies
   const activityFrequencies = new Map<string, number>();
   const activityDurations = new Map<string, number[]>();
@@ -167,9 +164,7 @@ export function buildProcessGraph(
   for (const [edgeKey, frequency] of edgeFrequencies) {
     const [from, to] = edgeKey.split('|') as [string, string];
     const times = edgeTimes.get(edgeKey) || [];
-    const avgTime = times.length > 0
-      ? times.reduce((a, b) => a + b, 0) / times.length
-      : undefined;
+    const avgTime = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : undefined;
     const percentage = totalEdges > 0 ? (frequency / totalEdges) * 100 : 0;
 
     const edge: ActivityEdge = {
@@ -189,9 +184,8 @@ export function buildProcessGraph(
 
   // Calculate stats
   const sortedCaseDurations = [...caseDurations].sort((a, b) => a - b);
-  const avgCaseDuration = caseDurations.length > 0
-    ? caseDurations.reduce((a, b) => a + b, 0) / caseDurations.length
-    : 0;
+  const avgCaseDuration =
+    caseDurations.length > 0 ? caseDurations.reduce((a, b) => a + b, 0) / caseDurations.length : 0;
   const medianCaseDuration = percentile(sortedCaseDurations, 50);
 
   // Find dominant variant
@@ -199,9 +193,7 @@ export function buildProcessGraph(
   for (const count of variants.values()) {
     if (count > maxVariantCount) maxVariantCount = count;
   }
-  const dominantVariantPercentage = traces.length > 0
-    ? (maxVariantCount / traces.length) * 100
-    : 0;
+  const dominantVariantPercentage = traces.length > 0 ? (maxVariantCount / traces.length) * 100 : 0;
 
   const stats: ProcessStats = {
     avgCaseDuration: Math.round(avgCaseDuration * 100) / 100,

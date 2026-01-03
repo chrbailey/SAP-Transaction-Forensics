@@ -133,7 +133,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async searchDocText(_params: SearchDocTextParams): Promise<SearchResult[]> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: Custom CDS view for text search or API_SALES_ORDER_SRV with filtering'
+        'Would use: Custom CDS view for text search or API_SALES_ORDER_SRV with filtering'
     );
   }
 
@@ -177,7 +177,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getDocText(_params: DocTextParams): Promise<DocTextResult> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: Custom CDS view exposing STXH/STXL text tables'
+        'Would use: Custom CDS view exposing STXH/STXL text tables'
     );
   }
 
@@ -212,7 +212,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getDocFlow(_params: DocFlowParams): Promise<DocFlowResult> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_SALES_ORDER_SRV with to_DocumentFlow navigation or I_SalesDocumentFlow CDS view'
+        'Would use: API_SALES_ORDER_SRV with to_DocumentFlow navigation or I_SalesDocumentFlow CDS view'
     );
   }
 
@@ -249,7 +249,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getSalesDocHeader(_params: SalesDocHeaderParams): Promise<SalesDocHeader | null> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_SALES_ORDER_SRV/A_SalesOrder entity'
+        'Would use: API_SALES_ORDER_SRV/A_SalesOrder entity'
     );
   }
 
@@ -281,7 +281,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getSalesDocItems(_params: SalesDocItemsParams): Promise<SalesDocItem[]> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_SALES_ORDER_SRV/A_SalesOrderItem with to_ScheduleLine navigation'
+        'Would use: API_SALES_ORDER_SRV/A_SalesOrderItem with to_ScheduleLine navigation'
     );
   }
 
@@ -317,7 +317,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getDeliveryTiming(_params: DeliveryTimingParams): Promise<DeliveryTimingResult | null> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_OUTBOUND_DELIVERY_SRV/A_OutbDeliveryHeader'
+        'Would use: API_OUTBOUND_DELIVERY_SRV/A_OutbDeliveryHeader'
     );
   }
 
@@ -359,7 +359,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getInvoiceTiming(_params: InvoiceTimingParams): Promise<InvoiceTimingResult | null> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_BILLING_DOCUMENT_SRV/A_BillingDocument'
+        'Would use: API_BILLING_DOCUMENT_SRV/A_BillingDocument'
     );
   }
 
@@ -422,7 +422,7 @@ export class S4ODataAdapter extends BaseDataAdapter {
   async getMasterStub(_params: MasterStubParams): Promise<MasterStub | null> {
     throw new Error(
       'S/4HANA OData Adapter not implemented. ' +
-      'Would use: API_BUSINESS_PARTNER for customers/vendors, API_PRODUCT_SRV for materials'
+        'Would use: API_BUSINESS_PARTNER for customers/vendors, API_PRODUCT_SRV for materials'
     );
   }
 }

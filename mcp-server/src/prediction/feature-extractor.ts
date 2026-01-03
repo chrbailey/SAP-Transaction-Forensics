@@ -69,16 +69,14 @@ function matchesMilestone(activity: string, milestone: string): boolean {
   };
 
   const milestoneVariations = variations[milestoneNorm] || [];
-  return milestoneVariations.some(
-    (v) => normalized.includes(v) || v.includes(normalized)
-  );
+  return milestoneVariations.some(v => normalized.includes(v) || v.includes(normalized));
 }
 
 /**
  * Detects rework (same activity repeated)
  */
 function detectRework(events: ProcessEvent[]): boolean {
-  const activities = events.map((e) => normalizeActivity(e.activity));
+  const activities = events.map(e => normalizeActivity(e.activity));
   const seen = new Set<string>();
 
   for (const activity of activities) {
@@ -93,7 +91,7 @@ function detectRework(events: ProcessEvent[]): boolean {
  * Counts loops in event sequence
  */
 function countLoops(events: ProcessEvent[]): number {
-  const activities = events.map((e) => normalizeActivity(e.activity));
+  const activities = events.map(e => normalizeActivity(e.activity));
   const activityCounts = new Map<string, number>();
 
   for (const activity of activities) {
@@ -111,18 +109,13 @@ function countLoops(events: ProcessEvent[]): number {
 /**
  * Counts backtracks (going to earlier milestone)
  */
-function countBacktracks(
-  events: ProcessEvent[],
-  milestones: readonly string[]
-): number {
+function countBacktracks(events: ProcessEvent[], milestones: readonly string[]): number {
   let backtracks = 0;
   let highestMilestone = -1;
 
   for (const event of events) {
     const normalized = normalizeActivity(event.activity);
-    const milestoneIndex = milestones.findIndex((m) =>
-      matchesMilestone(normalized, m)
-    );
+    const milestoneIndex = milestones.findIndex(m => matchesMilestone(normalized, m));
 
     if (milestoneIndex >= 0) {
       if (milestoneIndex < highestMilestone) {
@@ -139,10 +132,7 @@ function countBacktracks(
 /**
  * Calculates progress score based on milestones reached
  */
-function calculateProgress(
-  events: ProcessEvent[],
-  milestones: readonly string[]
-): number {
+function calculateProgress(events: ProcessEvent[], milestones: readonly string[]): number {
   const reachedMilestones = new Set<number>();
 
   for (const event of events) {
@@ -195,10 +185,7 @@ function calculateComplexity(features: Partial<CaseFeatures>): number {
 /**
  * Identifies risk indicators from case features
  */
-function identifyRiskIndicators(
-  events: ProcessEvent[],
-  features: Partial<CaseFeatures>
-): string[] {
+function identifyRiskIndicators(events: ProcessEvent[], features: Partial<CaseFeatures>): string[] {
   const risks: string[] = [];
 
   // Long case age
@@ -255,11 +242,7 @@ function identifyRiskIndicators(
   // Check for specific risky activities in events
   for (const event of events) {
     const activity = normalizeActivity(event.activity);
-    if (
-      activity.includes('reject') ||
-      activity.includes('cancel') ||
-      activity.includes('error')
-    ) {
+    if (activity.includes('reject') || activity.includes('cancel') || activity.includes('error')) {
       if (!risks.includes('rejection_detected')) {
         risks.push('rejection_detected');
       }
@@ -278,7 +261,7 @@ function identifyRiskIndicators(
  * Detects process type from events
  */
 function detectProcessType(events: ProcessEvent[]): 'O2C' | 'P2P' | 'unknown' {
-  const activities = events.map((e) => normalizeActivity(e.activity));
+  const activities = events.map(e => normalizeActivity(e.activity));
   const combined = activities.join(' ');
 
   // P2P indicators
@@ -290,18 +273,11 @@ function detectProcessType(events: ProcessEvent[]): 'O2C' | 'P2P' | 'unknown' {
     'vendor',
     'srm',
   ];
-  const p2pScore = p2pIndicators.filter((i) => combined.includes(i)).length;
+  const p2pScore = p2pIndicators.filter(i => combined.includes(i)).length;
 
   // O2C indicators
-  const o2cIndicators = [
-    'sales',
-    'order_created',
-    'delivery',
-    'billing',
-    'customer',
-    'shipping',
-  ];
-  const o2cScore = o2cIndicators.filter((i) => combined.includes(i)).length;
+  const o2cIndicators = ['sales', 'order_created', 'delivery', 'billing', 'customer', 'shipping'];
+  const o2cScore = o2cIndicators.filter(i => combined.includes(i)).length;
 
   if (p2pScore > o2cScore) return 'P2P';
   if (o2cScore > p2pScore) return 'O2C';
@@ -328,61 +304,49 @@ export function extractFeatures(processCase: ProcessCase): CaseFeatures {
   const now = new Date();
 
   // Temporal features
-  const caseAge = (now.getTime() - parseTimestamp(firstEvent.timestamp).getTime()) / (1000 * 60 * 60);
-  const timeSinceLastEvent = (now.getTime() - parseTimestamp(lastEvent.timestamp).getTime()) / (1000 * 60 * 60);
+  const caseAge =
+    (now.getTime() - parseTimestamp(firstEvent.timestamp).getTime()) / (1000 * 60 * 60);
+  const timeSinceLastEvent =
+    (now.getTime() - parseTimestamp(lastEvent.timestamp).getTime()) / (1000 * 60 * 60);
 
   // Calculate average time between events
   let totalTimeBetween = 0;
   for (let i = 1; i < sortedEvents.length; i++) {
-    totalTimeBetween += hoursBetween(
-      sortedEvents[i - 1]!.timestamp,
-      sortedEvents[i]!.timestamp
-    );
+    totalTimeBetween += hoursBetween(sortedEvents[i - 1]!.timestamp, sortedEvents[i]!.timestamp);
   }
   const avgTimeBetweenEvents =
     sortedEvents.length > 1 ? totalTimeBetween / (sortedEvents.length - 1) : 0;
 
   // Activity features
-  const activities = sortedEvents.map((e) => normalizeActivity(e.activity));
+  const activities = sortedEvents.map(e => normalizeActivity(e.activity));
   const uniqueActivities = new Set(activities).size;
 
   // Check for specific activities
   const hasDeliveryCreated = activities.some(
-    (a) =>
-      a.includes('delivery') ||
-      a.includes('outbound') ||
-      a.includes('shipping')
+    a => a.includes('delivery') || a.includes('outbound') || a.includes('shipping')
   );
   const hasGoodsIssued = activities.some(
-    (a) =>
-      a.includes('goods_issue') ||
-      a.includes('pgi') ||
-      a.includes('post_goods')
+    a => a.includes('goods_issue') || a.includes('pgi') || a.includes('post_goods')
   );
   const hasInvoiceCreated = activities.some(
-    (a) =>
-      a.includes('invoice') || a.includes('billing') || a.includes('bill')
+    a => a.includes('invoice') || a.includes('billing') || a.includes('bill')
   );
-  const hasCreditCheck = activities.some((a) => a.includes('credit_check'));
+  const hasCreditCheck = activities.some(a => a.includes('credit_check'));
   const hasCreditHold = activities.some(
-    (a) => a.includes('credit') && (a.includes('hold') || a.includes('block'))
+    a => a.includes('credit') && (a.includes('hold') || a.includes('block'))
   );
 
   // P2P specific
   const hasPurchaseOrder = activities.some(
-    (a) => a.includes('purchase_order') || a.includes('create_po')
+    a => a.includes('purchase_order') || a.includes('create_po')
   );
   const hasGoodsReceipt = activities.some(
-    (a) => a.includes('goods_receipt') || a.includes('record_goods')
+    a => a.includes('goods_receipt') || a.includes('record_goods')
   );
-  const hasServiceEntry = activities.some(
-    (a) => a.includes('service_entry') || a.includes('ses')
-  );
+  const hasServiceEntry = activities.some(a => a.includes('service_entry') || a.includes('ses'));
 
   // Resource features
-  const resources = sortedEvents
-    .map((e) => e.resource)
-    .filter((r): r is string => r !== undefined);
+  const resources = sortedEvents.map(e => e.resource).filter((r): r is string => r !== undefined);
   const uniqueResources = new Set(resources).size;
   let resourceChanges = 0;
   for (let i = 1; i < resources.length; i++) {
@@ -391,8 +355,7 @@ export function extractFeatures(processCase: ProcessCase): CaseFeatures {
 
   // Sequence features
   const currentActivity = activities[activities.length - 1] || '';
-  const previousActivity =
-    activities.length > 1 ? activities[activities.length - 2]! : null;
+  const previousActivity = activities.length > 1 ? activities[activities.length - 2]! : null;
 
   // Pattern features
   const hasRework = detectRework(sortedEvents);
