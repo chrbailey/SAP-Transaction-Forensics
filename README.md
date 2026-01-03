@@ -9,6 +9,21 @@
 
 [![CI](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions)
 [![v2.0.0](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v2.0.0)
+[![Tests](https://img.shields.io/badge/tests-431%20passing-brightgreen.svg)](https://github.com/chrbailey/sap-workflow-mining)
+
+---
+
+## 🚀 What's New in v2.0
+
+| Feature | Description |
+|---------|-------------|
+| 🗣️ **Natural Language Interface** | Ask questions in plain English - "Why are orders delayed?" |
+| 📊 **OCEL 2.0 Export** | Object-centric event logs for PM4Py, Celonis |
+| ✅ **Conformance Checking** | Compare processes against O2C/P2P reference models |
+| 🗺️ **Visual Process Maps** | Mermaid/GraphViz diagrams with bottleneck highlighting |
+| 🔮 **Predictive Monitoring** | ML-based late delivery, credit hold, completion time predictions |
+
+**[View Release Notes →](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v2.0.0)**
 
 ---
 
@@ -157,10 +172,21 @@ Order 0000012345 - Risk Assessment:
 └── Est. Completion: 8.2 days
 ```
 
-- Predict: late delivery, credit hold, completion time
-- 29 extracted features from process events
+**Prediction Types:**
+- **Late Delivery** - Probability based on case age, progress, stalls, rework
+- **Credit Hold** - Likelihood based on credit check status, complexity
+- **Completion Time** - Estimated hours remaining based on progress/pace
+
+**29 Extracted Features:**
+- Temporal: case age, time since last event, avg time between events
+- Activity: milestones reached, rework detection, loop count, backtracks
+- Resource: unique resources, handoff count
+- Risk indicators: stalled cases, credit holds, rejections, blocks
+
+**Risk Scoring:**
+- 🟢 Low (0-25%) | 🟡 Medium (25-50%) | 🟠 High (50-75%) | 🔴 Critical (75-100%)
 - Configurable alert thresholds
-- Model types: Random Forest, Gradient Boosting, Ensemble
+- Actionable recommendations based on detected risk factors
 
 ---
 
@@ -256,11 +282,43 @@ npx tsx ../demos/predict_outcome_demo.ts
 | `check_conformance_demo.ts` | Deviation detection and severity scoring |
 | `visualize_process_demo.ts` | Mermaid diagrams with bottleneck highlighting |
 | `predict_outcome_demo.ts` | Risk predictions and alerts |
-| `salt_adapter_demo.ts` | Real SAP data from SALT dataset |
+| `salt_adapter_demo.ts` | Real SAP O2C data from SALT dataset |
+| `visualize_process_bpi_demo.ts` | Process maps with real P2P data (BPI 2019) |
+| `predict_outcome_bpi_demo.ts` | Risk predictions with real P2P data (BPI 2019) |
+| `ask_process_bpi_demo.ts` | Natural language queries on P2P data |
 
 ---
 
-## Real SAP Data (SALT Dataset)
+## Real SAP Data
+
+### BPI Challenge 2019 (P2P)
+
+Use real SAP Purchase-to-Pay data from the [BPI Challenge 2019](https://data.4tu.nl/articles/dataset/BPI_Challenge_2019/12715853) for testing with authentic business patterns.
+
+```bash
+# Download and convert BPI 2019 data
+python scripts/download_bpi_2019.py
+
+# Run demos with real P2P data
+npx tsx demos/visualize_process_bpi_demo.ts 50
+npx tsx demos/predict_outcome_bpi_demo.ts 30
+npx tsx demos/ask_process_bpi_demo.ts
+```
+
+**Dataset Statistics:**
+| Metric | Value |
+|--------|-------|
+| Total cases | 251,734 |
+| Total events | 1.5M+ |
+| Unique activities | 39 |
+| Process type | Purchase-to-Pay (P2P) |
+| Source | Multinational coatings company |
+
+**Activities include:** SRM workflows, Purchase Orders, Goods Receipts, Service Entries, Invoice Processing, Vendor interactions
+
+---
+
+### SALT Dataset (O2C)
 
 Use real SAP ERP data from SAP's [SALT dataset](https://huggingface.co/datasets/SAP/SALT) on HuggingFace for testing with authentic business patterns.
 
