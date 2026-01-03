@@ -7,9 +7,15 @@
 **Zero migration** - Works with your existing ECC system
 **Fast time to value** - Hours to first insights, not months
 
-[![CI](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions)
-[![v2.0.0](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v2.0.0)
-[![Tests](https://img.shields.io/badge/tests-431%20passing-brightgreen.svg)](https://github.com/chrbailey/sap-workflow-mining)
+[![CI](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml)
+[![Release](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml)
+[![GitHub release](https://img.shields.io/github/v/release/chrbailey/sap-workflow-mining)](https://github.com/chrbailey/sap-workflow-mining/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%20|%2020%20|%2022-green.svg)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-605%20passing-brightgreen.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml)
+[![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![ESLint](https://img.shields.io/badge/linting-ESLint-4B32C3.svg)](https://eslint.org/)
 
 ---
 
