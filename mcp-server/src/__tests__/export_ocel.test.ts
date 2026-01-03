@@ -61,13 +61,12 @@ describe('ExportOcelSchema', () => {
       expect(() => ExportOcelSchema.parse(input)).toThrow();
     });
 
-    it('should reject missing required fields', () => {
-      const input = {
-        date_from: '2024-01-01',
-        // date_to missing
-      };
+    it('should accept missing date fields for P2P mode', () => {
+      // date_from and date_to are optional for P2P mode
+      const input = {};
 
-      expect(() => ExportOcelSchema.parse(input)).toThrow();
+      const result = ExportOcelSchema.parse(input);
+      expect(result.output_format).toBe('json'); // Defaults applied
     });
 
     it('should reject invalid output_format', () => {
@@ -116,8 +115,9 @@ describe('exportOcelTool', () => {
   it('should have correct tool definition', () => {
     expect(exportOcelTool.name).toBe('export_ocel');
     expect(exportOcelTool.description).toContain('OCEL 2.0');
-    expect(exportOcelTool.inputSchema.required).toContain('date_from');
-    expect(exportOcelTool.inputSchema.required).toContain('date_to');
+    // date_from and date_to are optional for P2P mode (no required fields)
+    expect(exportOcelTool.inputSchema.properties).toHaveProperty('date_from');
+    expect(exportOcelTool.inputSchema.properties).toHaveProperty('date_to');
     expect(exportOcelTool.inputSchema.properties).toHaveProperty('output_format');
     expect(exportOcelTool.inputSchema.properties).toHaveProperty('include_items');
   });

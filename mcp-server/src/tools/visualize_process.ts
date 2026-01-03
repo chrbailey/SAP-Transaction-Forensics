@@ -1,8 +1,9 @@
 /**
  * Tool: visualize_process
  *
- * Generates process flow visualizations for SAP Order-to-Cash documents.
- * Supports Mermaid flowcharts, DOT (Graphviz), and SVG output formats.
+ * Generates process flow visualizations for SAP documents.
+ * Supports both O2C (Order-to-Cash) and P2P (Purchase-to-Pay) processes.
+ * Output formats: Mermaid flowcharts, DOT (Graphviz), and SVG.
  * Includes bottleneck highlighting and timing annotations.
  *
  * Phase 4 - SAP Workflow Mining v2.0 Roadmap
@@ -13,6 +14,13 @@ import { SAPAdapter } from '../adapters/adapter.js';
 import { createAuditContext } from '../logging/audit.js';
 import { withTimeout, getPolicyConfig } from '../policies/limits.js';
 import { DocFlowResult } from '../types/sap.js';
+import { BPITrace } from '../adapters/bpi/index.js';
+import {
+  visualizeProcess as visualizeP2PProcess,
+  Trace as VisualizationTrace,
+  VisualizationOptions,
+  VisualizationResult as P2PVisualizationResult,
+} from '../visualization/index.js';
 
 /**
  * Visualization output structure
@@ -76,10 +84,21 @@ interface ProcessEdge {
  * Zod schema for input validation
  */
 export const VisualizeProcessSchema = z.object({
-  doc_numbers: z.array(z.string().min(1)).min(1, 'At least one document number is required'),
+  doc_numbers: z.array(z.string().min(1)).optional().describe(
+    'Document numbers to visualize (required for O2C, optional for P2P)'
+  ),
   format: z.enum(['mermaid', 'dot', 'svg']).default('mermaid'),
   include_timing: z.boolean().default(true),
   highlight_bottlenecks: z.boolean().default(true),
+  max_traces: z.number().int().min(1).max(10000).default(100).describe(
+    'Maximum traces to analyze (for P2P mode)'
+  ),
+  main_path_only: z.boolean().default(false).describe(
+    'Only show the main process path (most frequent transitions)'
+  ),
+  min_edge_frequency: z.number().min(0).max(1).default(0.01).describe(
+    'Minimum edge frequency to include (0-1)'
+  ),
 });
 
 export type VisualizeProcessInput = z.infer<typeof VisualizeProcessSchema>;
@@ -89,48 +108,76 @@ export type VisualizeProcessInput = z.infer<typeof VisualizeProcessSchema>;
  */
 export const visualizeProcessTool = {
   name: 'visualize_process',
-  description: `Generate process flow visualizations for SAP Order-to-Cash documents.
-Creates flowcharts showing the document flow with timing and bottleneck analysis.
+  description: `Generate process flow visualizations for SAP documents.
 
-Use this tool to:
-- Visualize the order-to-cash process flow for specific documents
-- Identify bottlenecks with color-coded highlighting
-- Analyze cycle times between process steps
-- Generate diagrams for process documentation
+Supports both O2C (Order-to-Cash) and P2P (Purchase-to-Pay) processes.
+Auto-detects process type based on the adapter in use.
+
+Output Formats:
+- mermaid: Mermaid flowchart syntax (renderable in markdown, docs, Mermaid Live)
+- dot: GraphViz DOT format (use with 'dot -Tsvg' or GraphViz tools)
+- svg: Simple inline SVG (for O2C) or DOT with instructions (for P2P)
+
+Features:
+- Bottleneck highlighting with color-coded severity:
+  - Green: Healthy (no delays)
+  - Yellow: Minor to moderate delays
+  - Orange: High delays
+  - Red: Critical bottlenecks
+- Frequency annotations showing activity counts
+- Timing annotations showing average durations
+- Main path highlighting for dominant process variants
+
+Use Cases:
+- Visualize actual process flows from SAP data
+- Identify bottlenecks and delays
+- Compare process variants
+- Generate documentation and reports
+- Present findings to stakeholders
 
 Parameters:
-- doc_numbers: Array of sales order numbers to include (required)
-- format: Output format - 'mermaid' (default), 'dot' (Graphviz), or 'svg'
-- include_timing: Show average durations between steps (default: true)
-- highlight_bottlenecks: Color-code slow steps based on duration (default: true)
-
-Returns:
-- Diagram code in the requested format
-- Process statistics including cycle times
-- Bottleneck analysis with severity levels`,
+- doc_numbers: Document numbers for O2C visualization (optional for P2P)
+- format: 'mermaid' (default), 'dot', or 'svg'
+- include_timing: Show timing information (default: true)
+- highlight_bottlenecks: Color-code bottlenecks (default: true)
+- max_traces: Maximum traces for P2P analysis (default: 100)
+- main_path_only: Only show most common path (default: false)
+- min_edge_frequency: Filter infrequent paths (default: 0.01)`,
   inputSchema: {
     type: 'object' as const,
     properties: {
       doc_numbers: {
         type: 'array',
         items: { type: 'string' },
-        description: 'Document numbers (sales orders) to include in visualization',
+        description: 'Document numbers for O2C (optional for P2P)',
       },
       format: {
         type: 'string',
         enum: ['mermaid', 'dot', 'svg'],
-        description: 'Output format: mermaid (default), dot (Graphviz), or svg',
+        description: 'Output format: mermaid (default), dot, or svg',
       },
       include_timing: {
         type: 'boolean',
-        description: 'Show average durations between steps (default: true)',
+        description: 'Show timing information (default: true)',
       },
       highlight_bottlenecks: {
         type: 'boolean',
-        description: 'Color-code slow steps based on duration (default: true)',
+        description: 'Color-code bottlenecks (default: true)',
+      },
+      max_traces: {
+        type: 'number',
+        description: 'Max traces for P2P analysis (default: 100)',
+      },
+      main_path_only: {
+        type: 'boolean',
+        description: 'Only show main path (default: false)',
+      },
+      min_edge_frequency: {
+        type: 'number',
+        description: 'Min edge frequency to include (default: 0.01)',
       },
     },
-    required: ['doc_numbers'],
+    required: [],
   },
 };
 
@@ -618,6 +665,168 @@ function escapeXml(str: string): string {
 }
 
 /**
+ * Check if adapter is a BPI adapter (P2P)
+ */
+function isBPIAdapter(adapter: SAPAdapter): adapter is SAPAdapter & { getTraces(): BPITrace[] } {
+  return adapter.name === 'BPI Challenge 2019' &&
+         typeof (adapter as unknown as { getTraces?: () => BPITrace[] }).getTraces === 'function';
+}
+
+/**
+ * Convert BPI traces to visualization trace format
+ */
+function convertBPITraces(bpiTraces: BPITrace[]): VisualizationTrace[] {
+  return bpiTraces.map(trace => ({
+    caseId: trace.case_id,
+    events: trace.events.map(event => ({
+      activity: event.activity,
+      timestamp: event.timestamp,
+      attributes: {
+        user: event.user,
+        org: event.org,
+      },
+    })),
+  }));
+}
+
+/**
+ * Execute P2P visualization using BPI adapter
+ */
+async function executeP2PVisualization(
+  adapter: SAPAdapter & { getTraces(): BPITrace[] },
+  input: VisualizeProcessInput,
+  auditContext: ReturnType<typeof createAuditContext>
+): Promise<VisualizationResult> {
+  // Get traces from BPI adapter
+  const bpiTraces = adapter.getTraces();
+  const traces = convertBPITraces(bpiTraces.slice(0, input.max_traces));
+
+  // Build visualization options
+  const options: VisualizationOptions = {
+    format: input.format,
+    showFrequency: true,
+    showTiming: input.include_timing,
+    highlightBottlenecks: input.highlight_bottlenecks,
+    minEdgeFrequency: input.min_edge_frequency,
+    mainPathOnly: input.main_path_only,
+  };
+
+  // Generate visualization
+  const result = visualizeP2PProcess(traces, options);
+
+  // Log success
+  auditContext.success(traces.length);
+
+  // Convert to our result format
+  return {
+    format: input.format,
+    diagram: result.content,
+    statistics: {
+      total_documents: result.metadata.totalCases,
+      total_steps: result.metadata.nodesCount,
+      avg_cycle_time_hours: result.stats.avgCaseDuration,
+      bottlenecks: [], // Would need to extract from graph
+    },
+    included_documents: [],
+  };
+}
+
+/**
+ * Execute O2C visualization using standard SAP adapter
+ */
+async function executeO2CVisualization(
+  adapter: SAPAdapter,
+  input: VisualizeProcessInput,
+  auditContext: ReturnType<typeof createAuditContext>
+): Promise<VisualizationResult> {
+  const config = getPolicyConfig();
+  const flows: DocFlowResult[] = [];
+  const includedDocuments: string[] = [];
+
+  if (!input.doc_numbers || input.doc_numbers.length === 0) {
+    throw new Error('doc_numbers is required for O2C visualization');
+  }
+
+  // Fetch document flows for each document number
+  for (const docNum of input.doc_numbers) {
+    try {
+      const flow = await withTimeout(
+        adapter.getDocFlow({ vbeln: docNum }),
+        config.defaultTimeoutMs,
+        'visualize_process:getDocFlow'
+      );
+
+      if (flow && flow.flow.length > 0) {
+        flows.push(flow);
+        includedDocuments.push(docNum);
+      }
+    } catch (err) {
+      // Log but continue with other documents
+      console.warn(`Failed to fetch flow for document ${docNum}:`, err);
+    }
+  }
+
+  if (flows.length === 0) {
+    throw new Error('No valid document flows found for the provided document numbers');
+  }
+
+  // Build process graph
+  const { nodes, edges } = buildProcessGraph(flows, input.highlight_bottlenecks);
+
+  // Generate diagram based on format
+  let diagram: string;
+  switch (input.format) {
+    case 'dot':
+      diagram = generateDotDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
+      break;
+    case 'svg':
+      diagram = generateSvgDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
+      break;
+    case 'mermaid':
+    default:
+      diagram = generateMermaidDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
+      break;
+  }
+
+  // Calculate statistics
+  const totalCycleTime = edges.reduce((sum, e) => sum + e.duration_hours, 0);
+  const avgCycleTime = edges.length > 0 ? totalCycleTime / edges.length : 0;
+
+  const bottlenecks = nodes
+    .filter(n => n.is_bottleneck)
+    .map(n => {
+      // Find average incoming edge duration
+      const incomingEdges = edges.filter(e => e.to === n.id);
+      const avgDuration = incomingEdges.length > 0
+        ? incomingEdges.reduce((sum, e) => sum + e.duration_hours, 0) / incomingEdges.length
+        : 0;
+
+      return {
+        step: `${getDocCategoryLabel(n.doc_category, n.doc_type)} (${n.id.split('_').pop()})`,
+        avg_duration_hours: Math.round(avgDuration * 100) / 100,
+        severity: n.bottleneck_severity!,
+      };
+    });
+
+  const result: VisualizationResult = {
+    format: input.format,
+    diagram,
+    statistics: {
+      total_documents: includedDocuments.length,
+      total_steps: nodes.length,
+      avg_cycle_time_hours: Math.round(avgCycleTime * 100) / 100,
+      bottlenecks,
+    },
+    included_documents: includedDocuments,
+  };
+
+  // Log success
+  auditContext.success(nodes.length);
+
+  return result;
+}
+
+/**
  * Execute the visualize_process tool
  */
 export async function executeVisualizeProcess(
@@ -631,87 +840,14 @@ export async function executeVisualizeProcess(
   const auditContext = createAuditContext('visualize_process', input as Record<string, unknown>, adapter.name);
 
   try {
-    const config = getPolicyConfig();
-    const flows: DocFlowResult[] = [];
-    const includedDocuments: string[] = [];
-
-    // Fetch document flows for each document number
-    for (const docNum of input.doc_numbers) {
-      try {
-        const flow = await withTimeout(
-          adapter.getDocFlow({ vbeln: docNum }),
-          config.defaultTimeoutMs,
-          'visualize_process:getDocFlow'
-        );
-
-        if (flow && flow.flow.length > 0) {
-          flows.push(flow);
-          includedDocuments.push(docNum);
-        }
-      } catch (err) {
-        // Log but continue with other documents
-        console.warn(`Failed to fetch flow for document ${docNum}:`, err);
-      }
+    // Detect adapter type and route to appropriate implementation
+    if (isBPIAdapter(adapter)) {
+      // P2P visualization using new visualization module
+      return await executeP2PVisualization(adapter, input, auditContext);
+    } else {
+      // O2C visualization using legacy implementation
+      return await executeO2CVisualization(adapter, input, auditContext);
     }
-
-    if (flows.length === 0) {
-      throw new Error('No valid document flows found for the provided document numbers');
-    }
-
-    // Build process graph
-    const { nodes, edges, timings } = buildProcessGraph(flows, input.highlight_bottlenecks);
-
-    // Generate diagram based on format
-    let diagram: string;
-    switch (input.format) {
-      case 'dot':
-        diagram = generateDotDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
-        break;
-      case 'svg':
-        diagram = generateSvgDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
-        break;
-      case 'mermaid':
-      default:
-        diagram = generateMermaidDiagram(nodes, edges, input.include_timing, input.highlight_bottlenecks);
-        break;
-    }
-
-    // Calculate statistics
-    const totalCycleTime = edges.reduce((sum, e) => sum + e.duration_hours, 0);
-    const avgCycleTime = edges.length > 0 ? totalCycleTime / edges.length : 0;
-
-    const bottlenecks = nodes
-      .filter(n => n.is_bottleneck)
-      .map(n => {
-        // Find average incoming edge duration
-        const incomingEdges = edges.filter(e => e.to === n.id);
-        const avgDuration = incomingEdges.length > 0
-          ? incomingEdges.reduce((sum, e) => sum + e.duration_hours, 0) / incomingEdges.length
-          : 0;
-
-        return {
-          step: `${getDocCategoryLabel(n.doc_category, n.doc_type)} (${n.id.split('_').pop()})`,
-          avg_duration_hours: Math.round(avgDuration * 100) / 100,
-          severity: n.bottleneck_severity!,
-        };
-      });
-
-    const result: VisualizationResult = {
-      format: input.format,
-      diagram,
-      statistics: {
-        total_documents: includedDocuments.length,
-        total_steps: nodes.length,
-        avg_cycle_time_hours: Math.round(avgCycleTime * 100) / 100,
-        bottlenecks,
-      },
-      included_documents: includedDocuments,
-    };
-
-    // Log success
-    auditContext.success(nodes.length);
-
-    return result;
   } catch (error) {
     auditContext.error(error as Error);
     throw error;

@@ -69,20 +69,24 @@ describe('VisualizeProcessSchema', () => {
       expect(() => VisualizeProcessSchema.parse(input)).toThrow();
     });
 
-    it('should reject empty doc_numbers array', () => {
+    it('should accept empty doc_numbers array for P2P mode', () => {
       const input = {
         doc_numbers: [],
       };
 
-      expect(() => VisualizeProcessSchema.parse(input)).toThrow();
+      // Empty array is now allowed (for P2P mode)
+      const result = VisualizeProcessSchema.parse(input);
+      expect(result.doc_numbers).toEqual([]);
     });
 
-    it('should reject missing doc_numbers', () => {
+    it('should accept missing doc_numbers for P2P mode', () => {
       const input = {
         format: 'mermaid',
       };
 
-      expect(() => VisualizeProcessSchema.parse(input)).toThrow();
+      // Missing doc_numbers is now allowed (for P2P mode)
+      const result = VisualizeProcessSchema.parse(input);
+      expect(result.doc_numbers).toBeUndefined();
     });
 
     it('should reject empty string in doc_numbers', () => {
@@ -108,7 +112,7 @@ describe('VisualizeProcessSchema', () => {
       };
 
       const result = VisualizeProcessSchema.parse(input);
-      expect(result.doc_numbers.length).toBe(3);
+      expect(result.doc_numbers?.length).toBe(3);
     });
   });
 });
@@ -117,7 +121,8 @@ describe('visualizeProcessTool', () => {
   it('should have correct tool definition', () => {
     expect(visualizeProcessTool.name).toBe('visualize_process');
     expect(visualizeProcessTool.description).toContain('visualization');
-    expect(visualizeProcessTool.inputSchema.required).toContain('doc_numbers');
+    // doc_numbers is now optional for P2P mode
+    expect(visualizeProcessTool.inputSchema.required).toEqual([]);
     expect(visualizeProcessTool.inputSchema.properties).toHaveProperty('format');
     expect(visualizeProcessTool.inputSchema.properties).toHaveProperty('include_timing');
     expect(visualizeProcessTool.inputSchema.properties).toHaveProperty('highlight_bottlenecks');

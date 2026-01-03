@@ -346,7 +346,7 @@ describe('Conformance Checking Module', () => {
       const result = checker.analyzeTraces(traces);
 
       expect(result.top_deviations.length).toBeGreaterThan(0);
-      expect(result.top_deviations[0].count).toBe(5);
+      expect(result.top_deviations[0]!.count).toBe(5);
     });
 
     it('should include metadata', () => {
@@ -413,7 +413,7 @@ describe('Conformance Checking Module', () => {
       const result = checker.analyzeTrace(trace);
       const unexpectedDeviations = result.deviations.filter(d => d.deviation_type === 'unexpected_activity');
 
-      expect(unexpectedDeviations[0].severity).toBe('major');
+      expect(unexpectedDeviations[0]!.severity).toBe('major');
     });
 
     it('should classify repeated activity as minor', () => {
@@ -431,7 +431,7 @@ describe('Conformance Checking Module', () => {
       const result = checker.analyzeTrace(trace);
       const repeatedDeviations = result.deviations.filter(d => d.deviation_type === 'repeated_activity');
 
-      expect(repeatedDeviations[0].severity).toBe('minor');
+      expect(repeatedDeviations[0]!.severity).toBe('minor');
     });
   });
 });
