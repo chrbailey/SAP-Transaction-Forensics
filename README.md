@@ -225,6 +225,40 @@ For air-gapped environments, use Ollama with locally downloaded models.
 
 ---
 
+## Demos
+
+Interactive demos for all v2.0 process mining tools. No SAP connection required - all demos use synthetic data.
+
+```bash
+cd mcp-server
+
+# Natural Language Interface - ask questions in plain English
+npx tsx ../demos/ask_process_demo.ts
+npx tsx ../demos/ask_process_demo.ts --interactive  # Interactive mode
+
+# OCEL 2.0 Export - export to process mining standard format
+npx tsx ../demos/export_ocel_demo.ts
+
+# Conformance Checking - compare against O2C reference model
+npx tsx ../demos/check_conformance_demo.ts
+
+# Visual Process Maps - generate Mermaid flowcharts
+npx tsx ../demos/visualize_process_demo.ts
+
+# Predictive Monitoring - ML-based risk predictions
+npx tsx ../demos/predict_outcome_demo.ts
+```
+
+| Demo | Description |
+|------|-------------|
+| `ask_process_demo.ts` | Natural language queries with LLM integration |
+| `export_ocel_demo.ts` | OCEL 2.0 export with object/event breakdown |
+| `check_conformance_demo.ts` | Deviation detection and severity scoring |
+| `visualize_process_demo.ts` | Mermaid diagrams with bottleneck highlighting |
+| `predict_outcome_demo.ts` | Risk predictions and alerts |
+
+---
+
 ## Security & Compliance
 
 **This system is designed for enterprise security requirements.**
