@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Run lint-staged from mcp-server directory
+cd "$(dirname "$0")/../mcp-server" && npx lint-staged
