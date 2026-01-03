@@ -10,6 +10,7 @@ import {
   ProcessQueryContext,
   ProcessQueryResult,
   DEFAULT_LLM_CONFIG,
+  isP2PContext,
 } from './types.js';
 import { OllamaProvider, OpenAIProvider, AnthropicProvider } from './providers/index.js';
 import { getSystemPrompt, formatUserQuery, parseResponse } from './prompts/process-query.js';
@@ -86,28 +87,68 @@ export class LLMService {
   }
 
   /**
-   * Suggest follow-up questions based on the query
+   * Suggest follow-up questions based on the query and process type
    */
   private suggestFollowUps(question: string, context: ProcessQueryContext): string[] {
     const followUps: string[] = [];
     const q = question.toLowerCase();
 
-    if (q.includes('delay') || q.includes('late')) {
-      followUps.push('Which customers are most affected by these delays?');
-      followUps.push('What is the financial impact of these delays?');
+    // Process-type specific suggestions
+    if (isP2PContext(context)) {
+      // P2P (Purchase-to-Pay) follow-ups
+      if (q.includes('delay') || q.includes('late')) {
+        followUps.push('Which vendors have the most delayed deliveries?');
+        followUps.push('What is the impact on payment terms when GR is delayed?');
+      }
+
+      if (q.includes('vendor') || q.includes('supplier')) {
+        followUps.push('Which vendors have the highest invoice rejection rates?');
+        followUps.push('How do vendor lead times compare across categories?');
+      }
+
+      if (q.includes('invoice') || q.includes('payment')) {
+        followUps.push('What percentage of invoices fail 3-way matching?');
+        followUps.push('Which company codes have the most payment blocks?');
+      }
+
+      if (q.includes('approval') || q.includes('srm')) {
+        followUps.push('What is the average approval cycle time by purchase value?');
+        followUps.push('Which approval levels cause the most bottlenecks?');
+      }
+
+      if (q.includes('purchase order') || q.includes('po ')) {
+        followUps.push('What is the rate of PO changes after goods receipt?');
+        followUps.push('Which material groups have the most maverick buying?');
+      }
+    } else {
+      // O2C (Order-to-Cash) follow-ups
+      if (q.includes('delay') || q.includes('late')) {
+        followUps.push('Which customers are most affected by these delays?');
+        followUps.push('What is the financial impact of these delays?');
+      }
+
+      if (q.includes('credit') || q.includes('hold')) {
+        followUps.push('How long do orders typically remain on credit hold?');
+        followUps.push('Which sales organizations have the most credit holds?');
+      }
+
+      if (q.includes('sales org') || q.includes('organization')) {
+        followUps.push('How do fulfillment times compare across all sales organizations?');
+      }
+
+      if (q.includes('delivery') || q.includes('shipment')) {
+        followUps.push('What percentage of orders have split deliveries?');
+        followUps.push('Which shipping points have the longest picking times?');
+      }
     }
 
-    if (q.includes('credit') || q.includes('hold')) {
-      followUps.push('How long do orders typically remain on credit hold?');
-      followUps.push('Which sales organizations have the most credit holds?');
-    }
-
-    if (q.includes('sales org') || q.includes('organization')) {
-      followUps.push('How do fulfillment times compare across all sales organizations?');
-    }
-
+    // Common follow-ups for both process types
     if (context.patterns && context.patterns.length > 0) {
       followUps.push('Which of the discovered patterns has the highest business impact?');
+    }
+
+    if (q.includes('pattern') || q.includes('trend')) {
+      followUps.push('How have these patterns changed over the past quarter?');
     }
 
     return followUps.slice(0, 3);
