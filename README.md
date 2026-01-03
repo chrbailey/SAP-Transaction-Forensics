@@ -256,6 +256,74 @@ npx tsx ../demos/predict_outcome_demo.ts
 | `check_conformance_demo.ts` | Deviation detection and severity scoring |
 | `visualize_process_demo.ts` | Mermaid diagrams with bottleneck highlighting |
 | `predict_outcome_demo.ts` | Risk predictions and alerts |
+| `salt_adapter_demo.ts` | Real SAP data from SALT dataset |
+
+---
+
+## Real SAP Data (SALT Dataset)
+
+Use real SAP ERP data from SAP's [SALT dataset](https://huggingface.co/datasets/SAP/SALT) on HuggingFace for testing with authentic business patterns.
+
+### Quick Start
+
+```bash
+# 1. Install Python dependencies
+pip install datasets pyarrow
+
+# 2. Download SALT dataset
+python scripts/download-salt.py
+
+# 3. Run demo with real data
+cd mcp-server
+npx tsx ../demos/salt_adapter_demo.ts
+```
+
+### What's Included
+
+SALT (Sales Autocompletion Linked Business Tables) contains:
+
+| Table | Description | Records |
+|-------|-------------|---------|
+| I_SalesDocument | Sales order headers | ~1M+ |
+| I_SalesDocumentItem | Order line items | ~5M+ |
+| I_Customer | Customer master data | ~100K |
+| I_AddrOrgNamePostalAddress | Address data | ~100K |
+
+### Using the SALT Adapter
+
+```typescript
+import { SaltAdapter } from './adapters/salt/index.js';
+
+const adapter = new SaltAdapter({
+  maxDocuments: 10000,  // Limit for memory management
+});
+
+await adapter.initialize();
+
+// Get real sales order data
+const header = await adapter.getSalesDocHeader({ vbeln: '0000012345' });
+const items = await adapter.getSalesDocItems({ vbeln: '0000012345' });
+
+// Get dataset statistics
+const stats = adapter.getStats();
+console.log(`Loaded ${stats.salesDocuments} sales documents`);
+```
+
+### Limitations
+
+SALT contains **sales orders only** (no deliveries or invoices). For full Order-to-Cash testing:
+- Use SALT for sales order analysis and ML training
+- Use synthetic adapter for complete O2C flow testing
+- Combine both for comprehensive validation
+
+### Why Use Real Data?
+
+| Aspect | Synthetic Data | SALT Real Data |
+|--------|---------------|----------------|
+| Patterns | Random/artificial | Authentic business patterns |
+| ML Training | Limited accuracy | Real-world feature distributions |
+| Demos | Good for UI testing | Compelling for stakeholders |
+| Validation | Functional testing | Business logic validation |
 
 ---
 

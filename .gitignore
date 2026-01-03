@@ -42,3 +42,8 @@ output/datasphere_analysis/
 output/e2e_test/
 pattern-engine/csv_test_output/
 synthetic-data/external_data/
+
+# Downloaded datasets (keep .gitkeep)
+data/salt/*.json
+data/salt/*.parquet
+data/bpi/
