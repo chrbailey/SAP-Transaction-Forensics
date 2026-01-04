@@ -61,11 +61,10 @@ jobs:
         if: matrix.node-version == '20'
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: mcp-server/coverage/lcov.info
           flags: mcp-server
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # ============================================================================
   # Pattern Engine (Python)
@@ -107,11 +106,10 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: pattern-engine/coverage.xml
           flags: pattern-engine
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # ============================================================================
   # Demo Verification
