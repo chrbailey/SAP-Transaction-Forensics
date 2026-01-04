@@ -138,7 +138,8 @@ function calculateProgress(events: ProcessEvent[], milestones: readonly string[]
   for (const event of events) {
     const normalized = normalizeActivity(event.activity);
     for (let i = 0; i < milestones.length; i++) {
-      if (matchesMilestone(normalized, milestones[i]!)) {
+      const milestone = milestones[i];
+      if (milestone && matchesMilestone(normalized, milestone)) {
         reachedMilestones.add(i);
       }
     }
@@ -299,8 +300,11 @@ export function extractFeatures(processCase: ProcessCase): CaseFeatures {
     (a, b) => parseTimestamp(a.timestamp).getTime() - parseTimestamp(b.timestamp).getTime()
   );
 
-  const firstEvent = sortedEvents[0]!;
-  const lastEvent = sortedEvents[sortedEvents.length - 1]!;
+  const firstEvent = sortedEvents[0];
+  const lastEvent = sortedEvents[sortedEvents.length - 1];
+  if (!firstEvent || !lastEvent) {
+    return createEmptyFeatures(caseId);
+  }
   const now = new Date();
 
   // Temporal features

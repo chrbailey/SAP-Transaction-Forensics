@@ -86,6 +86,17 @@ export function loadECCConfig(): ECCConnectionConfig {
     );
   }
 
+  // Extract required variables (guaranteed to exist after check above)
+  const ashost = env.SAP_RFC_ASHOST;
+  const sysnr = env.SAP_RFC_SYSNR;
+  const client = env.SAP_RFC_CLIENT;
+  const user = env.SAP_RFC_USER;
+  const passwd = env.SAP_RFC_PASSWD;
+
+  if (!ashost || !sysnr || !client || !user || !passwd) {
+    throw new ConfigValidationError('Required SAP RFC configuration missing', []);
+  }
+
   // Parse optional numeric values with defaults
   const poolSize = parseInt(env.SAP_RFC_POOL_SIZE || '5', 10);
   const trace = parseInt(env.SAP_RFC_TRACE || '0', 10);
@@ -105,11 +116,11 @@ export function loadECCConfig(): ECCConnectionConfig {
   }
 
   return {
-    ashost: env.SAP_RFC_ASHOST!,
-    sysnr: env.SAP_RFC_SYSNR!,
-    client: env.SAP_RFC_CLIENT!,
-    user: env.SAP_RFC_USER!,
-    passwd: env.SAP_RFC_PASSWD!,
+    ashost,
+    sysnr,
+    client,
+    user,
+    passwd,
     lang: env.SAP_RFC_LANG || 'EN',
     poolSize,
     trace,

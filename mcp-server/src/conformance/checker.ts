@@ -178,7 +178,8 @@ export class ConformanceChecker {
     let lastOrder = 0;
     let lastActivity = '';
     for (let i = 0; i < actualSequence.length; i++) {
-      const activityId = actualSequence[i]!;
+      const activityId = actualSequence[i];
+      if (!activityId) continue;
       const order = this.getActivityOrder(activityId);
 
       if (order > 0 && order < lastOrder) {

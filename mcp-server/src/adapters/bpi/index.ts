@@ -167,6 +167,18 @@ export class BPIAdapter extends BaseDataAdapter {
     };
   }
 
+  /**
+   * Get data with type assertion after ensureInitialized()
+   * This avoids non-null assertions throughout the code
+   */
+  private getData(): LoadedBPIData {
+    this.ensureInitialized();
+    if (!this.data) {
+      throw new Error('BPI adapter not initialized');
+    }
+    return this.data;
+  }
+
   protected async doInitialize(): Promise<void> {
     console.log(`[BPI] Initializing adapter...`);
     console.log(`[BPI] Data directory: ${this.config.dataDir}`);
@@ -301,13 +313,13 @@ export class BPIAdapter extends BaseDataAdapter {
   // ============================================================================
 
   async searchDocText(params: SearchDocTextParams): Promise<SearchResult[]> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     const results: SearchResult[] = [];
     const pattern = new RegExp(params.pattern, 'i');
     const limit = params.limit || 200;
 
-    for (const trace of this.data!.traces) {
+    for (const trace of data.traces) {
       if (results.length >= limit) break;
 
       // Get first and last event dates for filtering
@@ -362,10 +374,10 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getDocText(params: DocTextParams): Promise<DocTextResult> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     // BPI doesn't have document texts, but we can return event activities
-    const traces = this.data!.tracesByPO.get(params.doc_key) || [];
+    const traces = data.tracesByPO.get(params.doc_key) || [];
 
     if (traces.length === 0) {
       return {
@@ -388,10 +400,10 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getDocFlow(params: DocFlowParams): Promise<DocFlowResult> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     // Look up by PO number
-    const traces = this.data!.tracesByPO.get(params.vbeln) || [];
+    const traces = data.tracesByPO.get(params.vbeln) || [];
 
     if (traces.length === 0) {
       return {
@@ -457,16 +469,19 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getSalesDocHeader(params: SalesDocHeaderParams): Promise<SalesDocHeader | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     // Look up by PO number (mapped to VBELN)
-    const traces = this.data!.tracesByPO.get(params.vbeln);
+    const traces = data.tracesByPO.get(params.vbeln);
 
     if (!traces || traces.length === 0) {
       return null;
     }
 
-    const firstTrace = traces[0]!;
+    const firstTrace = traces[0];
+    if (!firstTrace) {
+      return null;
+    }
     const firstEvent = firstTrace.events[0];
     const firstDate = firstEvent?.['time:timestamp']?.split('T')[0]?.replace(/-/g, '') || '';
 
@@ -487,9 +502,9 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getSalesDocItems(params: SalesDocItemsParams): Promise<SalesDocItem[]> {
-    this.ensureInitialized();
+    const data = this.getData();
 
-    const traces = this.data!.tracesByPO.get(params.vbeln);
+    const traces = data.tracesByPO.get(params.vbeln);
 
     if (!traces || traces.length === 0) {
       return [];
@@ -514,10 +529,10 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getDeliveryTiming(params: DeliveryTimingParams): Promise<DeliveryTimingResult | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     // Find goods receipt events for this PO
-    const traces = this.data!.tracesByPO.get(params.vbeln);
+    const traces = data.tracesByPO.get(params.vbeln);
 
     if (!traces || traces.length === 0) {
       return null;
@@ -547,7 +562,10 @@ export class BPIAdapter extends BaseDataAdapter {
     }
 
     // Use first GR as the delivery
-    const firstGR = grEvents[0]!;
+    const firstGR = grEvents[0];
+    if (!firstGR) {
+      return null;
+    }
 
     return {
       delivery_number: params.vbeln.padStart(10, '0'),
@@ -565,10 +583,10 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getInvoiceTiming(params: InvoiceTimingParams): Promise<InvoiceTimingResult | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     // Find invoice events for this PO
-    const traces = this.data!.tracesByPO.get(params.vbeln);
+    const traces = data.tracesByPO.get(params.vbeln);
 
     if (!traces || traces.length === 0) {
       return null;
@@ -617,14 +635,14 @@ export class BPIAdapter extends BaseDataAdapter {
   }
 
   async getMasterStub(params: MasterStubParams): Promise<MasterStub | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     if (params.entity_type !== 'vendor') {
       return null;
     }
 
     // Look up vendor
-    const traces = this.data!.tracesByVendor.get(params.id);
+    const traces = data.tracesByVendor.get(params.id);
 
     if (!traces || traces.length === 0) {
       return null;
@@ -637,7 +655,7 @@ export class BPIAdapter extends BaseDataAdapter {
     };
 
     // Add optional fields if available
-    const name = this.data!.vendorNames.get(params.id);
+    const name = data.vendorNames.get(params.id);
     if (name) {
       // Don't expose actual name, just indicate category
       stub.CATEGORY = 'BPI Vendor';

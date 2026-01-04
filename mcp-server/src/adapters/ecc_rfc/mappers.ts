@@ -307,15 +307,17 @@ export function mapVBFAToDocFlow(
 
   for (const entry of rfcEntries) {
     const key = entry.vbeln;
-    if (!docMap.has(key)) {
-      docMap.set(key, {
+    let doc = docMap.get(key);
+    if (!doc) {
+      doc = {
         vbtyp: entry.vbtyp_n,
         erdat: entry.erdat,
         erzet: entry.erzet,
         items: [],
-      });
+      };
+      docMap.set(key, doc);
     }
-    docMap.get(key)!.items.push({
+    doc.items.push({
       posnn: entry.posnn,
       vbelv: entry.vbelv,
       posnv: entry.posnv,

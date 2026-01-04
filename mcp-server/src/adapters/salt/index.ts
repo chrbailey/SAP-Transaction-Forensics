@@ -127,6 +127,18 @@ export class SaltAdapter extends BaseDataAdapter {
     };
   }
 
+  /**
+   * Get data with type assertion after ensureInitialized()
+   * This avoids non-null assertions throughout the code
+   */
+  private getData(): LoadedSaltData {
+    this.ensureInitialized();
+    if (!this.data) {
+      throw new Error('SALT adapter not initialized');
+    }
+    return this.data;
+  }
+
   protected async doInitialize(): Promise<void> {
     console.log(`[SALT] Initializing adapter...`);
     console.log(`[SALT] Cache directory: ${this.config.cacheDir}`);
@@ -329,7 +341,7 @@ except Exception as e:
   // ============================================================================
 
   async searchDocText(params: SearchDocTextParams): Promise<SearchResult[]> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     const results: SearchResult[] = [];
     const pattern = new RegExp(params.pattern, 'i');
@@ -337,7 +349,7 @@ except Exception as e:
 
     // SALT doesn't have document texts, so we search in available fields
     // like customer name, material, plant, etc.
-    for (const [vbeln, header] of this.data!.salesHeaders) {
+    for (const [vbeln, header] of data.salesHeaders) {
       if (results.length >= limit) break;
 
       // Apply date filters
@@ -397,10 +409,10 @@ except Exception as e:
   }
 
   async getDocFlow(params: DocFlowParams): Promise<DocFlowResult> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     const vbeln = params.vbeln.padStart(10, '0');
-    const header = this.data!.salesHeaders.get(vbeln);
+    const header = data.salesHeaders.get(vbeln);
 
     if (!header) {
       return {
@@ -409,7 +421,7 @@ except Exception as e:
       };
     }
 
-    const items = this.data!.salesItems.get(vbeln) || [];
+    const items = data.salesItems.get(vbeln) || [];
 
     // SALT only has sales orders, so flow is just the order itself
     return {
@@ -432,17 +444,17 @@ except Exception as e:
   }
 
   async getSalesDocHeader(params: SalesDocHeaderParams): Promise<SalesDocHeader | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     const vbeln = params.vbeln.padStart(10, '0');
-    return this.data!.salesHeaders.get(vbeln) || null;
+    return data.salesHeaders.get(vbeln) || null;
   }
 
   async getSalesDocItems(params: SalesDocItemsParams): Promise<SalesDocItem[]> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     const vbeln = params.vbeln.padStart(10, '0');
-    return this.data!.salesItems.get(vbeln) || [];
+    return data.salesItems.get(vbeln) || [];
   }
 
   async getDeliveryTiming(_params: DeliveryTimingParams): Promise<DeliveryTimingResult | null> {
@@ -460,7 +472,7 @@ except Exception as e:
   }
 
   async getMasterStub(params: MasterStubParams): Promise<MasterStub | null> {
-    this.ensureInitialized();
+    const data = this.getData();
 
     if (params.entity_type !== 'customer') {
       // SALT only has customer master data
@@ -468,7 +480,7 @@ except Exception as e:
     }
 
     const id = params.id.padStart(10, '0');
-    const stub = this.data!.customerStubs.get(id);
+    const stub = data.customerStubs.get(id);
 
     if (!stub) return null;
 
