@@ -55,6 +55,141 @@ interface LoadedDataset {
   materials: RawMaterial[];
 }
 
+// ============================================================================
+// Generator JSON Input Types
+// These interfaces represent the raw JSON structure from the data generator
+// ============================================================================
+
+interface GeneratorTextEntry {
+  text_id?: string;
+  text: string;
+  lang?: string;
+  changed_at?: string;
+}
+
+interface GeneratorOrderItem {
+  posnr: string;
+  matnr: string;
+  werks: string;
+  kwmeng: number;
+  netwr: number;
+  waerk?: string;
+  pstyv: string;
+  item_texts?: GeneratorTextEntry[];
+  schedule_lines?: unknown[];
+}
+
+interface GeneratorOrder {
+  vbeln: string;
+  auart: string;
+  vkorg: string;
+  vtweg: string;
+  spart: string;
+  kunnr: string;
+  erdat: string;
+  erzet: string;
+  ernam: string;
+  vdatu: string;
+  netwr?: number;
+  waerk?: string;
+  header_texts?: GeneratorTextEntry[];
+  items?: GeneratorOrderItem[];
+  conditions?: unknown[];
+}
+
+interface GeneratorDeliveryItem {
+  posnr: string;
+  matnr: string;
+  arktx?: string;
+  lfimg: number;
+  vrkme?: string;
+  werks: string;
+  lgort?: string;
+  charg?: string;
+  vbeln_ref?: string;
+  vgbel?: string;
+  posnr_ref?: string;
+  vgpos?: string;
+  pikmg?: number;
+}
+
+interface GeneratorDelivery {
+  vbeln: string;
+  lfart?: string;
+  vstel?: string;
+  kunnr: string;
+  wadat: string;
+  wadat_ist?: string;
+  erdat: string;
+  erzet?: string;
+  ernam?: string;
+  btgew?: number;
+  gewei?: string;
+  items?: GeneratorDeliveryItem[];
+}
+
+interface GeneratorInvoiceItem {
+  posnr: string;
+  matnr: string;
+  arktx?: string;
+  fkimg: number;
+  vrkme?: string;
+  netpr?: number;
+  netwr: number;
+  mwsbk?: number;
+  vbeln_ref?: string;
+  vgbel?: string;
+  posnr_ref?: string;
+  vgpos?: string;
+}
+
+interface GeneratorInvoice {
+  vbeln: string;
+  fkart?: string;
+  fkdat: string;
+  kunrg: string;
+  netwr: number;
+  mwsbk?: number;
+  waerk?: string;
+  erdat: string;
+  erzet?: string;
+  ernam?: string;
+  items?: GeneratorInvoiceItem[];
+}
+
+interface GeneratorDocFlow {
+  vbelv: string;
+  posnv: string;
+  vbtyp_v: string;
+  vbeln: string;
+  posnn: string;
+  vbtyp_n: string;
+  rfmng?: number;
+  erdat: string;
+}
+
+interface GeneratorCustomer {
+  kunnr: string;
+  name1: string;
+  regio?: string;
+  land1?: string;
+  brsch?: string;
+  ktokd?: string;
+  vkorg?: string;
+  erdat?: string;
+}
+
+interface GeneratorMaterial {
+  matnr: string;
+  maktx?: string;
+  mtart?: string;
+  matkl?: string;
+  stprs?: number;
+  brgew?: number;
+  gewei?: string;
+  meins?: string;
+}
+
 export class SyntheticAdapter extends BaseDataAdapter {
   readonly name = 'synthetic';
 
@@ -81,12 +216,12 @@ export class SyntheticAdapter extends BaseDataAdapter {
       // Note: Generator produces flat arrays, not wrapped objects
       const [salesOrdersRaw, deliveriesRaw, invoicesRaw, docFlowsRaw, customersRaw, materialsRaw] =
         await Promise.all([
-          this.loadJsonFile<any[]>('orders.json'), // Generator uses orders.json, not sales_orders.json
-          this.loadJsonFile<any[]>('deliveries.json'),
-          this.loadJsonFile<any[]>('invoices.json'),
-          this.loadJsonFile<any[]>('doc_flows.json'), // Generator uses doc_flows.json, not doc_flow.json
-          this.loadJsonFile<any[]>('customers.json'),
-          this.loadJsonFile<any[]>('materials.json'),
+          this.loadJsonFile<GeneratorOrder[]>('orders.json'),
+          this.loadJsonFile<GeneratorDelivery[]>('deliveries.json'),
+          this.loadJsonFile<GeneratorInvoice[]>('invoices.json'),
+          this.loadJsonFile<GeneratorDocFlow[]>('doc_flows.json'),
+          this.loadJsonFile<GeneratorCustomer[]>('customers.json'),
+          this.loadJsonFile<GeneratorMaterial[]>('materials.json'),
         ]);
 
       // Transform generator output to adapter-expected format
@@ -114,7 +249,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
   // Data Transformation: Map generator output to adapter-expected format
   // =========================================================================
 
-  private transformSalesOrders(raw: any[]): RawSalesOrder[] {
+  private transformSalesOrders(raw: GeneratorOrder[]): RawSalesOrder[] {
     return raw.map(order => ({
       document_number: order.vbeln,
       document_type: order.auart,
@@ -130,13 +265,13 @@ export class SyntheticAdapter extends BaseDataAdapter {
       net_value: order.netwr || this.sumItemValues(order.items),
       currency: order.waerk || 'USD',
       po_number: '',
-      texts: (order.header_texts || []).map((t: any) => ({
+      texts: (order.header_texts || []).map((t: GeneratorTextEntry) => ({
         text_type: t.text_id || 'NOTE',
         text_content: t.text,
         language: t.lang || 'EN',
         created_at: t.changed_at || order.erdat,
       })),
-      items: (order.items || []).map((item: any) => ({
+      items: (order.items || []).map((item: GeneratorOrderItem) => ({
         item_number: item.posnr,
         material: item.matnr,
         description: '', // Generator doesn't include description
@@ -147,7 +282,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
         currency: item.waerk || 'USD',
         item_category: item.pstyv,
         rejection_reason: null,
-        texts: (item.item_texts || []).map((t: any) => ({
+        texts: (item.item_texts || []).map((t: GeneratorTextEntry) => ({
           text_type: t.text_id || 'NOTE',
           text_content: t.text,
           language: t.lang || 'EN',
@@ -159,7 +294,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private transformDeliveries(raw: any[]): RawDelivery[] {
+  private transformDeliveries(raw: GeneratorDelivery[]): RawDelivery[] {
     return raw.map(delivery => ({
       document_number: delivery.vbeln,
       delivery_type: delivery.lfart || 'LF', // Standard outbound delivery
@@ -174,7 +309,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
       weight_unit: delivery.gewei || 'KG',
       status: delivery.wadat_ist ? 'C' : 'A', // Complete if actual GI exists
       texts: [], // Generator doesn't create delivery texts
-      items: (delivery.items || []).map((item: any) => ({
+      items: (delivery.items || []).map((item: GeneratorDeliveryItem) => ({
         item_number: item.posnr,
         material: item.matnr,
         description: item.arktx || '',
@@ -191,7 +326,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private transformInvoices(raw: any[]): RawInvoice[] {
+  private transformInvoices(raw: GeneratorInvoice[]): RawInvoice[] {
     return raw.map(invoice => ({
       document_number: invoice.vbeln,
       invoice_type: invoice.fkart || 'F2', // Standard invoice
@@ -205,7 +340,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
       created_time: invoice.erzet || '00:00:00',
       created_by: invoice.ernam || 'SYSTEM',
       status: 'C', // All synthetic invoices are complete
-      items: (invoice.items || []).map((item: any) => ({
+      items: (invoice.items || []).map((item: GeneratorInvoiceItem) => ({
         item_number: item.posnr,
         material: item.matnr,
         description: item.arktx || '',
@@ -220,7 +355,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private transformDocFlows(raw: any[]): RawDocFlowEntry[] {
+  private transformDocFlows(raw: GeneratorDocFlow[]): RawDocFlowEntry[] {
     return raw.map(flow => ({
       preceding_doc: flow.vbelv,
       preceding_item: flow.posnv,
@@ -233,7 +368,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private transformCustomers(raw: any[]): RawCustomer[] {
+  private transformCustomers(raw: GeneratorCustomer[]): RawCustomer[] {
     return raw.map(customer => ({
       customer_id: customer.kunnr,
       name: customer.name1,
@@ -245,7 +380,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private transformMaterials(raw: any[]): RawMaterial[] {
+  private transformMaterials(raw: GeneratorMaterial[]): RawMaterial[] {
     return raw.map(material => ({
       material_id: material.matnr,
       description: material.maktx || '',
@@ -258,7 +393,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
     }));
   }
 
-  private sumItemValues(items: any[]): number {
+  private sumItemValues(items: GeneratorOrderItem[] | undefined): number {
     if (!items || !Array.isArray(items)) return 0;
     return items.reduce((sum, item) => sum + (item.netwr || 0), 0);
   }
