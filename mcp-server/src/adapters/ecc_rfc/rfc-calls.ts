@@ -606,6 +606,70 @@ export async function callBapiMaterialGetDetail(
 }
 
 // ============================================================================
+// BAPI_VENDOR_GETDETAIL - Vendor Master
+// ============================================================================
+
+/**
+ * Vendor master data
+ */
+export interface VendorMaster {
+  lifnr: string; // Vendor number
+  name1: string; // Name 1
+  name2: string; // Name 2
+  name3: string; // Name 3
+  name4: string; // Name 4
+  stras: string; // Street
+  ort01: string; // City
+  pstlz: string; // Postal code
+  regio: string; // Region
+  land1: string; // Country
+  telf1: string; // Phone
+  telfx: string; // Fax
+  ktokk: string; // Account group
+  brsch: string; // Industry
+  erdat: string; // Created date
+}
+
+/**
+ * Call BAPI_VENDOR_GETDETAIL
+ */
+export async function callBapiVendorGetdetail(
+  pool: RFCConnectionPool,
+  vendorNumber: string
+): Promise<VendorMaster> {
+  const result = await pool.call<Record<string, unknown>>('BAPI_VENDOR_GETDETAIL', {
+    VENDORNO: padDocNumber(vendorNumber),
+  });
+
+  // Check for BAPI errors
+  const returnErr = createErrorFromBapiReturn(result.RETURN, 'BAPI_VENDOR_GETDETAIL');
+  if (returnErr) {
+    throw returnErr;
+  }
+
+  const addr = (result.ADDRESS as Record<string, unknown>) || {};
+  const general = (result.GENERALDETAIL as Record<string, unknown>) || {};
+
+  return {
+    lifnr: String(general.VENDOR || vendorNumber),
+    name1: String(addr.NAME || ''),
+    name2: String(addr.NAME_2 || ''),
+    name3: String(addr.NAME_3 || ''),
+    name4: String(addr.NAME_4 || ''),
+    stras: String(addr.STREET || ''),
+    ort01: String(addr.CITY || ''),
+    pstlz: String(addr.POSTL_CODE || ''),
+    regio: String(addr.REGION || ''),
+    land1: String(addr.COUNTRY || ''),
+    telf1: String(addr.TELEPHONE || ''),
+    telfx: String(addr.FAX || ''),
+    ktokk: String(general.ACCT_GRP || ''),
+    brsch: String(general.INDUSTRY || ''),
+    erdat: String(general.CREATED_ON || ''),
+  };
+}
+
+// ============================================================================
 // RFC_READ_TABLE - Generic Table Read (Fallback)
 // ============================================================================
 

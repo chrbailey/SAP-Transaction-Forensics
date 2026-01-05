@@ -43,6 +43,7 @@ import {
   callBapiBillingdocGetdetail,
   callBapiCustomerGetdetail2,
   callBapiMaterialGetDetail,
+  callBapiVendorGetdetail,
   padDocNumber,
 } from './rfc-calls.js';
 import {
@@ -53,6 +54,7 @@ import {
   mapInvoiceToTiming,
   mapCustomerToStub,
   mapMaterialToStub,
+  mapVendorToStub,
   mapReadTextResult,
   mapSAPDate,
 } from './mappers.js';
@@ -476,9 +478,8 @@ export class ECCRFCAdapter extends BaseDataAdapter {
         }
 
         case 'vendor': {
-          // Vendor BAPI not implemented yet - would need BAPI_VENDOR_GETDETAIL
-          this.logger.warn('Vendor master retrieval not yet implemented');
-          return null;
+          const vendor = await callBapiVendorGetdetail(pool, params.id);
+          return mapVendorToStub(vendor, params.hash_id ?? false);
         }
 
         default:

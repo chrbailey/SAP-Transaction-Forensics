@@ -389,6 +389,20 @@ SALT contains **sales orders only** (no deliveries or invoices). For full Order-
 | Demos | Good for UI testing | Compelling for stakeholders |
 | Validation | Functional testing | Business logic validation |
 
+### Analysis Results
+
+We've validated the MCP tools against real SAP datasets. View the detailed analysis:
+
+| Dataset | Cases | Events | Key Findings | Report |
+|---------|-------|--------|--------------|--------|
+| **BPI Challenge 2019** | 251,734 | 1.6M | 42 activities, 64-day median throughput | [View →](docs/analysis/bpi-challenge-2019.md) |
+| **SAP IDES O2C** | 646 | 5,708 | 158 variants, bottlenecks identified | [View →](docs/analysis/order-to-cash.md) |
+| **SAP IDES P2P** | 2,486 | 7,420 | 7 compliance violations detected | [View →](docs/analysis/procure-to-pay.md) |
+
+**Process Diagrams**: [Mermaid flowcharts for O2C and P2P](docs/analysis/process-diagrams.md)
+
+**Test Suite**: 427 tests passing, 4 skipped (SALT data required)
+
 ---
 
 ## Security & Compliance

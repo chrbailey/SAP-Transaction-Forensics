@@ -28,6 +28,7 @@ import type {
   DocFlowEntry as RFCDocFlowEntry,
   CustomerMaster,
   MaterialMaster,
+  VendorMaster,
   ReadTextResult,
 } from './rfc-calls.js';
 
@@ -436,6 +437,25 @@ export function mapMaterialToStub(material: MaterialMaster, hashIds: boolean = f
   }
   if (material.mtart) stub.MTART = material.mtart;
   const erdat = mapSAPDate(material.ersda);
+  if (erdat) stub.ERDAT = erdat;
+
+  return stub;
+}
+
+/**
+ * Map vendor master to MasterStub
+ */
+export function mapVendorToStub(vendor: VendorMaster, hashIds: boolean = false): MasterStub {
+  const stub: MasterStub = {
+    ENTITY_TYPE: 'vendor',
+    ID: vendor.lifnr,
+  };
+
+  if (hashIds) stub.HASHED_ID = hashId(vendor.lifnr);
+  if (vendor.brsch) stub.INDUSTRY = vendor.brsch;
+  if (vendor.regio) stub.REGION = vendor.regio;
+  if (vendor.ktokk) stub.KTOKK = vendor.ktokk;
+  const erdat = mapSAPDate(vendor.erdat);
   if (erdat) stub.ERDAT = erdat;
 
   return stub;
