@@ -474,26 +474,44 @@ class PatternCardGenerator:
         effect_sizes: Dict[str, EffectSize],
         n_docs: int
     ) -> float:
-        """Calculate overall confidence score (0-1)."""
+        """
+        Calculate overall confidence score (0-1).
+
+        IMPORTANT: This is a HEURISTIC score, NOT a probability.
+
+        This score reflects our confidence in the pattern based on:
+        - Sample size (more samples = more confidence)
+        - Number of statistically significant effects
+        - Magnitude of effect sizes
+
+        The score is bounded 0-1 for convenience but should NOT be interpreted
+        as a probability or combined with actual probabilities in risk scoring.
+        It's more like a "quality indicator" for the pattern.
+        """
         # Base confidence on sample size
+        # Rationale: 100+ docs is "fully confident" in sample size
         sample_confidence = min(1.0, n_docs / 100)
 
         # Adjust based on significant effects
+        # Rationale: 4+ significant effects is "fully confident" in statistical evidence
         significant_count = sum(
             1 for effect in effect_sizes.values()
             if effect.is_significant
         )
-
         effect_confidence = min(1.0, significant_count / 4)
 
         # Adjust based on effect sizes
+        # Rationale: 2+ medium/large effects is "fully confident" in practical significance
         large_effects = sum(
             1 for effect in effect_sizes.values()
             if effect.effect_interpretation in ('medium', 'large')
         )
         size_confidence = min(1.0, large_effects / 2)
 
-        # Weighted average
+        # Weighted average - this is a HEURISTIC combination
+        # The 0.4/0.3/0.3 weights are arbitrary but reflect:
+        # - Sample size is most important (replicability)
+        # - Statistical and practical significance equally weighted
         confidence = (
             0.4 * sample_confidence +
             0.3 * effect_confidence +

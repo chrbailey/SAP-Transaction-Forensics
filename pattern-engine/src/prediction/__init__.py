@@ -102,6 +102,7 @@ from .models import (
     PredictiveMonitor,
     RegressionModel,
     TrainingResult,
+    ValueType,  # IMPORTANT: Use to distinguish real probabilities from fake ones
     create_completion_time_model,
     create_credit_hold_model,
     create_late_delivery_model,
@@ -142,6 +143,7 @@ __all__ = [
     "PredictiveMonitor",
     "RegressionModel",
     "TrainingResult",
+    "ValueType",
     "create_completion_time_model",
     "create_credit_hold_model",
     "create_late_delivery_model",

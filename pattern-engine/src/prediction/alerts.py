@@ -29,7 +29,8 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 from collections import deque
 
-from .models import Prediction, PredictionType
+from .models import Prediction, PredictionType, ValueType
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -726,25 +727,38 @@ class RiskScorer:
     """
     Calculates composite risk scores from multiple predictions.
 
-    Combines predictions from different models to compute an overall
-    risk score that can be used for prioritization and alerting.
+    IMPORTANT: This class is designed to PREVENT mixing of incompatible value types.
+    Only predictions with ValueType.PROBABILITY can be meaningfully averaged together.
+    Raw values (like completion time in hours) require explicit SLA context to convert
+    to a risk ratio.
+
+    The old approach of dividing hours by 168 to create a "fake probability" has been
+    removed as it's mathematically invalid.
     """
 
     def __init__(
         self,
-        weights: Optional[Dict[PredictionType, float]] = None
+        weights: Optional[Dict[PredictionType, float]] = None,
+        sla_hours: Optional[float] = None,
+        strict_mode: bool = True,
     ):
         """
         Initialize the risk scorer.
 
         Args:
             weights: Weights for each prediction type (default: equal weights)
+            sla_hours: Expected SLA in hours for completion time. Required if
+                       COMPLETION_TIME predictions are to be included.
+            strict_mode: If True, raises error on value type mixing. If False,
+                         logs warning and excludes incompatible predictions.
         """
         self._weights = weights or {
             PredictionType.LATE_DELIVERY: 0.5,
             PredictionType.CREDIT_HOLD: 0.3,
             PredictionType.COMPLETION_TIME: 0.2,
         }
+        self._sla_hours = sla_hours
+        self._strict_mode = strict_mode
 
     def calculate_risk_score(
         self,
@@ -754,36 +768,103 @@ class RiskScorer:
         """
         Calculate a composite risk score from predictions.
 
+        IMPORTANT: Only predictions with ValueType.PROBABILITY are included by default.
+        To include completion time predictions, you MUST provide sla_hours in __init__.
+
         Args:
             predictions: List of predictions
             normalize: Whether to normalize to 0-1 range
 
         Returns:
-            Composite risk score
+            Composite risk score (only from probability-based predictions)
         """
         if not predictions:
             return 0.0
 
         total_weight = 0.0
         weighted_sum = 0.0
+        excluded_count = 0
+        included_types = []
 
         for prediction in predictions:
             weight = self._weights.get(prediction.prediction_type, 0.1)
+            risk_value: Optional[float] = None
 
-            # Convert prediction to risk value
-            if prediction.probability is not None:
-                risk_value = prediction.probability
-            elif prediction.prediction_type == PredictionType.COMPLETION_TIME:
-                # Higher completion time = higher risk (normalize somehow)
-                # This is a simplification - in practice, compare to SLA
-                risk_value = min(1.0, float(prediction.predicted_value) / 168.0)  # 168 hours = 1 week
-            else:
+            # CRITICAL: Only use values that are true probabilities or properly converted
+            if prediction.value_type == ValueType.PROBABILITY:
+                # True probability from classifier - safe to use
+                if prediction.probability is not None:
+                    risk_value = prediction.probability
+                    included_types.append(f"{prediction.prediction_type.value}:PROB")
+
+            elif prediction.value_type == ValueType.RAW:
+                # Raw value - needs conversion with domain context
+                if prediction.prediction_type == PredictionType.COMPLETION_TIME:
+                    if self._sla_hours is not None:
+                        # Convert to SLA ratio - this is a RATIO, not a probability
+                        # but at least it's semantically meaningful
+                        sla_ratio = float(prediction.predicted_value) / self._sla_hours
+                        risk_value = min(1.0, sla_ratio)
+                        included_types.append(f"{prediction.prediction_type.value}:RATIO")
+                    else:
+                        excluded_count += 1
+                        if self._strict_mode:
+                            warnings.warn(
+                                f"COMPLETION_TIME prediction excluded: sla_hours not "
+                                f"provided. Cannot convert {prediction.predicted_value} "
+                                f"hours to risk score without SLA context. "
+                                f"Initialize RiskScorer with sla_hours parameter.",
+                                UserWarning,
+                                stacklevel=2
+                            )
+                else:
+                    # Other RAW types - cannot convert
+                    excluded_count += 1
+                    if self._strict_mode:
+                        warnings.warn(
+                            f"Prediction of type {prediction.prediction_type.value} "
+                            f"has ValueType.RAW and cannot be included in risk score "
+                            f"without conversion context.",
+                            UserWarning,
+                            stacklevel=2
+                        )
+
+            elif prediction.value_type == ValueType.RATIO:
+                # Already a ratio (0-1) - can include but note it's not a probability
                 risk_value = float(prediction.predicted_value)
+                included_types.append(f"{prediction.prediction_type.value}:RATIO")
 
-            weighted_sum += weight * risk_value
-            total_weight += weight
+            elif prediction.value_type == ValueType.HEURISTIC:
+                # Heuristic scores should generally not be mixed with probabilities
+                excluded_count += 1
+                if self._strict_mode:
+                    warnings.warn(
+                        f"Prediction of type {prediction.prediction_type.value} "
+                        f"has ValueType.HEURISTIC and was excluded from risk score. "
+                        f"Heuristic scores should not be mixed with probabilities.",
+                        UserWarning,
+                        stacklevel=2
+                    )
+
+            if risk_value is not None:
+                weighted_sum += weight * risk_value
+                total_weight += weight
+
+        if excluded_count > 0:
+            logger.debug(
+                f"RiskScorer excluded {excluded_count} predictions due to value type. "
+                f"Included: {included_types}"
+            )
 
         if total_weight == 0:
+            if self._strict_mode and predictions:
+                warnings.warn(
+                    "RiskScorer returned 0.0 because no predictions had compatible "
+                    "ValueType. Ensure predictions have ValueType.PROBABILITY or "
+                    "provide sla_hours for COMPLETION_TIME predictions.",
+                    UserWarning,
+                    stacklevel=2
+                )
             return 0.0
 
         score = weighted_sum / total_weight
@@ -792,6 +873,40 @@ class RiskScorer:
             score = max(0.0, min(1.0, score))
 
         return score
+
+    def calculate_probability_only_risk(
+        self,
+        predictions: List[Prediction],
+    ) -> float:
+        """
+        Calculate risk score ONLY from true probability predictions.
+
+        This method explicitly excludes any non-probability values, ensuring
+        the result is a valid weighted average of probabilities.
+
+        Args:
+            predictions: List of predictions
+
+        Returns:
+            Risk score from probability-based predictions only
+        """
+        prob_predictions = [
+            p for p in predictions
+            if p.value_type == ValueType.PROBABILITY and p.probability is not None
+        ]
+
+        if not prob_predictions:
+            return 0.0
+
+        total_weight = 0.0
+        weighted_sum = 0.0
+
+        for prediction in prob_predictions:
+            weight = self._weights.get(prediction.prediction_type, 0.1)
+            weighted_sum += weight * prediction.probability
+            total_weight += weight
+
+        return weighted_sum / total_weight if total_weight > 0 else 0.0
 
     def get_risk_level(self, risk_score: float) -> str:
         """
@@ -813,6 +928,63 @@ class RiskScorer:
             return "low"
         else:
             return "minimal"
+
+    def get_detailed_breakdown(
+        self,
+        predictions: List[Prediction],
+    ) -> Dict[str, Any]:
+        """
+        Get detailed breakdown of risk components.
+
+        Returns information about which predictions were included/excluded
+        and why, making the risk calculation transparent.
+        """
+        breakdown = {
+            "included": [],
+            "excluded": [],
+            "warnings": [],
+        }
+
+        for prediction in predictions:
+            info = {
+                "type": prediction.prediction_type.value,
+                "value_type": prediction.value_type.value,
+                "predicted_value": prediction.predicted_value,
+                "probability": prediction.probability,
+            }
+
+            if prediction.value_type == ValueType.PROBABILITY:
+                info["risk_contribution"] = prediction.probability
+                info["reason"] = "True probability from classifier"
+                breakdown["included"].append(info)
+            elif prediction.value_type == ValueType.RAW:
+                if prediction.prediction_type == PredictionType.COMPLETION_TIME:
+                    if self._sla_hours:
+                        info["risk_contribution"] = min(
+                            1.0,
+                            float(prediction.predicted_value) / self._sla_hours
+                        )
+                        info["reason"] = f"Converted to SLA ratio (SLA={self._sla_hours}h)"
+                        breakdown["included"].append(info)
+                    else:
+                        info["reason"] = "Excluded: no SLA provided for conversion"
+                        breakdown["excluded"].append(info)
+                        breakdown["warnings"].append(
+                            f"COMPLETION_TIME prediction ({prediction.predicted_value}h) "
+                            f"excluded - provide sla_hours to include"
+                        )
+                else:
+                    info["reason"] = "Excluded: RAW value with no conversion context"
+                    breakdown["excluded"].append(info)
+            elif prediction.value_type == ValueType.HEURISTIC:
+                info["reason"] = "Excluded: heuristic scores not mixed with probabilities"
+                breakdown["excluded"].append(info)
+            else:
+                info["reason"] = f"Included as {prediction.value_type.value}"
+                info["risk_contribution"] = float(prediction.predicted_value)
+                breakdown["included"].append(info)
+
+        return breakdown
 
 
 def create_alert_manager(

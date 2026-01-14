@@ -28,6 +28,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+import warnings
 
 import numpy as np
 
@@ -78,6 +79,31 @@ class PredictionType(Enum):
     LATE_DELIVERY = "late_delivery"
     CREDIT_HOLD = "credit_hold"
     COMPLETION_TIME = "completion_time"
+
+
+class ValueType(Enum):
+    """
+    Type of value to distinguish real probabilities from fake ones.
+
+    CRITICAL: This enum exists to prevent "fake probability" bugs where
+    non-probability values (like normalized durations) get treated as
+    actual probabilities in risk scoring.
+
+    Types:
+        PROBABILITY: True probability from a calibrated classifier (0-1).
+                     Can be meaningfully averaged with other probabilities.
+        RATIO: A ratio value (e.g., time/SLA) that's bounded 0-1 but is NOT
+               a probability. Cannot be meaningfully averaged with probabilities.
+        RAW: A raw value (hours, dollars, count) that hasn't been normalized.
+             Must not be combined with probabilities without explicit conversion.
+        HEURISTIC: A manufactured score (like pattern confidence) that looks
+                   probability-like but isn't derived from statistical models.
+    """
+
+    PROBABILITY = "probability"
+    RATIO = "ratio"
+    RAW = "raw"
+    HEURISTIC = "heuristic"
 
 
 @dataclass
@@ -149,10 +175,12 @@ class Prediction:
         case_id: Identifier for the process instance
         prediction_type: Type of prediction
         predicted_value: The predicted value (label or time)
-        probability: Probability score for classification
+        probability: Probability score for classification (ONLY for classifiers)
         confidence: Confidence level of prediction
         timestamp: When prediction was made
         features_used: Features used for prediction
+        value_type: Type of the predicted_value (PROBABILITY, RATIO, RAW, HEURISTIC)
+        prediction_interval: Optional (lower, upper) bounds for regression predictions
     """
     case_id: str
     prediction_type: PredictionType
@@ -161,17 +189,36 @@ class Prediction:
     confidence: str = "medium"
     timestamp: datetime = field(default_factory=datetime.now)
     features_used: Dict[str, float] = field(default_factory=dict)
+    value_type: ValueType = ValueType.RAW
+    prediction_interval: Optional[Tuple[float, float]] = None
+
+    def __post_init__(self):
+        """Validate that probability is only set for PROBABILITY value types."""
+        if self.probability is not None and self.value_type != ValueType.PROBABILITY:
+            # Auto-correct: if probability is set, value_type should be PROBABILITY
+            object.__setattr__(self, 'value_type', ValueType.PROBABILITY)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""
-        return {
+        result = {
             "case_id": self.case_id,
             "prediction_type": self.prediction_type.value,
             "predicted_value": self.predicted_value,
             "probability": self.probability,
             "confidence": self.confidence,
             "timestamp": self.timestamp.isoformat(),
+            "value_type": self.value_type.value,
         }
+        if self.prediction_interval is not None:
+            result["prediction_interval"] = {
+                "lower": self.prediction_interval[0],
+                "upper": self.prediction_interval[1],
+            }
+        return result
+
+    def is_probability_based(self) -> bool:
+        """Check if this prediction has a true probability value."""
+        return self.value_type == ValueType.PROBABILITY and self.probability is not None
 
 
 class PredictiveModel:
@@ -450,6 +497,7 @@ class ClassificationModel(PredictiveModel):
                 predicted_value=bool(pred),
                 probability=float(proba),
                 confidence=confidence,
+                value_type=ValueType.PROBABILITY,  # This IS a real probability
             ))
 
         return predictions
@@ -655,17 +703,100 @@ class RegressionModel(PredictiveModel):
         # Predict
         y_pred = self._model.predict(X_scaled)
 
+        # Estimate prediction intervals using ensemble variance (if available)
+        # For RandomForest, we can use individual tree predictions
+        prediction_intervals = self._estimate_prediction_intervals(X_scaled, y_pred)
+
         predictions = []
-        for case_id, pred in zip(case_ids, y_pred):
+        for i, (case_id, pred) in enumerate(zip(case_ids, y_pred)):
+            # Derive confidence from prediction interval width
+            interval = prediction_intervals[i] if prediction_intervals else None
+            confidence = self._get_regression_confidence(pred, interval)
+
             predictions.append(Prediction(
                 case_id=case_id,
                 prediction_type=self._prediction_type,
                 predicted_value=float(pred),
-                probability=None,
-                confidence="medium",
+                probability=None,  # Regression models DON'T produce probabilities
+                confidence=confidence,
+                value_type=ValueType.RAW,  # This is RAW hours, NOT a probability
+                prediction_interval=interval,
             ))
 
         return predictions
+
+    def _estimate_prediction_intervals(
+        self,
+        X: np.ndarray,
+        y_pred: np.ndarray,
+        confidence_level: float = 0.9
+    ) -> Optional[List[Tuple[float, float]]]:
+        """
+        Estimate prediction intervals for regression predictions.
+
+        For ensemble models, uses variance across trees.
+        Returns None if intervals cannot be estimated.
+        """
+        try:
+            if hasattr(self._model, 'estimators_'):
+                # RandomForest or ensemble: use tree predictions variance
+                tree_preds = np.array([
+                    tree.predict(X) for tree in self._model.estimators_
+                ])
+                std = np.std(tree_preds, axis=0)
+                # Approximate 90% CI: mean +/- 1.645 * std
+                z = 1.645 if confidence_level == 0.9 else 1.96
+                intervals = [
+                    (float(pred - z * s), float(pred + z * s))
+                    for pred, s in zip(y_pred, std)
+                ]
+                return intervals
+            else:
+                # Single model: use training RMSE as rough estimate
+                if self._training_result and 'rmse' in self._training_result.metrics:
+                    rmse = self._training_result.metrics['rmse']
+                    z = 1.645 if confidence_level == 0.9 else 1.96
+                    intervals = [
+                        (float(pred - z * rmse), float(pred + z * rmse))
+                        for pred in y_pred
+                    ]
+                    return intervals
+        except Exception:
+            pass
+        return None
+
+    def _get_regression_confidence(
+        self,
+        prediction: float,
+        interval: Optional[Tuple[float, float]]
+    ) -> str:
+        """
+        Derive confidence level from prediction interval width.
+
+        Narrower intervals relative to prediction = higher confidence.
+        """
+        if interval is None:
+            return "unknown"  # Better than lying with "medium"
+
+        lower, upper = interval
+        width = upper - lower
+
+        # Relative width: interval width as fraction of prediction magnitude
+        if prediction > 0:
+            relative_width = width / prediction
+        else:
+            relative_width = width / max(1.0, abs(upper))
+
+        # Confidence based on relative width
+        # < 20% of prediction = high confidence
+        # 20-50% = medium confidence
+        # > 50% = low confidence
+        if relative_width < 0.2:
+            return "high"
+        elif relative_width < 0.5:
+            return "medium"
+        else:
+            return "low"
 
     def predict_from_trace(
         self,
