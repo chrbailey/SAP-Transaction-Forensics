@@ -120,6 +120,46 @@ export {
   type ModelInfo,
 } from './predict_outcome.js';
 
+// Tool 14: Analyze Journal Entries (FI/CO Forensics)
+export {
+  analyzeJournalEntriesTool,
+  executeAnalyzeJournalEntries,
+  AnalyzeJournalEntriesSchema,
+  type AnalyzeJournalEntriesInput,
+} from './analyze-journal-entries.js';
+
+// Tool 15: Analyze SoD (Segregation of Duties)
+export {
+  analyzeSoDTool,
+  executeAnalyzeSoD,
+  AnalyzeSoDSchema,
+  type AnalyzeSoDInput,
+} from './analyze-sod.js';
+
+// Tool 16: Analyze GL Balances
+export {
+  analyzeGLBalancesTool,
+  executeAnalyzeGLBalances,
+  AnalyzeGLBalancesSchema,
+  type AnalyzeGLBalancesInput,
+} from './analyze-gl-balances.js';
+
+// Tool 17: Get FI Document
+export {
+  getFIDocumentTool,
+  executeGetFIDocument,
+  GetFIDocumentSchema,
+  type GetFIDocumentInput,
+} from './get-fi-document.js';
+
+// Tool 18: Generate FI Assessment Report
+export {
+  generateFIAssessmentTool,
+  executeGenerateFIAssessment,
+  GenerateFIAssessmentSchema,
+  type GenerateFIAssessmentInput,
+} from './generate-fi-assessment.js';
+
 /**
  * All tool definitions for MCP registration
  */
@@ -136,6 +176,11 @@ import { exportOcelTool } from './export_ocel.js';
 import { visualizeProcessTool } from './visualize_process.js';
 import { checkConformanceTool } from './check_conformance.js';
 import { predictOutcomeTool } from './predict_outcome.js';
+import { analyzeJournalEntriesTool } from './analyze-journal-entries.js';
+import { analyzeSoDTool } from './analyze-sod.js';
+import { analyzeGLBalancesTool } from './analyze-gl-balances.js';
+import { getFIDocumentTool } from './get-fi-document.js';
+import { generateFIAssessmentTool } from './generate-fi-assessment.js';
 
 export const allTools = [
   searchDocTextTool,
@@ -151,6 +196,12 @@ export const allTools = [
   visualizeProcessTool,
   checkConformanceTool,
   predictOutcomeTool,
+  // FI/CO Forensic Tools
+  analyzeJournalEntriesTool,
+  analyzeSoDTool,
+  analyzeGLBalancesTool,
+  getFIDocumentTool,
+  generateFIAssessmentTool,
 ];
 
 /**
@@ -169,6 +220,11 @@ import { executeExportOcel } from './export_ocel.js';
 import { executeVisualizeProcess } from './visualize_process.js';
 import { executeCheckConformance } from './check_conformance.js';
 import { executePredictOutcome } from './predict_outcome.js';
+import { executeAnalyzeJournalEntries } from './analyze-journal-entries.js';
+import { executeAnalyzeSoD } from './analyze-sod.js';
+import { executeAnalyzeGLBalances } from './analyze-gl-balances.js';
+import { executeGetFIDocument } from './get-fi-document.js';
+import { executeGenerateFIAssessment } from './generate-fi-assessment.js';
 import { SAPAdapter } from '../adapters/adapter.js';
 
 export type ToolExecutor = (adapter: SAPAdapter, input: unknown) => Promise<unknown>;
@@ -187,6 +243,12 @@ export const toolExecutors: Record<string, ToolExecutor> = {
   visualize_process: executeVisualizeProcess,
   check_conformance: executeCheckConformance,
   predict_outcome: executePredictOutcome,
+  // FI/CO Forensic Tools
+  analyze_journal_entries: executeAnalyzeJournalEntries,
+  analyze_sod: executeAnalyzeSoD,
+  analyze_gl_balances: executeAnalyzeGLBalances,
+  get_fi_document: executeGetFIDocument,
+  generate_fi_assessment: executeGenerateFIAssessment,
 };
 
 /**

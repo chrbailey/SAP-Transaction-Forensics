@@ -5,6 +5,7 @@
  */
 
 export * from './sap.js';
+export * from './fi-co.js';
 
 // Additional convenience types for the synthetic data file format
 // These match the structure of the JSON files in synthetic-data/sample_output/

@@ -22,7 +22,7 @@ export type DeviationType =
 /**
  * Process types supported
  */
-export type ProcessType = 'O2C' | 'P2P';
+export type ProcessType = 'O2C' | 'P2P' | 'FI';
 
 /**
  * Individual deviation record

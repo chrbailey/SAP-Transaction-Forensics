@@ -31,21 +31,25 @@ import { gatekeeper, getFrameDocumentation } from './governance/index.js';
 // Import adapters to ensure they register themselves
 import './adapters/ecc_rfc/index.js';
 import './adapters/s4_odata/index.js';
+import './adapters/csv/index.js';
 
 /**
  * Server configuration from environment
  */
 interface ServerConfig {
-  adapterType: 'synthetic' | 'ecc_rfc' | 's4_odata';
+  adapterType: 'synthetic' | 'ecc_rfc' | 's4_odata' | 'csv';
   syntheticDataPath?: string;
+  csvFilePaths?: string[];
   logLevel?: string;
 }
 
 function getConfig(): ServerConfig {
   const syntheticDataPath = process.env['SYNTHETIC_DATA_PATH'];
+  const csvPaths = process.env['CSV_FILE_PATHS'];
   return {
     adapterType: (process.env['SAP_ADAPTER'] as ServerConfig['adapterType']) || 'synthetic',
     ...(syntheticDataPath ? { syntheticDataPath } : {}),
+    ...(csvPaths ? { csvFilePaths: csvPaths.split(',').map(p => p.trim()) } : {}),
     logLevel: process.env['LOG_LEVEL'] || 'info',
   };
 }
@@ -59,6 +63,13 @@ async function createAdapter(config: ServerConfig): Promise<IDataAdapter> {
       const adapter = new SyntheticAdapter(config.syntheticDataPath);
       await adapter.initialize();
       return adapter;
+    }
+
+    case 'csv': {
+      const { CSVAdapter } = await import('./adapters/csv/index.js');
+      const csvAdapter = new CSVAdapter(config.csvFilePaths);
+      await csvAdapter.initialize();
+      return csvAdapter;
     }
 
     case 'ecc_rfc':

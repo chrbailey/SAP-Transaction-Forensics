@@ -1,0 +1,158 @@
+BUKRS,BUTXT,ORT01,LAND1,WAERS,KTOPL
+0001,"* TRIAL ",Walldorf,DE,EUR,INT
+0005,"BestRun Germany new GL","* TRIAL *",DE,EUR,INT
+0006,"BestRun US INC New GL","* TRIAL ",US,USD,CAUS
+0007,"BestRun NEW GL","* TRIAL *",DE,EUR,INT
+0008,"BestRun US INC New GL 8","New York",US,USD,CAUS
+1000,"BestRun Germany",Frankfurt,DE,EUR,INT
+1002,"* TRIAL * TRIAL *",Singapore,SG,SGD,
+1005,"* TRIAL * TRIAL * ",Frankfurt,DE,EUR,INT
+2000,"BestRun UK",London,GB,GBP,INT
+2100,"BestRun Portugal",Lisbon,PT,EUR,INT
+2200,"* TRIAL * TRIA",Paris,FR,EUR,CAFR
+2201,"BestRun France affiliate",Paris,FR,EUR,CAFR
+2222,"Ma sté",Paris,FR,EUR,CAFR
+2223,"* TRIAL * ",Paris,FR,EUR,CAFR
+2224,"Ma sté américaine","New York",US,USD,CAFR
+2300,"* TRIAL * TRIA","* TRIAL *",ES,EUR,INT
+2400,"BestRun Filiale 1 IT",,IT,EUR,INT
+2500,"* TRIAL * TRIAL * T","* TRIAL *",NL,EUR,INT
+2600,"* TRIAL * TRIA",Milano,IT,EUR,INT1
+2700,"BestRun Schweiz","Biel / Bienne",CH,CHF,INT
+2800,"* TRIAL * TRI",China,CN,CNY,CACN
+2820,"* TRIAL * TRIAL * TRIAL ",China,CN,CNY,INT
+2821,"BestRun US MaterialLedger","Palo Alto",US,USD,INT
+2900,"BestRun Schweden","* TRIAL *",SE,SEK,INT
+3000,"* TRIAL * T","New York",US,USD,CAUS
+3001,"* TRIAL * TRIAL * TR","* TRIAL *",US,USD,CAUS
+3005,"Holding US","New York",US,USD,CAUS
+3010,"Euro Subsidiary - Belgium",Brussels,BE,EUR,CAUS
+3050,"BestRun Subsiduary UK",Leeds,GB,GBP,CAUS
+3500,"* TRIAL * TRIAL * TRIAL *","New York",US,USD,CA20
+3700,"US LLC, US","New York",US,USD,CAUS
+4000,"* TRIAL * TRIAL",Ontario,CA,CAD,CAUS
+4100,"BestRun Korea",Seoul,KR,KRW,CAKR
+4200,"* TRIAL * TRIA",Taipei,TW,TWD,CATW
+4300,"BestRun India",Bangalore,IN,INR,INT1
+4400,"* TRIAL * TRIAL ",Bangkok,TH,THB,INT1
+4500,"BestRun Canada for 4500",Toronto,CA,CAD,CACA
+4510,"BestRun US Company","* TRIAL *",CA,USD,CACA
+4520,"BestRun Canadian 2 Comp.",Toronto,CA,CAD,CACA
+4600,"BestRun Malaysia","Kuala Lumpur",MY,MYR,INT1
+4700,"BestRun Indonesia",Jakarta,ID,IDR,INT1
+4800,"BestRun Philippines",Manila,PH,PHP,INT1
+5000,"BestRun Japan 5000",Tokyo,JP,JPY,CAJP
+5100,"BestRun Singapore",Singapore,SG,SGD,INT
+5200,"BestRun Japan 5200",Tokyo,JP,JPY,CAJP
+5400,"ABC Company bv","* TRIAL *",NL,EUR,INT1
+5401,"XYZ Company bv",Amsterdam,NL,EUR,INT1
+5500,"BestRun Denmark",Kopenhagen,DK,DKK,INT
+5501,"BestRun Estonia",Tallin,ET,EEK,INT
+5502,"BestRun Lithuania",Vilnius,LT,LTL,INT
+5503,"* TRIAL * TRIA",Oslo,NO,NOK,INT
+5504,"BestRun Latvia",Riga,LV,LVL,INT
+5505,"BestRun Finland","* TRIAL ",FI,EUR,INT
+5506,"BestRun Sweden",Stockholm,SE,SEK,INT
+6000,"BestRun México S.A de C.V","* TRIAL *",MX,MXN,INT
+6001,"Empresa México ""A""",D.F.,MX,MXN,INT
+6002,"Empresa México ""B""",Monterrey,MX,MXN,INT
+6003,"Empresa México **FM**",D.F.,MX,MXN,INT
+6650,"BestRun Saudia Arabia",Riad,SA,SAR,INT
+6700,"BestRun Egypt",Alexandria,EG,EGP,INT
+6701,"* TRIAL * TRIAL * TRIAL ",Alexandria,EG,EGP,INT
+6710,"Alexandria Intern. Invst.","* TRIAL * ",EG,EGP,INT
+6720,"* TRIAL * TRI",Doha,QA,QAR,INT
+6750,"BestRun UAE","Abu Dhabi",AE,AED,INT
+7000,"BestRun Brazil","São Paulo",BR,BRL,INT
+7001,"* TRIAL * TRIAL * T","Sao Paulo",BR,BRL,INT
+7003,"* TRIAL * TRIAL * T",,BR,BRL,INT
+7500,"BestRun Argentina","Buenos Aires",AR,ARS,INT1
+7540,"* TRIAL * TRIAL * TRIAL ","* TRIAL * TRIAL *",CL,CLP,INT1
+7550,"BestRun Arg Columb branch",Bogota,CO,COP,INT1
+7600,"* TRIAL * TRIAL ",Columbia,CO,COP,INT1
+7700,"* TRIAL * TRIAL *",Venezuela,VE,VEB,INT1
+7800,"BestRun Peru","Perú",PE,PEN,INT1
+8000,"* TRIAL * TRI",Chile,CL,CLP,INT1
+8500,"* TRIAL * TRIAL *",Sydney,AU,AUD,CAAU
+8520,"BestRun Australia NR",Sydney,AU,AUD,CAAU
+8530,"BestRun Australia SR",Melbourne,AU,AUD,CAAU
+8580,"* TRIAL * TRIAL * TR",Canberra,AU,AUD,CAAU
+8590,"* TRIAL * TRIAL * T",Auckland,NZ,NZD,CAAU
+9000,"АК ВНЗМ Завод",Moscow,RU,RUB,CARU
+9001,"АК ВНЗМ Застройщик","Уфа",RU,RUB,CARU
+9100,"BestRun Czechia",Prague,CZ,CZK,CACZ
+9200,"* TRIAL * TRIAL",Budapest,HU,HUF,CAHU
+9300,"BestRun Poland",Warszawa,PL,PLN,CAPL
+9400,"* TRIAL * TRIAL ","* TRIAL * ",SK,SKK,CASK
+9500,"BestRun Slovenia",Ljubljana,SI,SIT,CASL
+9600,"BestRun Croatia",Zagreb,HR,HRK,CAHR
+9700,"* TRIAL * TRIAL",Bucharest,RO,ROL,CARO
+9800,"* TRIAL * TRIAL * ",,KZ,KZT,CAKZ
+9900,"* TRIAL * TRIAL",Kyiv,UA,UAK,CAUA
+9950,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC00,"BR Training AC Gr. 00","* TRIAL *",DE,EUR,INT
+AC01,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC02,"BR Training AC Gr. 02","* TRIAL *",DE,EUR,INT
+AC03,"BR Training AC Gr. 03",Frankfurt,DE,EUR,INT
+AC04,"BR Training AC Gr. 04","* TRIAL *",DE,EUR,INT
+AC05,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC06,"BR Training AC Gr. 06","* TRIAL *",DE,EUR,INT
+AC07,"BR Training AC Gr. 07","* TRIAL *",DE,EUR,INT
+AC08,"BR Training AC Gr. 08","* TRIAL *",DE,EUR,INT
+AC09,"* TRIAL * TRIAL * TRI","* TRIAL *",DE,EUR,INT
+AC10,"BR Training AC Gr. 10",Frankfurt,DE,EUR,INT
+AC11,"BR Training AC Gr. 11",Frankfurt,DE,EUR,INT
+AC12,"BR Training AC Gr. 12",Frankfurt,DE,EUR,INT
+AC13,"* TRIAL * TRIAL * TRI","* TRIAL *",DE,EUR,INT
+AC14,"BR Training AC Gr. 14",Frankfurt,DE,EUR,INT
+AC15,"BR Training AC Gr. 15",Frankfurt,DE,EUR,INT
+AC16,"BR Training AC Gr. 16",Frankfurt,DE,EUR,INT
+AC17,"BR Training AC Gr. 17",Frankfurt,DE,EUR,INT
+AC18,"* TRIAL * TRIAL * TRI","* TRIAL *",DE,EUR,INT
+AC19,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC20,"BR Training AC Gr. 20",Frankfurt,DE,EUR,INT
+AC21,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC22,"* TRIAL * TRIAL * TRI","* TRIAL *",DE,EUR,INT
+AC23,"* TRIAL * TRIAL * TRI","* TRIAL *",DE,EUR,INT
+AC24,"BR Training AC Gr. 24",Frankfurt,DE,EUR,INT
+AC25,"BR Training AC Gr. 25",Frankfurt,DE,EUR,INT
+AC26,"BR Training AC Gr. 26",Frankfurt,DE,EUR,INT
+AC27,"BR Training AC Gr. 27",Frankfurt,DE,EUR,INT
+AC28,"* TRIAL * TRIAL * TRI",Frankfurt,DE,EUR,INT
+AC29,"BR Training AC Gr. 29",Frankfurt,DE,EUR,INT
+AC30,"BR Training AC Gr. 30",Frankfurt,DE,EUR,INT
+ACIA,"BR Training AC206","* TRIAL *",DE,EUR,ACIA
+AT01,"Country Template AT",Austria,AT,EUR,INT
+CABB,Training,SAPLand,DE,EUR,INT
+CABD,CABD,SAPLand,DE,EUR,
+CC01,"BestRun US INC","New York",US,USD,CAUS
+CC02,"BestRun AG",Frankfurt,DE,EUR,INT
+CH01,"FIBU Schweiz",Schweiz,CH,CHF,INT
+CM01,"* TRIAL * ","* TRIAL *",DE,EUR,INT
+CPBV,"CP Beverage","New York",US,USD,CAUS
+CPFO,"Good Food",Chicago,US,USD,CAUS
+F100,"Bankhaus Frankfurt",Frankfurt,DE,EUR,BANK
+F220,"* TRIAL * TRIAL * TRIA",Paris,FR,EUR,PCEC
+F300,"Liberty Bank","* TRIAL ",US,USD,BANK
+FARR,"Revenue Recognition","* TRIAL ",US,USD,CAUS
+FS00,"FSCxxx Gr. 00",Walldorf,DE,EUR,INT
+FS01,"* TRIAL * TRI",Walldorf,DE,EUR,INT
+ID01,"Template ID",Jakarta,ID,IDR,
+IN01,"* TRIAL * TRIAL * TRIAL","* TRIAL *",IN,INR,
+IN47,"India Model Company, IN",Bangalore,IN,INR,CAIN
+M200,"* TRIAL * TRIAL * T",Boston,US,USD,
+PS01,"Public Services","* TRIAL ",US,USD,CAUS
+R100,"BestRun Retail GmbH",Giessen,DE,EUR,INT
+R300,"BestRun Retail INC US","Los Angeles",US,USD,CAUS
+RP22,"Syndic RP22",Paris,FR,EUR,CAFR
+S300,"* TRIAL * TRIAL ",Atlanta,US,USD,CANA
+S330,"SP POST",Rome,IT,EUR,INT1
+SE01,"Country Template SE",Sweden,SE,SEK,INT
+SL01,"Services Logistics SP","New York",US,USD,CAUS
+TR00,"Company 00","* TRIAL *",DE,EUR,INT1
+TR01,"Company 01",Hamburg,DE,EUR,INT1
+TR02,"Company 02","München",DE,EUR,INT1
+UCAB,"US Division of CAB",SAPBerg,US,USD,
+XCOD,"Demo Company",Waldorf,DE,EUR,INT
+ZA01,"BestRun South Africa",Johannesburg,ZA,ZAR,INT
+ZBD1,"Sap EDI",Walldorf,DE,EUR,INT1

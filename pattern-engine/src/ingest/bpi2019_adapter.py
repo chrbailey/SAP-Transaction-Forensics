@@ -176,7 +176,7 @@ class BPI2019Adapter:
     def load_from_csv(
         self,
         file_path: str,
-        encoding: str = 'utf-8',
+        encoding: str = 'latin-1',  # BPI 2019 uses latin-1/cp1252 encoding
         max_rows: Optional[int] = None
     ) -> BPI2019LoadResult:
         """
@@ -276,14 +276,23 @@ class BPI2019Adapter:
     def _parse_csv_row(self, row: Dict[str, str]) -> Dict[str, Any]:
         """Parse a single CSV row into event format."""
         # Handle different possible column name formats
+        # BPI 2019 CSV has columns like "case Vendor", "event concept:name", etc.
         def get_val(keys: List[str]) -> Optional[str]:
             for key in keys:
+                # Try exact match first
                 if key in row and row[key]:
                     return row[key].strip()
+                # Try with trailing space (CSV artifact)
+                if key + ' ' in row and row[key + ' ']:
+                    return row[key + ' '].strip()
             return None
 
-        # Parse timestamp
-        ts_str = get_val(['time:timestamp', 'timestamp', 'Timestamp'])
+        # Parse timestamp - BPI 2019 uses "event time:timestamp"
+        ts_str = get_val([
+            'event time:timestamp',
+            'time:timestamp',
+            'timestamp',
+        ])
         timestamp = None
         if ts_str:
             try:
@@ -298,22 +307,23 @@ class BPI2019Adapter:
                 except:
                     pass
 
+        # BPI 2019 specific column mappings
         return {
-            'case_id': get_val(['case:concept:name', 'Case ID']),
-            'activity': get_val(['concept:name', 'Activity']),
+            'case_id': get_val(['case concept:name', 'case:concept:name', 'Case ID']),
+            'activity': get_val(['event concept:name', 'concept:name', 'Activity']),
             'timestamp': timestamp,
-            'document_number': get_val(['case:Purchasing Document', 'Purchasing Document']),
-            'item_number': get_val(['case:Item', 'Item']),
-            'vendor': get_val(['case:Vendor', 'Vendor']),
-            'vendor_name': get_val(['case:Name', 'Vendor Name', 'Name']),
-            'company': get_val(['case:Company', 'Company']),
-            'document_type': get_val(['case:Document Type', 'Document Type']),
-            'item_category': get_val(['case:Item Category', 'Item Category']),
-            'spend_area': get_val(['case:Spend area text', 'Spend area']),
-            'spend_classification': get_val(['case:Spend classification text']),
-            'resource': get_val(['org:resource', 'Resource', 'User']),
-            'gr_based_inv': get_val(['case:GR-Based Inv. Verif.']) == 'True',
-            'goods_receipt': get_val(['case:Goods Receipt']) == 'True',
+            'document_number': get_val(['case Purchasing Document', 'case:Purchasing Document']),
+            'item_number': get_val(['case Item', 'case:Item']),
+            'vendor': get_val(['case Vendor', 'case:Vendor']),
+            'vendor_name': get_val(['case Name', 'case:Name']),
+            'company': get_val(['case Company', 'case:Company']),
+            'document_type': get_val(['case Document Type', 'case:Document Type']),
+            'item_category': get_val(['case Item Category', 'case:Item Category']),
+            'spend_area': get_val(['case Spend area text', 'case:Spend area text']),
+            'spend_classification': get_val(['case Spend classification text']),
+            'resource': get_val(['event org:resource', 'org:resource', 'event User']),
+            'gr_based_inv': get_val(['case GR-Based Inv. Verif.']) == 'True',
+            'goods_receipt': get_val(['case Goods Receipt']) == 'True',
         }
 
     def load_from_pandas(self, df: 'pd.DataFrame') -> BPI2019LoadResult:
