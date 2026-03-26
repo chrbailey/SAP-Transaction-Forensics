@@ -36,7 +36,7 @@ export interface ProximityOptions {
 }
 
 const DEFAULT_PROXIMITY_OPTIONS: ProximityOptions = {
-  nameThreshold: 0.6,
+  nameThreshold: 0.3,
   amountTolerance: 0.10,
   maxDateGapDays: 45,
 };

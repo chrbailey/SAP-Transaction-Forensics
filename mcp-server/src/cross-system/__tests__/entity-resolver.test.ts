@@ -47,7 +47,7 @@ const sapRecords: SAPMatchRecord[] = [
   },
   {
     vbeln: '0000005678',
-    customer_name: 'GLOBEX CORPORATION',
+    customer_name: 'Globex Inc.',
     netwr: 74500,
     erdat: '20240403',
   },
@@ -143,7 +143,7 @@ describe('EntityResolver.resolveExplicitId', () => {
 describe('EntityResolver.resolveByProximity', () => {
   const resolver = new EntityResolver();
 
-  it('fuzzy-matches Globex Inc to GLOBEX CORPORATION', () => {
+  it('fuzzy-matches Globex Inc to Globex Inc.', () => {
     const matches = resolver.resolveByProximity(sfdcRecords, sapRecords);
     const globexMatch = matches.find(m => m.sfdc_id === 'OPP-002');
     expect(globexMatch).toBeDefined();
