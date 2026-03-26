@@ -19,6 +19,44 @@
 .DEFAULT_GOAL := help
 
 # =============================================================================
+# One-Command Demo (deterministic, reproducible)
+# =============================================================================
+
+## demo: One-command deterministic bootstrap — generates data, runs analysis, prints report
+demo: check-python check-node demo-install demo-generate demo-analyze
+	@echo ""
+	@echo "$(GREEN)═══════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  Demo complete. Run 'make test' to verify.$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════$(NC)"
+
+demo-install:
+	@echo "$(BLUE)[1/3] Installing dependencies...$(NC)"
+	@cd $(MCP_SERVER_DIR) && npm ci --silent 2>/dev/null || npm install --silent
+
+demo-generate:
+	@echo "$(BLUE)[2/3] Generating synthetic SFDC data (seed=42, deterministic)...$(NC)"
+	@cd $(SYNTHETIC_DATA_DIR) && $(PYTHON) src/generate_sfdc.py \
+		--count 200 --accounts 50 --output sfdc_output/ --seed 42
+	@echo "$(GREEN)  → 200+ opportunities with 10 planted anomaly patterns$(NC)"
+
+demo-analyze:
+	@echo "$(BLUE)[3/3] Running forensic analysis...$(NC)"
+	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) scripts/analyze_sfdc.py
+	@echo ""
+
+## demo-kaggle: Full demo with real Kaggle CRM data (requires data/kaggle-crm/)
+demo-kaggle: check-python
+	@if [ ! -f "data/kaggle-crm/sales_pipeline.csv" ]; then \
+		echo "$(RED)Kaggle data not found. Download first:$(NC)"; \
+		echo "  kaggle datasets download -d innocentmfa/crm-sales-opportunities --unzip -p data/kaggle-crm/"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Converting Kaggle CSV → SFDC JSON...$(NC)"
+	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) scripts/convert_kaggle_crm.py
+	@echo "$(BLUE)Running analysis on 8,800 real CRM records...$(NC)"
+	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) scripts/analyze_kaggle_crm.py
+
+# =============================================================================
 # Configuration
 # =============================================================================
 
@@ -122,7 +160,7 @@ view: check-python
 
 ## status: Show current status
 status:
-	@echo "$(BLUE)SAP Workflow Mining Status$(NC)"
+	@echo "$(BLUE)Transaction Forensics Status$(NC)"
 	@echo ""
 	@echo "Synthetic Data:"
 	@if [ -d "$(SYNTHETIC_DATA_DIR)/sample_output" ] && [ "$$(ls -A $(SYNTHETIC_DATA_DIR)/sample_output 2>/dev/null)" ]; then \
@@ -292,7 +330,7 @@ check-deps: check-python check-node
 ## help: Show this help message
 help:
 	@echo ""
-	@echo "$(BLUE)SAP Workflow Mining - Makefile$(NC)"
+	@echo "$(BLUE)Transaction Forensics - Makefile$(NC)"
 	@echo ""
 	@echo "Usage: make [target] [VAR=value]"
 	@echo ""
