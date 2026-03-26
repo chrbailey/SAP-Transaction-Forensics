@@ -459,14 +459,14 @@ export class SFDCSyntheticAdapter extends BaseDataAdapter {
       header_timing: {
         requested_date: sapCloseDate,
         planned_gi_date: sapCloseDate,
-        actual_gi_date: opp.is_won ? sapCloseDate : undefined,
+        ...(opp.is_won && { actual_gi_date: sapCloseDate }),
       },
       item_timing: items.map(item => ({
         item_number: padToLength(item.sort_order.toString(), 6),
         material: padToLength(item.product_code, 18),
         requested_date: sapCloseDate,
         confirmed_date: sapCloseDate,
-        actual_date: opp.is_won ? sapCloseDate : undefined,
+        ...(opp.is_won && { actual_date: sapCloseDate }),
       })),
     };
   }

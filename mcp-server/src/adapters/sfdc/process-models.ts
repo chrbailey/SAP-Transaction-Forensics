@@ -49,7 +49,7 @@ export function getStagesForRecordType(recordType: string): string[] {
   if (pipeline) {
     return pipeline.stages;
   }
-  return SFDC_PIPELINES['New Business'].stages;
+  return SFDC_PIPELINES['New Business']?.stages ?? [];
 }
 
 // ============================================================================
@@ -125,8 +125,9 @@ export function detectStageSkip(stageHistory: string[], recordType: string): str
   const skipped: string[] = [];
 
   for (let i = minIndex + 1; i < maxIndex; i++) {
-    if (!visitedSet.has(stages[i])) {
-      skipped.push(stages[i]);
+    const stage = stages[i];
+    if (stage !== undefined && !visitedSet.has(stage)) {
+      skipped.push(stage);
     }
   }
 
@@ -158,6 +159,10 @@ export function detectStageRegression(
   for (let i = 1; i < stageHistory.length; i++) {
     const from = stageHistory[i - 1];
     const to = stageHistory[i];
+
+    if (from === undefined || to === undefined) {
+      continue;
+    }
 
     // Terminal moves are never regressions
     if (isTerminalStage(to)) {

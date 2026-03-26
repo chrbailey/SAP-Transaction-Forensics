@@ -45,7 +45,7 @@ export interface SFDCOpportunity {
   sap_order_number: string | null;
   is_closed: boolean;
   is_won: boolean;
-  _pattern_flags?: string[]; // For test validation
+  _pattern_flags?: string[] | undefined; // For test validation
 }
 
 // ============================================================================

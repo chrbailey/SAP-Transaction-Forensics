@@ -122,15 +122,18 @@ export class SFDCFieldMapper {
 
     return {
       root_document: padToLength(oppId, 10),
-      flow: sorted.map(stage => ({
-        doc_type: 'SFDC_STAGE',
-        doc_number: padToLength(stage.id, 10),
-        doc_category: stage.stage_name,
-        status: STAGE_STATUS_MAP[stage.stage_name],
-        created_date: formatDateToSAP(stage.created_date),
-        created_time: extractTime(stage.created_date),
-        items: [],
-      })),
+      flow: sorted.map(stage => {
+        const statusCode = STAGE_STATUS_MAP[stage.stage_name];
+        return {
+          doc_type: 'SFDC_STAGE',
+          doc_number: padToLength(stage.id, 10),
+          doc_category: stage.stage_name,
+          ...(statusCode !== undefined && { status: statusCode }),
+          created_date: formatDateToSAP(stage.created_date),
+          created_time: extractTime(stage.created_date),
+          items: [] as Array<{ item_number: string; ref_doc?: string; ref_item?: string; quantity?: number }>,
+        };
+      }),
     };
   }
 
