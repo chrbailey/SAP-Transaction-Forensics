@@ -396,7 +396,7 @@ def main() -> None:
     print(f"\n**Quarter-end months (Mar/Jun/Sep/Dec):** "
           f"{qtr_end_count} of {total_closed_with_date} closed opps "
           f"({fmt_pct(qtr_end_count, total_closed_with_date)}) closed in a quarter-end month.")
-    expected_qtr_end_pct = 3 / 12 * 100  # 3 of 12 months are quarter-end
+    expected_qtr_end_pct = 4 / 12 * 100  # 4 of 12 months are quarter-end
     print(f"Expected baseline if uniform: ~{expected_qtr_end_pct:.0f}%")
     if total_closed_with_date > 0:
         actual_pct = qtr_end_count / total_closed_with_date * 100

@@ -819,6 +819,12 @@ This is enterprise-friendly open source:
 
 ---
 
+## AI Authorship
+
+This project was built with Claude Code (Anthropic). All commits are co-authored as reflected in git history. The architecture, design decisions, and analysis methodology are the author's; the implementation was pair-programmed with AI assistance.
+
+---
+
 ## Disclaimer
 
 This tool is provided as-is for process analysis purposes. It does not modify SAP data. Users are responsible for:

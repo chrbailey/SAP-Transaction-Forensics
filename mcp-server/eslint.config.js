@@ -44,6 +44,6 @@ export default tseslint.config(
   },
   {
     // Ignore patterns
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.js', '!eslint.config.js'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.js', '!eslint.config.js', '**/__tests__/**'],
   }
 );

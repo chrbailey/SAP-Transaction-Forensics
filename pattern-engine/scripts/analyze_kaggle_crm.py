@@ -309,7 +309,7 @@ def main() -> None:
     # --- Conformance Analysis ---
     print("\n---\n")
     print("## 3. Conformance Analysis — New Business Pipeline")
-    print(f"\nModel: `{nb_result.model_name}` | Cases analyzed: {nb_result.total_cases:,}")
+    print(f"\nModel: `{nb_result.model_name}` | Cases analyzed: {nb_result.total_cases:,} (all opportunities with stage history — closed + open)")
     print("\n| Metric | Value |")
     print("|--------|-------|")
     print(f"| Total cases | {nb_result.total_cases:,} |")
@@ -346,7 +346,7 @@ def main() -> None:
         print(f"| {month_names[m]}{marker} | {cnt} | {fmt_pct(cnt, total_closed_with_date)} |")
 
     qe_pct = qtr_end_count / total_closed_with_date * 100 if total_closed_with_date else 0
-    expected_pct = 3 / 12 * 100
+    expected_pct = 4 / 12 * 100
     print(
         f"\n**Quarter-end months (Mar/Jun/Sep/Dec):** "
         f"{qtr_end_count} of {total_closed_with_date:,} closed opps "
@@ -405,7 +405,7 @@ def main() -> None:
 
     # --- Account Concentration ---
     print("\n---\n")
-    print("## 7. Account Concentration (Top 10 by Won Revenue)")
+    print("## 7. CR5 Account Concentration (Top 10 by Won Revenue)")
     if top_accounts:
         print("\n| Account | Won Revenue | Won Deals |")
         print("|---------|-------------|-----------|")
