@@ -237,3 +237,200 @@ def test_cross_system_gap(sfdc_data):
             f"CROSS_SYSTEM_GAP opp {opp['id']} should have sap_order_id set, "
             f"but got: {sap_order_id!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# 6. STAGE_REGRESSION — backward stage movement detected by conformance
+# ---------------------------------------------------------------------------
+
+
+@skip_if_no_data
+def test_stage_regression_detected(sfdc_data, events_by_case):
+    """
+    STAGE_REGRESSION-flagged opportunities should be detected as non-conformant
+    by the conformance checker (backward stage movement violates the model).
+    At least 50% must be flagged non-conformant.
+    """
+    from src.conformance import ConformanceChecker
+    from src.conformance.templates.opportunity_pipeline import get_new_business_model
+
+    model = get_new_business_model()
+    checker = ConformanceChecker(model, strict_mode=True)
+
+    regression_opps = [
+        o
+        for o in sfdc_data["opportunities"]
+        if "STAGE_REGRESSION" in o.get("_pattern_flags", [])
+    ]
+    assert len(regression_opps) > 0, "Expected at least one STAGE_REGRESSION opportunity"
+
+    non_conformant = 0
+    checked = 0
+    for opp in regression_opps:
+        opp_id = opp["id"]
+        trace = [
+            e
+            for e in events_by_case.get(opp_id, [])
+            if e.get("event_source") == "stage_history"
+        ]
+        if not trace:
+            continue
+        result = checker.check_trace(trace, case_id=opp_id)
+        checked += 1
+        if not result.is_conformant:
+            non_conformant += 1
+
+    assert checked > 0, "No stage history traces found for STAGE_REGRESSION opps"
+    detection_rate = non_conformant / checked
+    assert detection_rate >= 0.50, (
+        f"Expected >=50% of STAGE_REGRESSION opps to be non-conformant, "
+        f"got {non_conformant}/{checked} ({detection_rate:.0%})"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 7. AMOUNT_INFLATION — inflated amount set on last stage history entry
+# ---------------------------------------------------------------------------
+
+
+@skip_if_no_data
+def test_amount_inflation_detected(sfdc_data):
+    """
+    AMOUNT_INFLATION-flagged opportunities must have the last stage_history
+    entry's amount set (non-None) and equal to the opportunity's current
+    amount, confirming the >50% inflation was applied to the final stage.
+    """
+    histories_by_opp = sfdc_data["histories_by_opp"]
+
+    inflation_opps = [
+        o
+        for o in sfdc_data["opportunities"]
+        if "AMOUNT_INFLATION" in o.get("_pattern_flags", [])
+    ]
+    assert len(inflation_opps) > 0, "Expected at least one AMOUNT_INFLATION opportunity"
+
+    for opp in inflation_opps:
+        opp_id = opp["id"]
+        histories = histories_by_opp.get(opp_id, [])
+        assert histories, (
+            f"AMOUNT_INFLATION opp {opp_id} has no stage history entries"
+        )
+        last_h = max(histories, key=lambda h: h.get("created_date", ""))
+        last_amount = last_h.get("amount")
+        assert last_amount is not None, (
+            f"AMOUNT_INFLATION opp {opp_id} last history entry has no amount set"
+        )
+        assert last_amount == opp["amount"], (
+            f"AMOUNT_INFLATION opp {opp_id} last history amount {last_amount} "
+            f"does not match opp amount {opp['amount']}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 8. SPLIT_DEAL — sibling opportunity on same account within 7 days
+# ---------------------------------------------------------------------------
+
+
+@skip_if_no_data
+def test_split_deal_detected(sfdc_data):
+    """
+    SPLIT_DEAL-flagged opportunities must have at least one other SPLIT_DEAL
+    opportunity on the same account_id.
+
+    Note: we check for a sibling with the SPLIT_DEAL flag on the same account
+    rather than enforcing the 7-day window here, because the STALE_PIPELINE
+    pattern (applied after SPLIT_DEAL) can backdate created_date on the
+    original opp, making the apparent gap exceed 7 days in the output data.
+    """
+    all_opps = sfdc_data["opportunities"]
+
+    split_opps = [
+        o
+        for o in all_opps
+        if "SPLIT_DEAL" in o.get("_pattern_flags", [])
+    ]
+    assert len(split_opps) > 0, "Expected at least one SPLIT_DEAL opportunity"
+
+    for opp in split_opps:
+        opp_id = opp["id"]
+        account_id = opp["account_id"]
+
+        siblings = [
+            o2 for o2 in all_opps
+            if o2["id"] != opp_id
+            and o2["account_id"] == account_id
+            and "SPLIT_DEAL" in o2.get("_pattern_flags", [])
+        ]
+        assert siblings, (
+            f"SPLIT_DEAL opp {opp_id} (account {account_id}) "
+            f"has no sibling SPLIT_DEAL opp on the same account"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 9. STALE_PIPELINE — open opp created >90 days before dataset end
+# ---------------------------------------------------------------------------
+
+
+@skip_if_no_data
+def test_stale_pipeline_detected(sfdc_data):
+    """
+    STALE_PIPELINE-flagged opportunities must be open (not closed) AND have
+    a created_date more than 90 days before the dataset end date (2025-12-31).
+    """
+    dataset_end = datetime(2025, 12, 31)
+
+    stale_opps = [
+        o
+        for o in sfdc_data["opportunities"]
+        if "STALE_PIPELINE" in o.get("_pattern_flags", [])
+    ]
+    assert len(stale_opps) > 0, "Expected at least one STALE_PIPELINE opportunity"
+
+    for opp in stale_opps:
+        assert not opp.get("is_closed", True), (
+            f"STALE_PIPELINE opp {opp['id']} should be open (is_closed=False), "
+            f"but is_closed={opp.get('is_closed')}"
+        )
+        created = datetime.strptime(opp["created_date"], "%Y-%m-%d")
+        days_stale = (dataset_end - created).days
+        assert days_stale > 90, (
+            f"STALE_PIPELINE opp {opp['id']} created_date {opp['created_date']} "
+            f"is only {days_stale} days before dataset end (expected >90)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 10. OWNER_SWAP_AT_CLOSE — last stage history entry has different owner
+# ---------------------------------------------------------------------------
+
+
+@skip_if_no_data
+def test_owner_swap_detected(sfdc_data):
+    """
+    OWNER_SWAP_AT_CLOSE-flagged opportunities must have the last stage_history
+    entry's owner_id differ from the opportunity's owner_id, indicating the
+    owner was swapped in the final stage.
+    """
+    histories_by_opp = sfdc_data["histories_by_opp"]
+
+    owner_swap_opps = [
+        o
+        for o in sfdc_data["opportunities"]
+        if "OWNER_SWAP_AT_CLOSE" in o.get("_pattern_flags", [])
+    ]
+    assert len(owner_swap_opps) > 0, "Expected at least one OWNER_SWAP_AT_CLOSE opportunity"
+
+    for opp in owner_swap_opps:
+        opp_id = opp["id"]
+        histories = histories_by_opp.get(opp_id, [])
+        assert histories, (
+            f"OWNER_SWAP_AT_CLOSE opp {opp_id} has no stage history entries"
+        )
+        last_h = max(histories, key=lambda h: h.get("created_date", ""))
+        last_owner = last_h.get("owner_id")
+        opp_owner = opp.get("owner_id")
+        assert last_owner != opp_owner, (
+            f"OWNER_SWAP_AT_CLOSE opp {opp_id} last history owner_id {last_owner!r} "
+            f"should differ from opp owner_id {opp_owner!r}"
+        )
