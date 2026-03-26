@@ -5,7 +5,15 @@
  * all 8 IDataAdapter methods return correct shapes and values.
  */
 
+import { existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { SFDCSyntheticAdapter } from '../index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const DATA_DIR = join(__dirname, '..', '..', '..', '..', '..', 'synthetic-data', 'sfdc_output');
+const HAS_DATA = existsSync(join(DATA_DIR, 'opportunities.json'));
 
 // Concrete IDs from the synthetic dataset
 const OPP_CLOSED_LOST = '006000000000000001'; // stage: Closed Lost, is_closed: true, is_won: false
@@ -13,7 +21,10 @@ const OPP_CLOSED_WON = '006000000000000010'; // stage: Closed Won,  is_closed: t
 const ACCOUNT_ID = '001000000000000001';
 const NONEXISTENT = '999999999999999999';
 
-describe('SFDCSyntheticAdapter', () => {
+// Skip entire suite if synthetic data not generated (e.g., CI)
+const describeIfData = HAS_DATA ? describe : describe.skip;
+
+describeIfData('SFDCSyntheticAdapter', () => {
   let adapter: SFDCSyntheticAdapter;
 
   beforeAll(async () => {

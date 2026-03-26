@@ -67,7 +67,7 @@ describe('Conformance Checking Module', () => {
 
     it('should list all models', () => {
       const models = listModels();
-      expect(models).toHaveLength(4);
+      expect(models).toHaveLength(7); // 2 O2C + 2 P2P + 3 FI/CO
       expect(models.map(m => m.id)).toContain('o2c-simple');
       expect(models.map(m => m.id)).toContain('p2p-simple');
     });
