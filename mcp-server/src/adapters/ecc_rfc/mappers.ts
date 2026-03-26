@@ -454,7 +454,7 @@ export function mapVendorToStub(vendor: VendorMaster, hashIds: boolean = false):
   if (hashIds) stub.HASHED_ID = hashId(vendor.lifnr);
   if (vendor.brsch) stub.INDUSTRY = vendor.brsch;
   if (vendor.regio) stub.REGION = vendor.regio;
-  if (vendor.ktokk) stub.KTOKK = vendor.ktokk;
+  if (vendor.ktokk) stub.KTOKD = vendor.ktokk;
   const erdat = mapSAPDate(vendor.erdat);
   if (erdat) stub.ERDAT = erdat;
 
