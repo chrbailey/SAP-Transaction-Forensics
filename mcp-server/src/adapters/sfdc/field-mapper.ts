@@ -131,7 +131,12 @@ export class SFDCFieldMapper {
           ...(statusCode !== undefined && { status: statusCode }),
           created_date: formatDateToSAP(stage.created_date),
           created_time: extractTime(stage.created_date),
-          items: [] as Array<{ item_number: string; ref_doc?: string; ref_item?: string; quantity?: number }>,
+          items: [] as Array<{
+            item_number: string;
+            ref_doc?: string;
+            ref_item?: string;
+            quantity?: number;
+          }>,
         };
       }),
     };
