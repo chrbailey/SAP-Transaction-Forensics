@@ -1,14 +1,14 @@
 # SAP Authorization Setup Guide
 
-> Copy-paste ready authorization configuration for SAP Workflow Mining
+> Copy-paste ready authorization configuration for Transaction Forensics
 
-This guide provides step-by-step instructions for SAP Basis Administrators to create a secure, minimal-permission RFC user for SAP Workflow Mining.
+This guide provides step-by-step instructions for SAP Basis Administrators to create a secure, minimal-permission RFC user for Transaction Forensics.
 
 ---
 
 ## Overview
 
-SAP Workflow Mining requires **read-only access** to SD (Sales & Distribution) documents. This guide follows the principle of least privilege - the user gets exactly the permissions needed and nothing more.
+Transaction Forensics requires **read-only access** to SD (Sales & Distribution) documents. This guide follows the principle of least privilege - the user gets exactly the permissions needed and nothing more.
 
 **Time required:** 15-30 minutes
 **Transactions used:** SU01, PFCG, SU53, ST01
@@ -60,7 +60,7 @@ Click **Single Role** button.
 ### 1.3 Add Description
 
 ```
-Description: Read-only RFC access for SAP Workflow Mining
+Description: Read-only RFC access for Transaction Forensics
              Process analysis tool - display only access to SD documents
 ```
 

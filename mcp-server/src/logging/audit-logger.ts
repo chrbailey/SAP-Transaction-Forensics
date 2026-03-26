@@ -53,7 +53,7 @@ const logger = winston.createLogger({
     winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSSZ' }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'sap-workflow-mining-mcp' },
+  defaultMeta: { service: 'transaction-forensics-mcp' },
   transports: [
     // Console transport for development
     new winston.transports.Console({

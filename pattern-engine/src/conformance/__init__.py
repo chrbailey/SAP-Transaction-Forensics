@@ -1,5 +1,5 @@
 """
-Conformance Checking Module for SAP Workflow Mining.
+Conformance Checking Module for Transaction Forensics.
 
 This module provides conformance checking capabilities for comparing
 actual SAP event logs against expected process models. It implements

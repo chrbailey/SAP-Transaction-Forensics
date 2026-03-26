@@ -46,7 +46,7 @@ function formatProbability(value: number): string {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - predict_outcome Demo');
+  printHeader('Transaction Forensics - predict_outcome Demo');
 
   // Create synthetic adapter
   console.log(`${colors.dim}Creating synthetic SAP adapter...${colors.reset}`);

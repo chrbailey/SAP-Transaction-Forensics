@@ -1,7 +1,7 @@
 """
-Benchmark Runner for SAP Workflow Mining.
+Benchmark Runner for Transaction Forensics.
 
-Validates the complete workflow mining pipeline against standard benchmark
+Validates the complete transaction forensics pipeline against standard benchmark
 datasets to prove the tool works with real-world data.
 
 Benchmarks:
@@ -468,7 +468,7 @@ class BenchmarkRunner:
     def generate_report(self, output_path: Optional[str] = None) -> str:
         """Generate a markdown report of benchmark results."""
         lines = [
-            "# SAP Workflow Mining Benchmark Results",
+            "# Transaction Forensics Benchmark Results",
             "",
             f"**Generated:** {datetime.now().isoformat()}",
             "",
@@ -581,7 +581,7 @@ def main():
     """CLI entry point for running benchmarks."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run SAP Workflow Mining benchmarks")
+    parser = argparse.ArgumentParser(description="Run Transaction Forensics benchmarks")
     parser.add_argument(
         '--dataset',
         choices=['all', 'salt', 'bpi2019'],

@@ -1,4 +1,4 @@
-# SAP Workflow Mining - Limitations and Caveats
+# Transaction Forensics - Limitations and Caveats
 
 > **Read this before trusting any output from this tool.**
 

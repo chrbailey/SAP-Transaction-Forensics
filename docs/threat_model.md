@@ -1,8 +1,8 @@
-# SAP Workflow Mining - Threat Model
+# Transaction Forensics - Threat Model
 
 > **Assume breach. Assume misuse. Assume malfunction.**
 
-This document catalogs known threats and mitigations for the SAP Workflow Mining system. It is not exhaustive. New threats should be added as discovered.
+This document catalogs known threats and mitigations for the Transaction Forensics system. It is not exhaustive. New threats should be added as discovered.
 
 ## Threat Categories
 

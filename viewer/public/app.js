@@ -1,5 +1,5 @@
 /**
- * SAP Workflow Mining Pattern Viewer
+ * Transaction Forensics Pattern Viewer
  * Vanilla JavaScript single-page application
  */
 

@@ -6,7 +6,7 @@
  * Output formats: Mermaid flowcharts, DOT (Graphviz), and SVG.
  * Includes bottleneck highlighting and timing annotations.
  *
- * Phase 4 - SAP Workflow Mining v2.0 Roadmap
+ * Phase 4 - Transaction Forensics v2.0 Roadmap
  */
 
 import { z } from 'zod';

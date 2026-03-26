@@ -45,7 +45,7 @@ function getSeverityColor(severity: string): string {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - check_conformance Demo');
+  printHeader('Transaction Forensics - check_conformance Demo');
 
   // Create synthetic adapter
   console.log(`${colors.dim}Creating synthetic SAP adapter...${colors.reset}`);

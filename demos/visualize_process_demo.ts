@@ -36,7 +36,7 @@ function printHeader(text: string): void {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - visualize_process Demo');
+  printHeader('Transaction Forensics - visualize_process Demo');
 
   // Create synthetic adapter
   console.log(`${colors.dim}Creating synthetic SAP adapter...${colors.reset}`);

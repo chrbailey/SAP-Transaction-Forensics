@@ -1,5 +1,5 @@
 """
-Report Generator Module for SAP Workflow Mining.
+Report Generator Module for Transaction Forensics.
 
 Generates output in various formats:
 - JSON for programmatic use
@@ -69,7 +69,7 @@ class ReportGenerator:
         lines = []
 
         # Title and metadata
-        lines.append("# SAP Workflow Mining Pattern Report")
+        lines.append("# Transaction Forensics Pattern Report")
         lines.append("")
         lines.append(f"**Generated**: {datetime.utcnow().isoformat()}Z")
         lines.append(f"**Version**: {__version__}")

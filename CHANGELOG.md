@@ -162,6 +162,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-- [v2.0.0 Release](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v2.0.0)
-- [v1.0.0 Release](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v1.0.0)
-- [Full Changelog](https://github.com/chrbailey/sap-workflow-mining/compare/v1.0.0...v2.0.0)
+- [v2.0.0 Release](https://github.com/chrbailey/transaction-forensics/releases/tag/v2.0.0)
+- [v1.0.0 Release](https://github.com/chrbailey/transaction-forensics/releases/tag/v1.0.0)
+- [Full Changelog](https://github.com/chrbailey/transaction-forensics/compare/v1.0.0...v2.0.0)

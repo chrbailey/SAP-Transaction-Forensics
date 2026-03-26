@@ -1,4 +1,4 @@
-# SAP Workflow Mining - System Architecture
+# Transaction Forensics - System Architecture
 
 > **Guiding principle**: Every output traces to tool-returned facts or deterministic computation. If we cannot prove it from retrieved data, we do not claim it.
 
@@ -18,13 +18,13 @@
 
 ## System Overview
 
-The SAP Workflow Mining system discovers latent patterns in SAP document text fields and correlates them with measurable business outcomes. It operates on a strict **facts-only** principle: all findings must trace to actual data returned by tools, with no hallucinated or fabricated patterns.
+The Transaction Forensics system discovers latent patterns in SAP document text fields and correlates them with measurable business outcomes. It operates on a strict **facts-only** principle: all findings must trace to actual data returned by tools, with no hallucinated or fabricated patterns.
 
 ## High-Level Architecture
 
 ```
-                                    SAP Workflow Mining System
-                                    ==========================
+                                    Transaction Forensics System
+                                    ============================
 
     +-----------------------+         +-----------------------+         +-----------------------+
     |                       |         |                       |         |                       |
@@ -376,7 +376,7 @@ If any of these occur, the system has failed and must be fixed before production
 │                           YOUR NETWORK (On-Premise)                         │
 │                                                                             │
 │  ┌─────────────────────┐         ┌─────────────────────────────────────┐   │
-│  │     SAP ECC 6.0     │         │      SAP Workflow Mining            │   │
+│  │     SAP ECC 6.0     │         │      Transaction Forensics          │   │
 │  │                     │   RFC   │         (Docker)                    │   │
 │  │  ┌──────┐ ┌──────┐  │◄───────►│  ┌─────────────┐  ┌─────────────┐  │   │
 │  │  │  SD  │ │  MM  │  │         │  │ MCP Server  │  │   Pattern   │  │   │

@@ -1,4 +1,4 @@
-# SAP Workflow Mining
+# Transaction Forensics
 
 ## Overview
 
@@ -38,7 +38,7 @@ cd mcp-server && npm test
 ## Architecture
 
 ```
-SAP Workflow Mining/
+Transaction Forensics/
 ├── mcp-server/           # MCP server with TypeScript
 │   ├── src/
 │   │   ├── index.ts              # Entry point

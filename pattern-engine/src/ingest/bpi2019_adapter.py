@@ -1,8 +1,8 @@
 """
-BPI Challenge 2019 Dataset Adapter for SAP Workflow Mining.
+BPI Challenge 2019 Dataset Adapter for Transaction Forensics.
 
 Converts the BPI Challenge 2019 (Purchase Order Handling) event log into
-the format expected by the SAP Workflow Mining tool.
+the format expected by the Transaction Forensics tool.
 
 Dataset: https://data.4tu.nl/articles/dataset/BPI_Challenge_2019/12715853/1
 Paper: Business Process Intelligence Challenge 2019
@@ -140,7 +140,7 @@ class BPI2019Adapter:
     Adapter for BPI Challenge 2019 dataset.
 
     Transforms BPI 2019 event log (P2P process) into a format compatible
-    with SAP Workflow Mining (designed for O2C but applicable to P2P).
+    with Transaction Forensics (designed for O2C but applicable to P2P).
 
     Key Mappings:
         Purchase Document → Sales Order (conceptual equivalent)

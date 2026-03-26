@@ -1,8 +1,8 @@
 """
-SAP SALT Dataset Adapter for SAP Workflow Mining.
+SAP SALT Dataset Adapter for Transaction Forensics.
 
 Converts the SAP SALT (Sales Autocompletion Linked Tables) dataset from
-Hugging Face into the format expected by the SAP Workflow Mining tool.
+Hugging Face into the format expected by the Transaction Forensics tool.
 
 SALT Dataset: https://huggingface.co/datasets/sap-ai-research/SALT
 Paper: arxiv:2501.03413 (NeurIPS'24 Table Representation Workshop)

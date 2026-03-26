@@ -1,6 +1,6 @@
 version: '3.8'
 
-# SAP Workflow Mining - Docker Compose Configuration
+# Transaction Forensics - Docker Compose Configuration
 #
 # Services:
 #   - synthetic-data: Generates synthetic SAP SD documents
@@ -173,7 +173,7 @@ services:
 # ===========================================================================
 networks:
   sap-wm-network:
-    name: sap-workflow-mining
+    name: transaction-forensics
     driver: bridge
 
 # ===========================================================================

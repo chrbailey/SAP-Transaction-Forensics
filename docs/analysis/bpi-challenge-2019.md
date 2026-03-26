@@ -220,7 +220,7 @@ Based on this analysis:
 
 ## Tools Used
 
-This analysis was performed using the SAP Workflow Mining MCP server tools:
+This analysis was performed using the Transaction Forensics MCP server tools:
 - Event log parsing (XES format)
 - Process discovery (directly-follows graphs)
 - Conformance checking

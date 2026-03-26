@@ -1,5 +1,5 @@
 """
-Visualization Module for SAP Workflow Mining (Phase 4).
+Visualization Module for Transaction Forensics (Phase 4).
 
 This module provides process flow visualization capabilities for SAP Order-to-Cash
 workflows, including:

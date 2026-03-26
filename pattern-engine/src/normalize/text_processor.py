@@ -1,5 +1,5 @@
 """
-Text Normalization Module for SAP Workflow Mining.
+Text Normalization Module for Transaction Forensics.
 
 Provides text preprocessing including:
 - Lowercasing

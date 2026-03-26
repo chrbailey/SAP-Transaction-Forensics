@@ -266,7 +266,7 @@ Order 0000012345 - Risk Assessment:
 
 ## Why This Instead of S/4HANA?
 
-| Consideration | S/4HANA Migration | SAP Workflow Mining |
+| Consideration | S/4HANA Migration | Transaction Forensics |
 |--------------|-------------------|---------------------|
 | **Timeline** | 18-36 months | Hours to first insights |
 | **Cost** | $10M-$100M+ | Free (MIT license) |
@@ -288,8 +288,8 @@ Order 0000012345 - Risk Assessment:
 
 ### Quick Install
 ```bash
-git clone https://github.com/your-org/sap-workflow-mining.git
-cd sap-workflow-mining
+git clone https://github.com/your-org/transaction-forensics.git
+cd transaction-forensics
 docker-compose up --build
 ```
 

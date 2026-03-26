@@ -36,7 +36,7 @@ function printHeader(text: string): void {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - SALT Adapter Demo');
+  printHeader('Transaction Forensics - SALT Adapter Demo');
 
   console.log(`${colors.dim}The SALT dataset contains real SAP ERP sales order data${colors.reset}`);
   console.log(`${colors.dim}published by SAP on HuggingFace.${colors.reset}\n`);

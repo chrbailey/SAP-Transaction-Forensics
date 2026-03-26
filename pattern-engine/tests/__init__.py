@@ -1,3 +1,3 @@
 """
-Tests for the SAP Workflow Mining Pattern Engine.
+Tests for the Transaction Forensics Pattern Engine.
 """

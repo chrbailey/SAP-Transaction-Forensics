@@ -1,5 +1,5 @@
 """
-Main CLI entry point for the SAP Workflow Mining Pattern Engine.
+Main CLI entry point for the Transaction Forensics Pattern Engine.
 
 Usage:
     python -m pattern_engine ingest --input-dir ./data
@@ -68,7 +68,7 @@ pass_context = click.make_pass_decorator(PipelineContext, ensure=True)
               default='shareable', help='PII redaction mode')
 @click.pass_context
 def cli(ctx, seed: int, redaction_mode: str):
-    """SAP Workflow Mining Pattern Engine
+    """Transaction Forensics Pattern Engine
 
     Discovers text patterns in SAP workflow data and correlates them
     to business outcomes like delivery delays and invoice lag.
@@ -384,7 +384,7 @@ def run(ctx, input_dir: str, output_dir: str, output_format: str, mode: str, csv
     from datetime import datetime
 
     click.echo("=" * 60)
-    click.echo("SAP Workflow Mining Pattern Engine")
+    click.echo("Transaction Forensics Pattern Engine")
     click.echo("=" * 60)
     click.echo(f"Input: {input_path}")
     click.echo(f"Output: {output_path}")

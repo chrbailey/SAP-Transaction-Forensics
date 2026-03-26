@@ -216,7 +216,7 @@ Based on the analysis, the Order-to-Cash process follows this pattern:
 ## Tools Used
 
 This analysis was performed using:
-- SAP Workflow Mining MCP server
+- Transaction Forensics MCP server
 - Python pandas for event log processing
 - Directly-follows graph analysis
 - Duration and bottleneck calculations

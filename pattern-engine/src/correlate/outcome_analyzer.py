@@ -1,5 +1,5 @@
 """
-Outcome Correlation Module for SAP Workflow Mining.
+Outcome Correlation Module for Transaction Forensics.
 
 Correlates text clusters to business outcomes:
 - Order-to-delivery lead time

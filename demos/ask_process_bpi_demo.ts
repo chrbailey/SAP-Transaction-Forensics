@@ -85,7 +85,7 @@ function printFollowUp(questions: string[]): void {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - ask_process Demo (BPI Data)');
+  printHeader('Transaction Forensics - ask_process Demo (BPI Data)');
 
   // Check LLM configuration
   const provider = process.env.LLM_PROVIDER || 'ollama';
@@ -170,7 +170,7 @@ async function runDemo(): Promise<void> {
 async function runInteractive(): Promise<void> {
   const readline = await import('readline');
 
-  printHeader('SAP Workflow Mining - Interactive Mode (BPI Data)');
+  printHeader('Transaction Forensics - Interactive Mode (BPI Data)');
 
   const provider = process.env.LLM_PROVIDER || 'ollama';
   console.log(`${colors.dim}LLM Provider: ${provider}${colors.reset}\n`);

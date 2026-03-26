@@ -3,7 +3,7 @@
 BPI Challenge 2019 XES to JSON Converter
 
 Converts the BPI Challenge 2019 XES event log to a JSON format
-compatible with the SAP Workflow Mining MCP server.
+compatible with the Transaction Forensics MCP server.
 
 Usage:
     python scripts/convert-bpi-xes.py [--input PATH] [--output PATH] [--limit N]

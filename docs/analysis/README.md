@@ -1,6 +1,6 @@
 # Process Mining Analysis Results
 
-This directory contains process mining analysis results demonstrating the SAP Workflow Mining MCP tools on real-world datasets.
+This directory contains process mining analysis results demonstrating the Transaction Forensics MCP tools on real-world datasets.
 
 ## Datasets Used
 
@@ -41,7 +41,7 @@ This directory contains process mining analysis results demonstrating the SAP Wo
 
 ## Tools Demonstrated
 
-These analyses were performed using the SAP Workflow Mining MCP tools:
+These analyses were performed using the Transaction Forensics MCP tools:
 
 - `search_doc_text` - Pattern search across document flows
 - `get_doc_flow` - Document flow extraction (VBFA)

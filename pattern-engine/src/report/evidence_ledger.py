@@ -1,5 +1,5 @@
 """
-Evidence Ledger Module for SAP Workflow Mining.
+Evidence Ledger Module for Transaction Forensics.
 
 Tracks all evidence supporting pattern discoveries:
 - Document keys

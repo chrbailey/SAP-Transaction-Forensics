@@ -54,7 +54,7 @@ jobs:
           else
             echo "## Initial Release" > CHANGELOG.md
             echo "" >> CHANGELOG.md
-            echo "First release of SAP Workflow Mining MCP Server" >> CHANGELOG.md
+            echo "First release of Transaction Forensics MCP Server" >> CHANGELOG.md
           fi
 
       - name: Create GitHub Release

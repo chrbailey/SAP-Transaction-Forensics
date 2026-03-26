@@ -147,7 +147,7 @@ app.get('/api/export/json', (req, res) => {
 app.get('/api/export/markdown', (req, res) => {
     const data = loadPatternData();
 
-    let markdown = `# SAP Workflow Mining - Pattern Cards\n\n`;
+    let markdown = `# Transaction Forensics - Pattern Cards\n\n`;
     markdown += `Generated: ${data.metadata?.generated_at || 'Unknown'}\n`;
     markdown += `Documents Analyzed: ${data.metadata?.document_count || 0}\n\n`;
     markdown += `---\n\n`;
@@ -200,6 +200,6 @@ app.get('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`SAP Workflow Mining Viewer running at http://localhost:${PORT}`);
+    console.log(`Transaction Forensics Viewer running at http://localhost:${PORT}`);
     console.log(`Data source: ${DATA_PATH}`);
 });

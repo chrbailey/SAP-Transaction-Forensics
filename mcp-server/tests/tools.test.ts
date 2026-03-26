@@ -1,5 +1,5 @@
 /**
- * Jest Tests for SAP Workflow Mining MCP Tools
+ * Jest Tests for Transaction Forensics MCP Tools
  *
  * Tests cover:
  * - Tool parameter validation (Zod schemas)
@@ -45,7 +45,7 @@ const SAMPLE_INVOICE = '9000000001';
 const SAMPLE_CUSTOMER = 'CUST0001';
 const SAMPLE_MATERIAL = 'MAT001';
 
-describe('SAP Workflow Mining MCP Tools', () => {
+describe('Transaction Forensics MCP Tools', () => {
   let adapter: IDataAdapter;
 
   beforeAll(async () => {

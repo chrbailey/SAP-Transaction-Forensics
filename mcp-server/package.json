@@ -1,7 +1,7 @@
 {
-  "name": "sap-workflow-mining-mcp-server",
+  "name": "transaction-forensics-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server for SAP workflow mining - exposes SAP-shaped tools for document analysis",
+  "description": "MCP server for Transaction Forensics - exposes tools for multi-system document analysis",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {

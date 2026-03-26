@@ -1,7 +1,7 @@
 {
-  "name": "sap-workflow-mining-viewer",
+  "name": "transaction-forensics-viewer",
   "version": "1.0.0",
-  "description": "Web viewer for SAP workflow mining pattern cards",
+  "description": "Web viewer for Transaction Forensics pattern cards",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

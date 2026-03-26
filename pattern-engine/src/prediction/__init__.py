@@ -1,5 +1,5 @@
 """
-Predictive Monitoring Module for SAP Workflow Mining.
+Predictive Monitoring Module for Transaction Forensics.
 
 This module provides predictive process monitoring capabilities for SAP
 Order-to-Cash (O2C) workflows. It uses machine learning to predict process

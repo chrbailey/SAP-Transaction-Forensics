@@ -1,5 +1,5 @@
 """
-Benchmark Suite for SAP Workflow Mining.
+Benchmark Suite for Transaction Forensics.
 
 This module provides tools to validate the workflow mining pipeline against
 standard process mining benchmark datasets:

@@ -1,14 +1,14 @@
 # Security Documentation
 
-> SAP Workflow Mining - Security Architecture & Compliance
+> Transaction Forensics - Security Architecture & Compliance
 
-This document describes the security architecture, data handling practices, and compliance considerations for SAP Workflow Mining.
+This document describes the security architecture, data handling practices, and compliance considerations for Transaction Forensics.
 
 ---
 
 ## Executive Summary
 
-SAP Workflow Mining is designed for enterprise security requirements:
+Transaction Forensics is designed for enterprise security requirements:
 
 - **Read-only access** - No write operations to SAP
 - **On-premise only** - No cloud dependencies, no external APIs
@@ -26,7 +26,7 @@ SAP Workflow Mining is designed for enterprise security requirements:
 ||                           YOUR CORPORATE NETWORK                          ||
 ||                                                                           ||
 ||   +---------------------------+       +-------------------------------+   ||
-||   |      SAP ECC 6.0          |       |    SAP Workflow Mining        |   ||
+||   |      SAP ECC 6.0          |       |    Transaction Forensics      |   ||
 ||   |                           |       |          Server               |   ||
 ||   |   +-----------------+     |       |                               |   ||
 ||   |   |   SD Tables     |     |  RFC  |   +------------------------+  |   ||
@@ -151,7 +151,7 @@ All data is stored on the local file system:
 
 ### No Outbound Connections
 
-SAP Workflow Mining makes **zero outbound network connections**:
+Transaction Forensics makes **zero outbound network connections**:
 
 ```
 Outbound to Internet:    NONE
@@ -430,7 +430,7 @@ See [docs/threat_model.md](docs/threat_model.md) for:
 
 ## Security Checklist for Deployment
 
-Before deploying SAP Workflow Mining:
+Before deploying Transaction Forensics:
 
 - [ ] Create dedicated RFC user with minimal permissions
 - [ ] Test authorization with SU53 after failed access

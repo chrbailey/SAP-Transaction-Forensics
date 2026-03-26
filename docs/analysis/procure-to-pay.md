@@ -292,7 +292,7 @@ Based on this process mining analysis:
 ## Tools Used
 
 This analysis was performed using:
-- SAP Workflow Mining MCP server
+- Transaction Forensics MCP server
 - Python pandas for event log processing
 - Compliance checking against expected P2P flow
 - Resource analysis and segregation of duties detection

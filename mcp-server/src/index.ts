@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SAP Workflow Mining MCP Server
+ * Transaction Forensics MCP Server
  *
  * This server exposes 8 SAP-shaped tools for workflow mining analysis.
  * It uses the Model Context Protocol (MCP) to integrate with AI assistants.
@@ -90,7 +90,7 @@ async function createAdapter(config: ServerConfig): Promise<IDataAdapter> {
 function createMCPServer(): Server {
   const server = new Server(
     {
-      name: 'sap-workflow-mining',
+      name: 'transaction-forensics',
       version: '1.0.0',
     },
     {

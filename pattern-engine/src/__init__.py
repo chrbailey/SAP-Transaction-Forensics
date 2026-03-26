@@ -1,12 +1,12 @@
 """
-SAP Workflow Mining Pattern Engine
+Transaction Forensics Pattern Engine
 
 This engine ingests MCP tool outputs, discovers text patterns,
 correlates them to outcomes, and generates evidence-backed pattern cards.
 """
 
 __version__ = "0.1.0"
-__author__ = "SAP Workflow Mining Team"
+__author__ = "Transaction Forensics Team"
 
 from pathlib import Path
 

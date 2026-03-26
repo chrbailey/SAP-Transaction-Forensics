@@ -1,4 +1,4 @@
-# Contributing to SAP Workflow Mining
+# Contributing to Transaction Forensics
 
 Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
 
@@ -42,8 +42,8 @@ Be respectful, professional, and constructive. We welcome contributors from all 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/sap-workflow-mining.git
-cd sap-workflow-mining
+git clone https://github.com/your-org/transaction-forensics.git
+cd transaction-forensics
 
 # Run with synthetic data (no SAP required)
 docker-compose up --build
@@ -55,7 +55,7 @@ make test
 ### Project Structure
 
 ```
-sap-workflow-mining/
+transaction-forensics/
 ├── mcp-server/          # TypeScript MCP server with SAP tools
 │   ├── src/adapters/    # Data source adapters (synthetic, RFC, OData)
 │   └── src/tools/       # MCP tool implementations

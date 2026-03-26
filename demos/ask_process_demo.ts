@@ -89,7 +89,7 @@ function printFollowUp(questions: string[]): void {
 }
 
 async function runDemo(): Promise<void> {
-  printHeader('SAP Workflow Mining - ask_process Demo');
+  printHeader('Transaction Forensics - ask_process Demo');
 
   // Check LLM configuration
   const provider = process.env.LLM_PROVIDER || 'ollama';
@@ -165,7 +165,7 @@ async function runDemo(): Promise<void> {
 async function runInteractive(): Promise<void> {
   const readline = await import('readline');
 
-  printHeader('SAP Workflow Mining - Interactive Mode');
+  printHeader('Transaction Forensics - Interactive Mode');
 
   const provider = process.env.LLM_PROVIDER || 'ollama';
   console.log(`${colors.dim}LLM Provider: ${provider}${colors.reset}\n`);

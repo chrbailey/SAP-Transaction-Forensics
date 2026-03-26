@@ -1,5 +1,5 @@
 """
-Pattern Card Module for SAP Workflow Mining.
+Pattern Card Module for Transaction Forensics.
 
 Generates evidence-backed pattern cards that describe discovered
 text patterns and their correlation to business outcomes.

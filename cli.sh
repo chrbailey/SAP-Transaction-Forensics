@@ -1,5 +1,5 @@
 #!/bin/bash
-# SAP Workflow Mining CLI
+# Transaction Forensics CLI
 # Commands: generate-data, start-server, run-analysis, view-results, all, clean
 
 set -e
@@ -520,7 +520,7 @@ cmd_all() {
         esac
     done
 
-    step "Running complete SAP Workflow Mining pipeline"
+    step "Running complete Transaction Forensics pipeline"
     echo ""
 
     # Step 1: Generate data
@@ -614,7 +614,7 @@ cmd_clean() {
 # =============================================================================
 
 cmd_status() {
-    step "SAP Workflow Mining - Status"
+    step "Transaction Forensics - Status"
     echo ""
 
     # Check synthetic data
@@ -672,7 +672,7 @@ cmd_status() {
 
 cmd_help() {
     echo ""
-    echo "${BOLD}SAP Workflow Mining CLI${NC}"
+    echo "${BOLD}Transaction Forensics CLI${NC}"
     echo ""
     echo "Usage: $0 <command> [options]"
     echo ""

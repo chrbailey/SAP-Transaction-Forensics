@@ -1,5 +1,5 @@
 """
-Text Clustering Module for SAP Workflow Mining.
+Text Clustering Module for Transaction Forensics.
 
 Provides pattern discovery through:
 - TF-IDF vectorization (primary, always available)

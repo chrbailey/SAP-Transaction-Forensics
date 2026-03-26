@@ -1,5 +1,5 @@
 """
-PII Redaction Module for SAP Workflow Mining.
+PII Redaction Module for Transaction Forensics.
 
 Provides configurable redaction of sensitive information including:
 - Email addresses
