@@ -20,8 +20,8 @@
  */
 
 export interface SFDCRestConfig {
-  instanceUrl: string;       // e.g., https://mycompany.salesforce.com
-  apiVersion: string;        // e.g., v60.0
+  instanceUrl: string; // e.g., https://mycompany.salesforce.com
+  apiVersion: string; // e.g., v60.0
   authType: 'oauth2' | 'jwt';
   clientId: string;
   clientSecret?: string;
@@ -38,8 +38,7 @@ export class SFDCRestClient {
 
   async authenticate(): Promise<void> {
     throw new Error(
-      'SFDC REST client not implemented (Phase 2). ' +
-      'Use SFDCSyntheticAdapter for testing.'
+      'SFDC REST client not implemented (Phase 2). ' + 'Use SFDCSyntheticAdapter for testing.'
     );
   }
 

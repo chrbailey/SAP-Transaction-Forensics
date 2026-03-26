@@ -39,7 +39,10 @@ describe('UnifiedLogBuilder', () => {
   it('creates unified log and sorts events by timestamp', () => {
     const sfdcEvents: UnifiedEvent[] = [
       makeSFDCEvent('stage_change', '2024-01-15T10:00:00Z', 'OPP-001', { stage: 'Proposal' }),
-      makeSFDCEvent('stage_change', '2024-02-20T14:00:00Z', 'OPP-001', { stage: 'Closed Won', amount: 50000 }),
+      makeSFDCEvent('stage_change', '2024-02-20T14:00:00Z', 'OPP-001', {
+        stage: 'Closed Won',
+        amount: 50000,
+      }),
     ];
 
     const sapEvents: UnifiedEvent[] = [
@@ -47,14 +50,7 @@ describe('UnifiedLogBuilder', () => {
       makeSAPEvent('order_created', '2024-03-25T09:00:00Z', '0000001234', { netwr: 50000 }),
     ];
 
-    const log = builder.buildLog(
-      'CORR-001',
-      'OPP-001',
-      '0000001234',
-      0.95,
-      sfdcEvents,
-      sapEvents
-    );
+    const log = builder.buildLog('CORR-001', 'OPP-001', '0000001234', 0.95, sfdcEvents, sapEvents);
 
     expect(log.correlation_id).toBe('CORR-001');
     expect(log.sfdc_opportunity_id).toBe('OPP-001');
@@ -84,21 +80,17 @@ describe('UnifiedLogBuilder', () => {
     // SFDC Closed Won on 2024-02-20, SAP order_created on 2024-03-24 = 33 days gap
     const sfdcEvents: UnifiedEvent[] = [
       makeSFDCEvent('stage_change', '2024-01-10T10:00:00Z', 'OPP-002', { stage: 'Qualification' }),
-      makeSFDCEvent('stage_change', '2024-02-20T10:00:00Z', 'OPP-002', { stage: 'Closed Won', amount: 75000 }),
+      makeSFDCEvent('stage_change', '2024-02-20T10:00:00Z', 'OPP-002', {
+        stage: 'Closed Won',
+        amount: 75000,
+      }),
     ];
 
     const sapEvents: UnifiedEvent[] = [
       makeSAPEvent('order_created', '2024-03-24T10:00:00Z', '0000005678', { netwr: 75000 }),
     ];
 
-    const log = builder.buildLog(
-      'CORR-002',
-      'OPP-002',
-      '0000005678',
-      0.88,
-      sfdcEvents,
-      sapEvents
-    );
+    const log = builder.buildLog('CORR-002', 'OPP-002', '0000005678', 0.88, sfdcEvents, sapEvents);
 
     expect(log.cross_system_metrics.sfdc_to_sap_gap_days).not.toBeNull();
     expect(log.cross_system_metrics.sfdc_to_sap_gap_days!).toBeGreaterThan(30);
@@ -123,14 +115,7 @@ describe('UnifiedLogBuilder', () => {
       }),
     ];
 
-    const log = builder.buildLog(
-      'CORR-003',
-      'OPP-003',
-      '0000009876',
-      0.80,
-      sfdcEvents,
-      sapEvents
-    );
+    const log = builder.buildLog('CORR-003', 'OPP-003', '0000009876', 0.8, sfdcEvents, sapEvents);
 
     expect(log.cross_system_metrics.amount_discrepancy).not.toBeNull();
     expect(log.cross_system_metrics.amount_discrepancy).toBeCloseTo(5000, 0);
@@ -142,17 +127,13 @@ describe('UnifiedLogBuilder', () => {
   it('handles SFDC-only log with no SAP match', () => {
     const sfdcEvents: UnifiedEvent[] = [
       makeSFDCEvent('stage_change', '2024-04-01T10:00:00Z', 'OPP-004', { stage: 'Prospecting' }),
-      makeSFDCEvent('stage_change', '2024-04-15T10:00:00Z', 'OPP-004', { stage: 'Closed Won', amount: 20000 }),
+      makeSFDCEvent('stage_change', '2024-04-15T10:00:00Z', 'OPP-004', {
+        stage: 'Closed Won',
+        amount: 20000,
+      }),
     ];
 
-    const log = builder.buildLog(
-      'CORR-004',
-      'OPP-004',
-      null,
-      0,
-      sfdcEvents,
-      []
-    );
+    const log = builder.buildLog('CORR-004', 'OPP-004', null, 0, sfdcEvents, []);
 
     expect(log.sap_vbeln).toBeNull();
     expect(log.match_confidence).toBe(0);
@@ -192,7 +173,10 @@ describe('UnifiedLogBuilder', () => {
   it('computes total_duration_days from first to last event', () => {
     const sfdcEvents: UnifiedEvent[] = [
       makeSFDCEvent('stage_change', '2024-01-01T00:00:00Z', 'OPP-006', { stage: 'Prospecting' }),
-      makeSFDCEvent('stage_change', '2024-01-31T00:00:00Z', 'OPP-006', { stage: 'Closed Won', amount: 30000 }),
+      makeSFDCEvent('stage_change', '2024-01-31T00:00:00Z', 'OPP-006', {
+        stage: 'Closed Won',
+        amount: 30000,
+      }),
     ];
 
     const sapEvents: UnifiedEvent[] = [

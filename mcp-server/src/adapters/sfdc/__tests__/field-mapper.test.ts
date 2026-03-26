@@ -1,12 +1,7 @@
 // mcp-server/src/adapters/sfdc/__tests__/field-mapper.test.ts
 
 import { describe, it, expect } from '@jest/globals';
-import {
-  padToLength,
-  formatDateToSAP,
-  extractTime,
-  SFDCFieldMapper,
-} from '../field-mapper.js';
+import { padToLength, formatDateToSAP, extractTime, SFDCFieldMapper } from '../field-mapper.js';
 import type {
   SFDCOpportunity,
   SFDCLineItem,

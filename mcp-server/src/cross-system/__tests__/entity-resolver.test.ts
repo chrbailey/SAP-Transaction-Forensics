@@ -1,14 +1,8 @@
 // mcp-server/src/cross-system/__tests__/entity-resolver.test.ts
 
 import { describe, it, expect } from '@jest/globals';
-import {
-  levenshteinDistance,
-  EntityResolver,
-} from '../entity-resolver.js';
-import type {
-  SFDCMatchRecord,
-  SAPMatchRecord,
-} from '../entity-resolver.js';
+import { levenshteinDistance, EntityResolver } from '../entity-resolver.js';
+import type { SFDCMatchRecord, SAPMatchRecord } from '../entity-resolver.js';
 
 // ============================================================================
 // Test Data
@@ -149,7 +143,7 @@ describe('EntityResolver.resolveByProximity', () => {
     expect(globexMatch).toBeDefined();
     expect(globexMatch!.sap_id).toBe('0000005678');
     expect(globexMatch!.strategy).toBe('proximity');
-    expect(globexMatch!.confidence).toBeGreaterThanOrEqual(0.50);
+    expect(globexMatch!.confidence).toBeGreaterThanOrEqual(0.5);
   });
 
   it('does not match Initech to unrelated SAP records', () => {

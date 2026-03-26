@@ -36,8 +36,8 @@ export interface SFDCOpportunity {
   amount: number;
   currency_iso_code: string;
   owner_id: string;
-  created_date: string;   // ISO 8601
-  close_date: string;     // YYYY-MM-DD
+  created_date: string; // ISO 8601
+  close_date: string; // YYYY-MM-DD
   type: string;
   lead_source: string;
   probability: number;
@@ -45,7 +45,7 @@ export interface SFDCOpportunity {
   sap_order_number: string | null;
   is_closed: boolean;
   is_won: boolean;
-  _pattern_flags?: string[];  // For test validation
+  _pattern_flags?: string[]; // For test validation
 }
 
 // ============================================================================
@@ -57,7 +57,7 @@ export interface SFDCStageHistory {
   opportunity_id: string;
   stage_name: string;
   previous_stage: string | null;
-  created_date: string;   // ISO 8601
+  created_date: string; // ISO 8601
   amount: number;
   probability: number;
   expected_revenue: number;
@@ -97,8 +97,8 @@ export interface SFDCActivity {
   priority: string;
   activity_date: string;
   owner_id: string;
-  what_id: string;         // Related Opportunity ID
-  who_id: string | null;   // Related Contact ID
+  what_id: string; // Related Opportunity ID
+  who_id: string | null; // Related Contact ID
   description: string;
 }
 
@@ -145,10 +145,10 @@ export interface SFDCProcessModelDef {
 
 export const RECORD_TYPE_TO_AUART: Record<string, string> = {
   'New Business': 'ZNEW',
-  'Renewal': 'ZREN',
-  'Upsell': 'ZUPS',
+  Renewal: 'ZREN',
+  Upsell: 'ZUPS',
   'Cross-Sell': 'ZXSL',
-  'Partner': 'ZPAR',
+  Partner: 'ZPAR',
 };
 
 // ============================================================================
@@ -156,17 +156,17 @@ export const RECORD_TYPE_TO_AUART: Record<string, string> = {
 // ============================================================================
 
 export const STAGE_STATUS_MAP: Record<string, string> = {
-  'Prospecting': 'A',
-  'Qualification': 'A',
+  Prospecting: 'A',
+  Qualification: 'A',
   'Needs Analysis': 'B',
   'Value Proposition': 'B',
   'Id. Decision Makers': 'B',
   'Perception Analysis': 'B',
   'Proposal/Price Quote': 'B',
   'Negotiation/Review': 'B',
-  'Discovery': 'B',
-  'Proposal': 'B',
-  'Negotiation': 'B',
+  Discovery: 'B',
+  Proposal: 'B',
+  Negotiation: 'B',
   'Closed Won': 'C',
   'Closed Lost': 'X',
 };

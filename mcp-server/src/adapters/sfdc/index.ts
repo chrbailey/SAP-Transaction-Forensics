@@ -147,9 +147,9 @@ function normalizeAccount(raw: RawAccount): SFDCAccount {
     account_id: raw.id,
     name: raw.name,
     industry: raw.industry || '',
-    billing_state: raw.billing_country || '',   // billing_state maps to billing_country in real data
+    billing_state: raw.billing_country || '', // billing_state maps to billing_country in real data
     billing_country: raw.billing_country || '',
-    type: 'Customer',                            // default — not in data
+    type: 'Customer', // default — not in data
     number_of_employees: raw.employee_count ?? 0,
     annual_revenue: raw.annual_revenue ?? 0,
     sap_customer_number: null,
@@ -190,8 +190,7 @@ function normalizeStageHistory(raw: RawStageHistory): SFDCStageHistory {
 }
 
 function normalizeActivity(raw: RawActivity): SFDCActivity {
-  const actType: 'Task' | 'Event' =
-    raw.type === 'Task' || raw.type === 'Event' ? raw.type : 'Task';
+  const actType: 'Task' | 'Event' = raw.type === 'Task' || raw.type === 'Event' ? raw.type : 'Task';
   return {
     activity_id: raw.id,
     type: actType,
@@ -202,7 +201,7 @@ function normalizeActivity(raw: RawActivity): SFDCActivity {
     owner_id: raw.owner_id,
     what_id: raw.opportunity_id,
     who_id: null,
-    description: raw.subject || '',   // use subject as description fallback
+    description: raw.subject || '', // use subject as description fallback
   };
 }
 
@@ -239,8 +238,7 @@ export class SFDCSyntheticAdapter extends BaseDataAdapter {
   constructor(dataDir?: string) {
     super();
     this.dataDir =
-      dataDir ||
-      join(__dirname, '..', '..', '..', '..', 'synthetic-data', 'sfdc_output');
+      dataDir || join(__dirname, '..', '..', '..', '..', 'synthetic-data', 'sfdc_output');
     this.mapper = new SFDCFieldMapper();
   }
 
@@ -513,8 +511,7 @@ export class SFDCSyntheticAdapter extends BaseDataAdapter {
       }
       case 'material': {
         const product =
-          this.productById.get(params.id) ??
-          this.productById.get(padToLength(params.id, 18));
+          this.productById.get(params.id) ?? this.productById.get(padToLength(params.id, 18));
         if (!product) return null;
         return this.mapper.productToMasterStub(product);
       }

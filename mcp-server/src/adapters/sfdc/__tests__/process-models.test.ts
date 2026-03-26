@@ -266,9 +266,9 @@ describe('detectStageRegression', () => {
     const history = [
       'Needs Analysis',
       'Value Proposition',
-      'Qualification',  // regression
+      'Qualification', // regression
       'Proposal/Price Quote',
-      'Prospecting',    // regression
+      'Prospecting', // regression
     ];
     const regressions = detectStageRegression(history, 'New Business');
     expect(regressions).toHaveLength(2);

@@ -133,18 +133,12 @@ export class UnifiedLogBuilder {
    * Gap in days between SFDC 'Closed Won' stage_change and SAP 'order_created'.
    * Returns null if either event is not present.
    */
-  private _sfdcToSapGapDays(
-    sfdcEvents: UnifiedEvent[],
-    sapEvents: UnifiedEvent[]
-  ): number | null {
+  private _sfdcToSapGapDays(sfdcEvents: UnifiedEvent[], sapEvents: UnifiedEvent[]): number | null {
     const closedWon = findEvent(
       sfdcEvents,
       e => e.event_type === 'stage_change' && e.details['stage'] === 'Closed Won'
     );
-    const orderCreated = findEvent(
-      sapEvents,
-      e => e.event_type === 'order_created'
-    );
+    const orderCreated = findEvent(sapEvents, e => e.event_type === 'order_created');
 
     if (!closedWon || !orderCreated) return null;
 
@@ -158,18 +152,12 @@ export class UnifiedLogBuilder {
    * SFDC amount is read from the 'amount' field in the Closed Won stage_change details.
    * SAP netwr is read from the 'netwr' field in the order_created details.
    */
-  private _amountDiscrepancy(
-    sfdcEvents: UnifiedEvent[],
-    sapEvents: UnifiedEvent[]
-  ): number | null {
+  private _amountDiscrepancy(sfdcEvents: UnifiedEvent[], sapEvents: UnifiedEvent[]): number | null {
     const closedWon = findEvent(
       sfdcEvents,
       e => e.event_type === 'stage_change' && e.details['stage'] === 'Closed Won'
     );
-    const orderCreated = findEvent(
-      sapEvents,
-      e => e.event_type === 'order_created'
-    );
+    const orderCreated = findEvent(sapEvents, e => e.event_type === 'order_created');
 
     if (!closedWon || !orderCreated) return null;
 

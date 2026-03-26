@@ -9,7 +9,7 @@ import { SFDCSyntheticAdapter } from '../index.js';
 
 // Concrete IDs from the synthetic dataset
 const OPP_CLOSED_LOST = '006000000000000001'; // stage: Closed Lost, is_closed: true, is_won: false
-const OPP_CLOSED_WON = '006000000000000010';  // stage: Closed Won,  is_closed: true, is_won: true
+const OPP_CLOSED_WON = '006000000000000010'; // stage: Closed Won,  is_closed: true, is_won: true
 const ACCOUNT_ID = '001000000000000001';
 const NONEXISTENT = '999999999999999999';
 
@@ -189,7 +189,10 @@ describe('SFDCSyntheticAdapter', () => {
     });
 
     it('returns material stub for material type', async () => {
-      const stub = await adapter.getMasterStub({ entity_type: 'material', id: '01t000000000000001' });
+      const stub = await adapter.getMasterStub({
+        entity_type: 'material',
+        id: '01t000000000000001',
+      });
       expect(stub).not.toBeNull();
       expect(stub!.ENTITY_TYPE).toBe('material');
     });

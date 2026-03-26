@@ -74,11 +74,7 @@ export function isTerminalStage(stageName: string): boolean {
  *   - toStage comes after fromStage in the pipeline (forward movement)
  * Backward movement is not OK.
  */
-export function isValidTransition(
-  fromStage: string,
-  toStage: string,
-  recordType: string,
-): boolean {
+export function isValidTransition(fromStage: string, toStage: string, recordType: string): boolean {
   // Transition to any terminal stage is always allowed
   if (isTerminalStage(toStage)) {
     return true;
@@ -116,9 +112,7 @@ export function detectStageSkip(stageHistory: string[], recordType: string): str
   const stages = getStagesForRecordType(recordType);
 
   // Map visited stages to their pipeline indices (ignore non-process stages like terminals)
-  const visitedIndices = stageHistory
-    .map((s) => stages.indexOf(s))
-    .filter((i) => i !== -1);
+  const visitedIndices = stageHistory.map(s => stages.indexOf(s)).filter(i => i !== -1);
 
   if (visitedIndices.length < 2) {
     return [];
@@ -152,7 +146,7 @@ export function detectStageSkip(stageHistory: string[], recordType: string): str
  */
 export function detectStageRegression(
   stageHistory: string[],
-  recordType: string,
+  recordType: string
 ): Array<{ from: string; to: string; index: number }> {
   if (stageHistory.length < 2) {
     return [];

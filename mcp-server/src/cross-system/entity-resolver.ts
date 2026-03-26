@@ -30,14 +30,14 @@ export interface SAPMatchRecord {
 }
 
 export interface ProximityOptions {
-  nameThreshold: number;   // Max normalized Levenshtein distance (0-1)
+  nameThreshold: number; // Max normalized Levenshtein distance (0-1)
   amountTolerance: number; // Max relative difference (0-1)
   maxDateGapDays: number;
 }
 
 const DEFAULT_PROXIMITY_OPTIONS: ProximityOptions = {
   nameThreshold: 0.3,
-  amountTolerance: 0.10,
+  amountTolerance: 0.1,
   maxDateGapDays: 45,
 };
 
@@ -70,8 +70,8 @@ export function levenshteinDistance(a: string, b: string): number {
     for (let i = 1; i <= m; i++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       curr[i] = Math.min(
-        (prev[i] ?? 0) + 1,      // deletion
-        (curr[i - 1] ?? 0) + 1,  // insertion
+        (prev[i] ?? 0) + 1, // deletion
+        (curr[i - 1] ?? 0) + 1, // insertion
         (prev[i - 1] ?? 0) + cost // substitution
       );
     }
@@ -139,10 +139,7 @@ export class EntityResolver {
    * Matches where sfdc.sap_order_number === sap.vbeln.
    * Returns confidence 0.99.
    */
-  resolveExplicitId(
-    sfdc: SFDCMatchRecord[],
-    sap: SAPMatchRecord[]
-  ): MatchCandidate[] {
+  resolveExplicitId(sfdc: SFDCMatchRecord[], sap: SAPMatchRecord[]): MatchCandidate[] {
     const sapIndex = new Map<string, SAPMatchRecord>();
     for (const record of sap) {
       sapIndex.set(record.vbeln, record);
@@ -195,16 +192,14 @@ export class EntityResolver {
 
         // Gate on amount tolerance
         const maxRef = Math.max(Math.abs(opp.amount), Math.abs(sapRecord.netwr));
-        const relAmountDiff = maxRef > 0
-          ? Math.abs(opp.amount - sapRecord.netwr) / maxRef
-          : 0;
+        const relAmountDiff = maxRef > 0 ? Math.abs(opp.amount - sapRecord.netwr) / maxRef : 0;
         if (relAmountDiff > opts.amountTolerance) continue;
 
         const as = amountSimilarity(opp.amount, sapRecord.netwr);
         const ds = dateSimilarity(opp.close_date, sapRecord.erdat, opts.maxDateGapDays);
 
         const confidence = 0.4 * ns + 0.3 * as + 0.3 * ds;
-        if (confidence < 0.50) continue;
+        if (confidence < 0.5) continue;
 
         if (!best || confidence > best.confidence) {
           best = {
@@ -264,9 +259,7 @@ export class EntityResolver {
       const existing = bySAP.get(candidate.sap_id);
       if (!existing) {
         bySAP.set(candidate.sap_id, candidate);
-      } else if (
-        candidate.strategy === 'explicit_id' && existing.strategy !== 'explicit_id'
-      ) {
+      } else if (candidate.strategy === 'explicit_id' && existing.strategy !== 'explicit_id') {
         bySAP.set(candidate.sap_id, candidate);
       } else if (
         existing.strategy !== 'explicit_id' &&

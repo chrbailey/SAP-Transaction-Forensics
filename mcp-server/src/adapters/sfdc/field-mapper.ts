@@ -79,8 +79,8 @@ export class SFDCFieldMapper {
       VBELN: padToLength(opp.opportunity_id, 10),
       AUART: RECORD_TYPE_TO_AUART[opp.record_type] ?? 'ZSFX',
       VKORG: 'SFDC', // lossy — no direct SFDC equivalent
-      VTWEG: '00',   // no distribution channel concept in SFDC
-      SPART: '00',   // no division concept in SFDC
+      VTWEG: '00', // no distribution channel concept in SFDC
+      SPART: '00', // no division concept in SFDC
       KUNNR: padToLength(opp.account_id, 10),
       AUDAT: formatDateToSAP(opp.created_date),
       VDATU: formatDateToSAP(opp.close_date),
@@ -104,10 +104,10 @@ export class SFDCFieldMapper {
       ARKTX: item.product_name,
       WERKS: 'SFDC', // lossy — no plant concept in SFDC
       KWMENG: item.quantity,
-      VRKME: 'EA',   // default unit of measure; SFDC has no UoM
+      VRKME: 'EA', // default unit of measure; SFDC has no UoM
       NETWR: item.total_price,
       WAERK: currency,
-      PSTYV: 'TAN',  // standard item category default
+      PSTYV: 'TAN', // standard item category default
     };
   }
 
@@ -122,7 +122,7 @@ export class SFDCFieldMapper {
 
     return {
       root_document: padToLength(oppId, 10),
-      flow: sorted.map((stage) => ({
+      flow: sorted.map(stage => ({
         doc_type: 'SFDC_STAGE',
         doc_number: padToLength(stage.id, 10),
         doc_category: stage.stage_name,
@@ -144,9 +144,7 @@ export class SFDCFieldMapper {
     changed_at: string;
   } {
     const textId = activity.type === 'Task' ? 'TASK' : 'EVNT';
-    const text = [activity.subject, activity.description]
-      .filter(Boolean)
-      .join(' | ');
+    const text = [activity.subject, activity.description].filter(Boolean).join(' | ');
 
     return {
       text_id: textId,
@@ -162,7 +160,7 @@ export class SFDCFieldMapper {
    */
   activitiesToDocText(oppId: string, activities: SFDCActivity[]): DocTextResult {
     return {
-      header_texts: activities.map((act) => this.activityToDocText(act)),
+      header_texts: activities.map(act => this.activityToDocText(act)),
       item_texts: [],
     };
   }
