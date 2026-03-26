@@ -1,35 +1,39 @@
-# SAP Workflow Mining
+# SAP Transaction Forensics
 
-> Extract process mining insights from SAP ECC 6.0 without S/4HANA migration
+> Cross-system process forensics for SAP ERP and Salesforce CRM
 
+**Multi-system** - Analyze SAP, Salesforce, or both systems correlated together
+**Adapter-based** - 7 data adapters (SAP RFC, OData, SALT, BPI, CSV, Synthetic, SFDC)
+**Pattern detection** - Conformance checking, temporal analysis, cross-system gap detection
 **Zero risk** - Read-only access, no data modification
-**Zero cost** - Open source, MIT license
-**Zero migration** - Works with your existing ECC system
-**Fast time to value** - Hours to first insights, not months
 
-[![CI](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml)
-[![Release](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml/badge.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/release.yml)
-[![GitHub release](https://img.shields.io/github/v/release/chrbailey/sap-workflow-mining)](https://github.com/chrbailey/sap-workflow-mining/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18%20|%2020%20|%2022-green.svg)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-605%20passing-brightgreen.svg)](https://github.com/chrbailey/sap-workflow-mining/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-834%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
 [![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
-[![ESLint](https://img.shields.io/badge/linting-ESLint-4B32C3.svg)](https://eslint.org/)
 
 ---
 
-## 🚀 What's New in v2.0
+## What's New: Salesforce Adapter + Cross-System Correlation
 
 | Feature | Description |
 |---------|-------------|
-| 🗣️ **Natural Language Interface** | Ask questions in plain English - "Why are orders delayed?" |
-| 📊 **OCEL 2.0 Export** | Object-centric event logs for PM4Py, Celonis |
-| ✅ **Conformance Checking** | Compare processes against O2C/P2P reference models |
-| 🗺️ **Visual Process Maps** | Mermaid/GraphViz diagrams with bottleneck highlighting |
-| 🔮 **Predictive Monitoring** | ML-based late delivery, credit hold, completion time predictions |
+| **SFDC Adapter** | Full IDataAdapter for Salesforce Opportunity data — stages, line items, activities |
+| **Cross-System Correlation** | Match SFDC Opportunities to SAP Sales Orders via explicit ID or fuzzy proximity |
+| **Unified Event Log** | Merged SFDC+SAP timelines with gap metrics |
+| **10 Planted Patterns** | Synthetic generator with stage-skip, quarter-end compression, ghost pipeline, and 7 more |
+| **Conformance Checking** | SFDC Opportunity pipelines (New Business, Renewal, Upsell) |
+| **834 Tests** | 602 TypeScript + 232 Python, zero regressions |
 
-**[View Release Notes →](https://github.com/chrbailey/sap-workflow-mining/releases/tag/v2.0.0)**
+### Sample Findings (Synthetic Data Analysis)
+
+```
+Quarter-end concentration: 57.0% of deals close in QE months (2.3x expected)
+Conformance: 78.6% of New Business traces have stage deviations
+Cross-system gaps: 2 high-severity timing gaps (84 and 79 days)
+Pattern flags: 97 of 214 opportunities flagged across 10 anomaly types
+```
 
 ---
 
@@ -63,6 +67,70 @@ docker-compose --profile rfc up mcp-server-rfc
 ```
 
 See [Installation Guide](docs/adapter_guide.md) for detailed setup instructions.
+
+### Option D: Analyze Salesforce Data
+```bash
+# 1. Generate synthetic SFDC data (200 Opportunities, 10 planted anomaly patterns)
+cd synthetic-data
+python3 src/generate_sfdc.py --count 200 --accounts 50 --output sfdc_output/ --seed 42
+
+# 2. Run the forensic analysis
+cd ../pattern-engine
+python3 scripts/analyze_sfdc.py
+
+# Or bring your own SFDC export:
+# Place Opportunity, Account, StageHistory CSVs in ./data/sfdc/
+# python3 scripts/analyze_sfdc.py --data-dir ../data/sfdc
+```
+
+---
+
+## SFDC Forensic Analysis
+
+The Salesforce adapter maps Opportunity pipeline data through the same pattern engine used for SAP:
+
+### Field Mapping (SFDC → SAP Normalized)
+
+| SFDC Concept | SAP Equivalent | Mapping |
+|---|---|---|
+| Opportunity.Id | VBELN | Padded to 10 chars |
+| RecordType.Name | AUART | New Business→ZNEW, Renewal→ZREN, Upsell→ZUPS |
+| Account.Id | KUNNR | Padded to 10 chars |
+| Opportunity.Amount | NETWR | Direct |
+| Stage transitions | VBFA (doc flow) | Each stage change → flow entry |
+| Task/Event | STXH/STXL (texts) | Activity subject + description → doc text |
+| Account (safe fields) | KNA1 | Industry, State, Country only (no PII) |
+
+### Cross-System Correlation
+
+When both SFDC and SAP data are loaded, the entity resolver matches records using:
+
+1. **Explicit ID** (confidence 0.99) — `Opportunity.SAP_Order_Number__c == VBAK.VBELN`
+2. **Proximity** (confidence 0.50-0.95) — Account name similarity + amount tolerance + date proximity
+3. **Temporal sequence** (Phase 2) — Monotonic SFDC→SAP event chain validation
+
+Anomalies detected across matched pairs:
+- **Timing gaps** — SFDC close to SAP order creation > 30 days
+- **Amount discrepancies** — SFDC Amount vs SAP NETWR > 5% tolerance
+- **Sequence violations** — SAP order created before SFDC close
+- **Missing handoffs** — SFDC Closed Won with no corresponding SAP order
+
+### Planted Anomaly Patterns (Synthetic Data)
+
+The SFDC generator plants 10 detectable patterns at controlled rates:
+
+| Pattern | Rate | What It Tests |
+|---|---|---|
+| Stage skip | 5% | Conformance: mandatory stages bypassed |
+| Quarter-end compression | 40% of won | Temporal: period-end deal clustering |
+| Ghost pipeline | 10% of late-stage | Correlation: zero activities on active deals |
+| Stage regression | 3% | Conformance: backward stage movement |
+| Amount inflation | 8% | Correlation: >50% amount increase at close |
+| Split deal | 6% | Cross-entity: same account, duplicate deals within 7 days |
+| Speed anomaly | 5% | Temporal: created to closed in <3 days |
+| Stale pipeline | 15% of open | Temporal: no movement for >90 days |
+| Owner swap at close | 4% of won | Conformance: owner changes in final stage |
+| Cross-system gap | 6% of SAP-linked | Cross-system: >30 day SFDC→SAP timing gap |
 
 ---
 
@@ -244,12 +312,12 @@ LLM_MODEL=llama3
 
 # Option 2: OpenAI
 LLM_PROVIDER=openai
-LLM_API_KEY=sk-...
+LLM_API_KEY=<YOUR_OPENAI_KEY>
 LLM_MODEL=gpt-4
 
 # Option 3: Anthropic
 LLM_PROVIDER=anthropic
-LLM_API_KEY=sk-ant-...
+LLM_API_KEY=<YOUR_ANTHROPIC_KEY>
 LLM_MODEL=claude-3-sonnet-20240229
 ```
 
@@ -393,15 +461,16 @@ SALT contains **sales orders only** (no deliveries or invoices). For full Order-
 
 We've validated the MCP tools against real SAP datasets. View the detailed analysis:
 
-| Dataset | Cases | Events | Key Findings | Report |
-|---------|-------|--------|--------------|--------|
-| **BPI Challenge 2019** | 251,734 | 1.6M | 42 activities, 64-day median throughput | [View →](docs/analysis/bpi-challenge-2019.md) |
-| **SAP IDES O2C** | 646 | 5,708 | 158 variants, bottlenecks identified | [View →](docs/analysis/order-to-cash.md) |
-| **SAP IDES P2P** | 2,486 | 7,420 | 7 compliance violations detected | [View →](docs/analysis/procure-to-pay.md) |
+| Dataset | System | Cases | Events | Key Findings | Report |
+|---------|--------|-------|--------|--------------|--------|
+| **SFDC Synthetic** | Salesforce | 214 | 2,417 | 10 anomaly patterns, 57% QE compression, 2 cross-system gaps | Run: `python3 scripts/analyze_sfdc.py` |
+| **BPI Challenge 2019** | SAP P2P | 251,734 | 1.6M | 42 activities, 64-day median throughput | [View →](docs/analysis/bpi-challenge-2019.md) |
+| **SAP IDES O2C** | SAP O2C | 646 | 5,708 | 158 variants, bottlenecks identified | [View →](docs/analysis/order-to-cash.md) |
+| **SAP IDES P2P** | SAP P2P | 2,486 | 7,420 | 7 compliance violations detected | [View →](docs/analysis/procure-to-pay.md) |
 
 **Process Diagrams**: [Mermaid flowcharts for O2C and P2P](docs/analysis/process-diagrams.md)
 
-**Test Suite**: 427 tests passing, 4 skipped (SALT data required)
+**Test Suite**: 834 tests passing (602 TypeScript + 232 Python)
 
 ---
 

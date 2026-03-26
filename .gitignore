@@ -52,3 +52,10 @@ synthetic-data/external_data/
 data/salt/*.json
 data/salt/*.parquet
 data/bpi/
+data/crmarena/
+
+# SFDC synthetic output (regenerate with: cd synthetic-data && python3 src/generate_sfdc.py)
+synthetic-data/sfdc_output/*.json
+
+# Firecrawl cache
+.firecrawl/
