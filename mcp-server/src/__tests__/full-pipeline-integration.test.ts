@@ -19,7 +19,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 // ---------------------------------------------------------------------------
 // 1. Extraction Registry
@@ -379,7 +379,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       // (as SFDC adapter uses a different pathway)
       const sfdcRecords: ExtractionRecord[] = [
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           adapterId: 'sfdc-test-adapter',
           systemType: 'Salesforce',
           tableName: 'Opportunity',
@@ -394,7 +394,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
           extractionPathVersion: '1.0',
         },
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           adapterId: 'sfdc-test-adapter',
           systemType: 'Salesforce',
           tableName: 'Opportunity',
@@ -409,7 +409,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
           extractionPathVersion: '1.0',
         },
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           adapterId: 'sfdc-test-adapter',
           systemType: 'Salesforce',
           tableName: 'Opportunity',

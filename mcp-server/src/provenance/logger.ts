@@ -15,7 +15,7 @@
  * adapter call can be traced back to the exact query that produced it.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { IDataAdapter } from '../adapters/adapter-interface.js';
 import type { ExtractionRecord, SystemType } from './types.js';
 
@@ -294,7 +294,7 @@ export class ProvenanceLogger {
     timestamp: string
   ): ExtractionRecord {
     return {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       adapterId: this.adapterId,
       systemType: this.systemType,
       tableName,
