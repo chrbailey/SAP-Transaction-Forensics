@@ -13,7 +13,6 @@ import type {
   GapDetectionResult,
   GapFinding,
   GapSeverity,
-  GapType,
   ReferenceStep,
   WorkflowRule,
 } from './types.js';
@@ -50,7 +49,7 @@ interface GapDetector<TArgs extends unknown[]> {
 class DesignGapDetector implements GapDetector<[ReferenceStep[], WorkflowRule[]]> {
   detect(referenceSteps: ReferenceStep[], documentedRules: WorkflowRule[]): GapFinding[] {
     const findings: GapFinding[] = [];
-    const ruleActivities = new Set(
+    const _ruleActivities = new Set(
       documentedRules
         .filter((r) => r.active)
         .map((r) => r.ruleText.toLowerCase()),

@@ -266,7 +266,7 @@ export class DesignGapDetector {
       // Check whether documented threshold is weaker (higher) than reference
       for (const rule of approvalRules) {
         const docThreshold = Number(rule.parameters['threshold']);
-        const refThreshold = Number(
+        const _refThreshold = Number(
           referenceSteps.find(s => s === step)
             ? (step as ReferenceStep & { threshold?: number }).threshold
             : undefined,

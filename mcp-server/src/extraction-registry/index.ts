@@ -6,7 +6,7 @@
  * versioned, deterministic query that produces reproducible results.
  */
 
-import { validatePath, validatePathId, validateVersion } from './metadata.js';
+import { validatePathId, validateVersion } from './metadata.js';
 
 // Re-export all types for consumer convenience
 export type {

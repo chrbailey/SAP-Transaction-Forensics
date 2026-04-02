@@ -168,7 +168,7 @@ export class ShadowGapDetector {
   normalizeActivity(name: string): string {
     return name
       .toLowerCase()
-      .replace(/[\s\-\.]+/g, '_')
+      .replace(/[\s\-.]+/g, '_')
       .replace(/_+/g, '_')
       .replace(/^_|_$/g, '');
   }

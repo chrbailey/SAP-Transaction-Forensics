@@ -11,7 +11,6 @@ import type { ExtractionRegistry } from '../extraction-registry/index.js';
 import type {
   ComparisonPair,
   ComparisonResult,
-  ContradictionConfig,
   ContradictionType,
   Severity,
 } from '../contradiction/types.js';
@@ -397,7 +396,7 @@ function toClientSchema(input: ValidateSchemaInput['client_schema']): ClientSche
   for (const [tableName, tableData] of Object.entries(input.tables)) {
     const fields = new Map<string, { name: string; dataType: string; length?: number; decimals?: number; description?: string }>();
     for (const [fieldName, fieldData] of Object.entries(tableData.fields)) {
-      fields.set(fieldName, { name: fieldData.name, dataType: fieldData.dataType, ...(fieldData.length != null ? { length: fieldData.length } : {}), ...(fieldData.decimals != null ? { decimals: fieldData.decimals } : {}), ...(fieldData.description != null ? { description: fieldData.description } : {}) });
+      fields.set(fieldName, { name: fieldData.name, dataType: fieldData.dataType, ...(fieldData.length !== null && fieldData.length !== undefined ? { length: fieldData.length } : {}), ...(fieldData.decimals !== null && fieldData.decimals !== undefined ? { decimals: fieldData.decimals } : {}), ...(fieldData.description !== null && fieldData.description !== undefined ? { description: fieldData.description } : {}) });
     }
     tables.set(tableName, {
       name: tableData.name,

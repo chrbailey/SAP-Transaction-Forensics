@@ -57,7 +57,7 @@ const ADAPTER_METHODS = [
 
 type AdapterMethodName = (typeof ADAPTER_METHODS)[number];
 
-function isAdapterMethod(name: string): name is AdapterMethodName {
+function _isAdapterMethod(name: string): name is AdapterMethodName {
   return (ADAPTER_METHODS as readonly string[]).includes(name);
 }
 
@@ -77,7 +77,7 @@ export class ProvenanceLogger {
    * Non-data methods (initialize, shutdown, isReady, name) pass through unchanged.
    */
   wrapAdapter(adapter: IDataAdapter): IDataAdapter {
-    const self = this;
+    const logExtraction = this.logExtraction.bind(this);
 
     const wrapped: IDataAdapter = {
       get name() {
@@ -90,49 +90,49 @@ export class ProvenanceLogger {
 
       searchDocText: async (params) => {
         const result = await adapter.searchDocText(params);
-        self.logExtraction('searchDocText', params as unknown as Record<string, unknown>, result);
+        logExtraction('searchDocText', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getDocText: async (params) => {
         const result = await adapter.getDocText(params);
-        self.logExtraction('getDocText', params as unknown as Record<string, unknown>, result);
+        logExtraction('getDocText', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getDocFlow: async (params) => {
         const result = await adapter.getDocFlow(params);
-        self.logExtraction('getDocFlow', params as unknown as Record<string, unknown>, result);
+        logExtraction('getDocFlow', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getSalesDocHeader: async (params) => {
         const result = await adapter.getSalesDocHeader(params);
-        self.logExtraction('getSalesDocHeader', params as unknown as Record<string, unknown>, result);
+        logExtraction('getSalesDocHeader', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getSalesDocItems: async (params) => {
         const result = await adapter.getSalesDocItems(params);
-        self.logExtraction('getSalesDocItems', params as unknown as Record<string, unknown>, result);
+        logExtraction('getSalesDocItems', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getDeliveryTiming: async (params) => {
         const result = await adapter.getDeliveryTiming(params);
-        self.logExtraction('getDeliveryTiming', params as unknown as Record<string, unknown>, result);
+        logExtraction('getDeliveryTiming', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getInvoiceTiming: async (params) => {
         const result = await adapter.getInvoiceTiming(params);
-        self.logExtraction('getInvoiceTiming', params as unknown as Record<string, unknown>, result);
+        logExtraction('getInvoiceTiming', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
       getMasterStub: async (params) => {
         const result = await adapter.getMasterStub(params);
-        self.logExtraction('getMasterStub', params as unknown as Record<string, unknown>, result);
+        logExtraction('getMasterStub', params as unknown as Record<string, unknown>, result);
         return result;
       },
     };
@@ -152,7 +152,7 @@ export class ProvenanceLogger {
     params: Record<string, unknown>,
     result: unknown
   ): void {
-    if (result == null) return;
+    if (result === null || result === undefined) return;
 
     const queryHash = this.computeQueryHash(methodName, params);
     const replayHash = this.computeReplayHash(result);
@@ -187,7 +187,7 @@ export class ProvenanceLogger {
 
     if (Array.isArray(result)) {
       for (const row of result) {
-        if (row != null && typeof row === 'object') {
+        if (row !== null && row !== undefined && typeof row === 'object') {
           this.flattenObject(
             row as Record<string, unknown>,
             tables[0] ?? 'UNKNOWN',
@@ -199,7 +199,7 @@ export class ProvenanceLogger {
           );
         }
       }
-    } else if (result != null && typeof result === 'object') {
+    } else if (result !== null && result !== undefined && typeof result === 'object') {
       // Single object result — may have nested arrays (e.g. DocTextResult, DocFlowResult)
       this.flattenObject(
         result as Record<string, unknown>,
@@ -233,13 +233,13 @@ export class ProvenanceLogger {
     for (const [key, value] of Object.entries(obj)) {
       const fieldName = prefix ? `${prefix}.${key}` : key;
 
-      if (value == null) {
+      if (value === null || value === undefined) {
         // Skip null/undefined fields — nothing to record
         continue;
       } else if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
           const element = value[i];
-          if (element != null && typeof element === 'object') {
+          if (element !== null && element !== undefined && typeof element === 'object') {
             this.flattenObject(
               element as Record<string, unknown>,
               tableName,

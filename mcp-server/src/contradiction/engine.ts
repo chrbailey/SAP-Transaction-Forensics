@@ -7,7 +7,7 @@
  * continues — one bad comparator never kills the whole run.
  */
 
-import { randomUUID } from 'node:crypto';
+import { randomUUID as _randomUUID } from 'node:crypto';
 
 // ---------------------------------------------------------------------------
 // Type definitions (shared contract across the contradiction subsystem)

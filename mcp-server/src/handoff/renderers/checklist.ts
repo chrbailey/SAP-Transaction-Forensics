@@ -73,8 +73,8 @@ export class ChecklistGenerator {
   /** Generate the standard reviewer checklist */
   generateChecklist(
     engagementId: string,
-    findingCount: number,
-    systemCount: number,
+    _findingCount: number,
+    _systemCount: number,
   ): ReviewerChecklist {
     const items: ChecklistItem[] = [];
     let itemIndex = 0;

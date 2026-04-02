@@ -1,38 +1,49 @@
 # SAP Transaction Forensics
 
-> Cross-system process forensics for SAP ERP and Salesforce CRM
+> Cross-system process forensics for SAP ERP, Salesforce CRM, and NetSuite
 
-**Multi-system** - Analyze SAP, Salesforce, or both systems correlated together
+**Multi-system** - Analyze SAP, Salesforce, NetSuite, or any combination correlated together
 **Adapter-based** - 7 data adapters (SAP RFC, OData, SALT, BPI, CSV, Synthetic, SFDC)
-**Pattern detection** - Conformance checking, temporal analysis, cross-system gap detection
+**Pattern detection** - Conformance checking, temporal analysis, contradiction detection, cross-system gap analysis
+**Evidence-grade** - Field-level provenance, SHA-256 replay hashing, self-contained reviewer handoff packets
 **Zero risk** - Read-only access, no data modification
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18%20|%2020%20|%2022-green.svg)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-834%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
+[![Tests](https://img.shields.io/badge/tests-1639%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
+[![Test Suites](https://img.shields.io/badge/suites-70-blue.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
 [![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
 
 ---
 
-## What's New: Salesforce Adapter + Cross-System Correlation
+## What's New: Evidence Infrastructure
+
+Full evidence lifecycle from extraction through reviewer handoff, with cryptographic verification at every step.
 
 | Feature | Description |
 |---------|-------------|
-| **SFDC Adapter** | Full IDataAdapter for Salesforce Opportunity data — stages, line items, activities |
-| **Cross-System Correlation** | Match SFDC Opportunities to SAP Sales Orders via explicit ID or fuzzy proximity |
-| **Unified Event Log** | Merged SFDC+SAP timelines with gap metrics |
-| **10 Planted Patterns** | Synthetic generator with stage-skip, quarter-end compression, ghost pipeline, and 7 more |
-| **Conformance Checking** | SFDC Opportunity pipelines (New Business, Renewal, Upsell) |
-| **834 Tests** | 602 TypeScript + 232 Python, zero regressions |
+| **Provenance Graph** | Field-level DAG tracing every finding to system/table/record/field/value/timestamp |
+| **Extraction Registry** | 19 named, versioned, deterministic extraction paths across SAP, Salesforce, and NetSuite |
+| **Contradiction Engine** | 12-category typed taxonomy with risk scoring and type-specific weights |
+| **Schema Validator** | 19-table IDES reference schema (438 fields) with pre-flight validation and customization detection |
+| **Reality-Gap Detector** | Three-way gap analysis: reference models vs documented business rules vs actual event logs |
+| **Finding Lifecycle** | 8-state machine with SQLite persistence, transition history, and deduplication |
+| **Reviewer Handoff** | Self-contained audit artifacts verifiable without model access |
+| **1,639 Tests** | 70 test suites, zero regressions |
 
-### Sample Findings (Synthetic Data Analysis)
+### Sample Evidence Chain
 
 ```
-Quarter-end concentration: 57.0% of deals close in QE months (2.3x expected)
-Conformance: 78.6% of New Business traces have stage deviations
-Cross-system gaps: 2 high-severity timing gaps (84 and 79 days)
-Pattern flags: 97 of 214 opportunities flagged across 10 anomaly types
+Finding: AMOUNT_DIVERGENCE on Sales Order 0000045123
+  Evidence:
+    Left:  SAP.VBAK.0000045123.NETWR = 125,000.00  (extracted 2025-09-15T14:22:00Z)
+    Right: SFDC.Opportunity.006R00000123.Amount = 118,750.00  (extracted 2025-09-15T14:22:01Z)
+    Delta: 5.3% ($6,250.00)
+  Provenance:
+    Extraction Path: sap-o2c-order-headers v1.0
+    Replay Hash: sha256:a7f3b2...
+  State: CONFIRMED → REMEDIATION (transitioned 2025-09-16 by reviewer@corp.com)
 ```
 
 ---
@@ -82,6 +93,121 @@ python3 scripts/analyze_sfdc.py
 # Place Opportunity, Account, StageHistory CSVs in ./data/sfdc/
 # python3 scripts/analyze_sfdc.py --data-dir ../data/sfdc
 ```
+
+---
+
+## Evidence Infrastructure
+
+The evidence infrastructure provides a complete chain of custody from raw system data through forensic findings to reviewer-ready audit packets.
+
+### Provenance Graph
+
+Every finding traces back to specific fields in specific records in specific systems through a directed acyclic graph (DAG). Each extraction record captures:
+
+- **System** - SAP, Salesforce, or NetSuite
+- **Table** - Source table (e.g., VBAK, Opportunity)
+- **Record ID** - Specific document or record
+- **Field** - Individual field name
+- **Value** - Extracted value at time of extraction
+- **Timestamp** - When the extraction occurred
+- **Replay Hash** - SHA-256 hash for independent re-verification
+
+Export formats: DAG JSON (full graph), flat (tabular), Markdown (human-readable).
+
+### Extraction Registry
+
+19 named, versioned, deterministic extraction paths ensure reproducible data collection:
+
+| Domain | Path | Description |
+|--------|------|-------------|
+| **SAP O2C** | `sap-o2c-order-headers` | Sales order header fields (VBAK) |
+| | `sap-o2c-order-items` | Line item details (VBAP) |
+| | `sap-o2c-doc-flow` | Document flow chain (VBFA) |
+| | `sap-o2c-delivery-timing` | Requested vs actual delivery (LIKP/LIPS) |
+| | `sap-o2c-invoice-timing` | Invoice creation and posting (VBRK/VBRP) |
+| **SAP FI/CO** | `sap-fico-journal-entries` | Journal entry headers (BKPF) |
+| | `sap-fico-line-items` | Journal line items (BSEG) |
+| | `sap-fico-sod-conflicts` | Segregation of duties analysis |
+| | `sap-fico-gl-balances` | GL account balances |
+| **SAP P2P** | `sap-p2p-purchase-orders` | Purchase order data (EKKO/EKPO) |
+| | `sap-p2p-requisitions` | Purchase requisitions (EBAN) |
+| | `sap-p2p-goods-receipts` | Goods receipt documents (MKPF/MSEG) |
+| | `sap-p2p-invoice-verification` | Invoice verification (RBKP/RSEG) |
+| **Salesforce** | `sfdc-opportunities` | Opportunity pipeline data |
+| | `sfdc-stage-history` | Stage transition history |
+| | `sfdc-activities` | Tasks and events on records |
+| **NetSuite** | `netsuite-user-activity` | User activity audit trail |
+| | `netsuite-transaction-summary` | Transaction summaries |
+| | `netsuite-login-history` | Login and access history |
+
+Each path is versioned and produces deterministic output for the same input, enabling SHA-256 replay verification.
+
+### Contradiction Engine
+
+Cross-system contradiction detection with a 12-category typed taxonomy:
+
+| Category | What It Detects |
+|----------|----------------|
+| `AMOUNT_DIVERGENCE` | Dollar amounts that differ beyond tolerance across systems |
+| `DATE_CONFLICT` | Dates that disagree between matched records |
+| `STATUS_INCOMPATIBLE` | Status fields that cannot logically coexist |
+| `ENTITY_MISMATCH` | Customer/vendor/material IDs that do not match across systems |
+| `QUANTITY_DIVERGENCE` | Quantities that differ beyond tolerance |
+| `APPROVAL_BYPASS` | Transactions that bypassed required approval steps |
+| `TEMPORAL_IMPOSSIBILITY` | Events that occur in an impossible sequence |
+| `DUPLICATE_REFERENCE` | Multiple records claiming the same reference number |
+| `ORPHAN_RECORD` | Records in one system with no counterpart in the other |
+| `RETROACTIVE_CHANGE` | Changes made to records after they were finalized |
+| `SOD_VIOLATION` | Same user performing conflicting duties |
+| `SCHEMA_GHOST` | Fields or values that reference non-existent schema elements |
+
+Risk scoring uses type-specific weights. Severity levels: CRITICAL, HIGH, MEDIUM, LOW, INFO.
+
+### Schema Validator
+
+Pre-flight validation of extraction paths against client schemas before any data is pulled.
+
+- **Reference schema**: 19 tables, 438 fields from an actual SAP IDES dump
+- **Path validation**: Verifies that every field referenced by an extraction path exists in the client schema
+- **Customization detection**: Identifies Z-tables, Z-fields, and custom namespaces
+- **Gap reporting**: Shows exactly which fields are missing and which paths are affected
+
+### Reality-Gap Detector
+
+Three-way gap analysis comparing what should happen, what is documented, and what actually happens:
+
+| Gap Type | Comparison | Example |
+|----------|-----------|---------|
+| **Design Gap** | Reference model vs documented rules | SoD policy exists but no enforcing control configured |
+| **Compliance Gap** | Documented rules vs actual events | Three-way match required but invoices posted without GR |
+| **Shadow Process** | Actual events vs all documented models | Goods receipts posted on weekends with no approval workflow |
+
+Includes a rule parser with standard rulesets for SAP, NetSuite, and Salesforce.
+
+### Finding Lifecycle Manager
+
+8-state machine tracking every finding from detection through resolution:
+
+```
+DETECTED → TRIAGED → INVESTIGATING → CONFIRMED → REMEDIATION → RESOLVED
+                 ↘                       ↘              ↗
+              FALSE_POSITIVE         ACCEPTED_RISK
+```
+
+- SQLite persistence with full transition history (who, when, from-state, to-state)
+- Deduplication prevents the same finding from being logged twice
+- Four finding sources: contradiction, reality_gap, conformance, fi_co_anomaly
+- Risk scores (0.0-1.0) computed from finding type and severity
+
+### Reviewer Handoff Packets
+
+Self-contained audit artifacts that can be verified without model access:
+
+- **Executive Summary** - Scope, systems analyzed, key metrics, risk distribution
+- **Rendered Findings** - Each finding with severity, evidence tables, and provenance chain
+- **Extraction Manifest** - Every extraction path used, with parameters and SHA-256 replay hashes
+- **Reproduction README** - Step-by-step instructions to re-run the analysis independently
+- **Reviewer Checklist** - 25-item verification checklist covering completeness, accuracy, and methodology
 
 ---
 
@@ -156,7 +282,7 @@ The SFDC generator plants 10 detectable patterns at controlled rates:
 - **Text Pattern Discovery** - Find hidden patterns in order notes, rejection reasons, and delivery instructions
 - **Document Flow Analysis** - Trace complete order-to-cash chains with timing at each step
 - **Outcome Correlation** - Identify text patterns that correlate with delays, partial shipments, or returns
-- **Evidence-Based Reporting** - Every pattern links to specific documents for verification
+- **Evidence-Based Reporting** - Every pattern links to specific documents with field-level provenance
 - **Privacy-First Design** - PII redaction enabled by default, shareable output mode for external review
 
 ---
@@ -256,11 +382,6 @@ Order 0000012345 - Risk Assessment:
 - Activity: milestones reached, rework detection, loop count, backtracks
 - Resource: unique resources, handoff count
 - Risk indicators: stalled cases, credit holds, rejections, blocks
-
-**Risk Scoring:**
-- 🟢 Low (0-25%) | 🟡 Medium (25-50%) | 🟠 High (50-75%) | 🔴 Critical (75-100%)
-- Configurable alert thresholds
-- Actionable recommendations based on detected risk factors
 
 ---
 
@@ -470,7 +591,7 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 
 **Process Diagrams**: [Mermaid flowcharts for O2C and P2P](docs/analysis/process-diagrams.md)
 
-**Test Suite**: 834 tests passing (602 TypeScript + 232 Python)
+**Test Suite**: 1,639 tests passing across 70 test suites (TypeScript + Python)
 
 ---
 
@@ -486,6 +607,8 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 | **PII Protection** | Automatic redaction of emails, phones, names, addresses |
 | **Audit Trail** | Every query logged with parameters, timestamps, row counts |
 | **Row Limits** | Default 200 rows per query, max 1000 - prevents bulk extraction |
+| **Provenance** | SHA-256 replay hashing on every extraction for independent verification |
+| **Handoff Integrity** | Reviewer packets are self-contained and verifiable without model access |
 
 **See [SECURITY.md](SECURITY.md) for complete security documentation.**
 
@@ -548,11 +671,21 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 |  |   |                |     |         |         |             |  |
 |  |   +----------------+     |         v         |             |  |
 |  |                          |  +-------------+  |             |  |
-|  |                          |  | Pattern     |  |             |  |
+|  |   +----------------+     |  | Evidence    |  |             |  |
+|  |   | Salesforce     |     |  | Engine      |  |             |  |
+|  |   |                | API |  | +---------+ |  |             |  |
+|  |   | Opportunities  |<------>| |Provnance| |  |             |  |
+|  |   | Activities     |     |  | |Registry | |  |             |  |
+|  |   +----------------+     |  | |Findings | |  |             |  |
+|  |                          |  | +---------+ |  |             |  |
+|  |   +----------------+     |  +-------------+  |             |  |
+|  |   | NetSuite       |     |         |         |             |  |
+|  |   |                | API |         v         |             |  |
+|  |   | Users/Txns     |<--->|  +-------------+  |             |  |
+|  |   +----------------+     |  | Pattern     |  |             |  |
 |  |                          |  | Engine      |  |             |  |
 |  |                          |  +-------------+  |             |  |
 |  |                          |         |         |             |  |
-|  |                          |         v         |             |  |
 |  |   +----------------+     |  +-------------+  |             |  |
 |  |   | Browser        |<------>| Web Viewer  |  |             |  |
 |  |   | (localhost)    |     |  +-------------+  |             |  |
@@ -565,10 +698,13 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 ```
 
 **Data Flow:**
-1. MCP Server connects to SAP via RFC (read-only BAPIs)
-2. Pattern Engine analyzes text fields and document flows
-3. Results stored locally with PII redacted
-4. Web Viewer displays findings on localhost
+1. MCP Server connects to SAP via RFC, Salesforce via API, NetSuite via API (all read-only)
+2. Extraction Registry executes named, versioned extraction paths
+3. Provenance Graph records field-level evidence for every extraction
+4. Contradiction Engine and Reality-Gap Detector analyze cross-system data
+5. Finding Lifecycle Manager tracks findings from detection through resolution
+6. Handoff Generator produces self-contained reviewer packets
+7. Web Viewer displays findings on localhost
 
 **Nothing leaves your network.**
 
@@ -592,7 +728,7 @@ We recommend running initial analysis during off-peak hours.
 
 ### What SAP modules are supported?
 
-Currently SD (Sales & Distribution) and MM (Materials Management) document flows. FI/CO integration is planned for future releases.
+SD (Sales & Distribution), MM (Materials Management), and FI/CO (Financial Accounting / Controlling) document flows. Cross-system analysis with Salesforce CRM and NetSuite is also supported.
 
 ### Does this work with SAP on any database?
 
@@ -604,10 +740,14 @@ Yes. The Docker images can be built offline and transferred. No external depende
 
 ### How do I validate the findings?
 
-Every pattern card includes:
+Every finding includes:
+- Field-level provenance tracing to system/table/record/field/value/timestamp
+- SHA-256 replay hashes for independent re-verification
 - Sample document numbers for verification in SAP (VA03, VL03N, VF03)
 - Statistical confidence intervals
 - Explicit caveats about correlation vs. causation
+
+For formal review, use `generate_handoff_packet` to produce a self-contained audit artifact with a 25-item reviewer checklist.
 
 ### What about GDPR/data protection?
 
@@ -783,6 +923,30 @@ await mcp.callTool('ps_resume_agent', { agent_id: 'agent-123' });
 | `visualize_process` | Generate process diagrams | Mermaid/DOT/SVG with bottleneck highlighting |
 | `predict_outcome` | ML-based outcome prediction | predictions, alerts, risk_levels, factors |
 
+### FI/CO Forensic Tools
+
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `analyze_journal_entries` | Journal entry anomaly detection | anomalies, risk_scores, patterns |
+| `analyze_sod` | Segregation of duties analysis | conflicts, violation_count, users |
+| `analyze_gl_balances` | GL account balance analysis | balance_anomalies, trends |
+| `get_fi_document` | Retrieve FI document details | header, line_items, amounts |
+| `generate_fi_assessment` | FI/CO risk assessment report | assessment, findings, recommendations |
+
+### Evidence Infrastructure Tools
+
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `query_provenance` | Trace evidence chain for a finding | DAG/flat/Markdown with field-level provenance |
+| `list_extraction_paths` | List available extraction paths | path definitions with system, version, fields |
+| `run_extraction` | Execute a named extraction path | extracted records with provenance and replay hash |
+| `detect_contradictions` | Cross-system contradiction detection | typed contradictions with severity and evidence |
+| `validate_schema` | Pre-flight schema validation | path compatibility, missing fields, customizations |
+| `analyze_reality_gaps` | Three-way gap analysis | design gaps, compliance gaps, shadow processes |
+| `manage_finding` | Create/transition/query findings | finding state, history, risk score |
+| `get_finding_summary` | Aggregated finding statistics | counts by state, source, severity, avg risk |
+| `generate_handoff_packet` | Produce reviewer handoff packet | executive summary, findings, manifest, checklist |
+
 ### Governance Tools
 
 | Tool | Purpose | Returns |
@@ -833,5 +997,3 @@ This tool is provided as-is for process analysis purposes. It does not modify SA
 - Proper configuration of SAP authorizations
 
 **Correlation does not imply causation.** All pattern findings should be verified against actual business processes.
-
-
