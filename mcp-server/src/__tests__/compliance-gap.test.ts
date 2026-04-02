@@ -7,11 +7,7 @@
  */
 
 import { ComplianceGapDetector } from '../reality-gap/compliance-gap.js';
-import type {
-  WorkflowRule,
-  ActualEvent,
-  GapFinding,
-} from '../reality-gap/compliance-gap.js';
+import type { WorkflowRule, ActualEvent, GapFinding } from '../reality-gap/compliance-gap.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -27,9 +23,9 @@ function daysFromNow(daysOffset: number): string {
 /** Build events for a single case */
 function makeEvents(
   caseId: string,
-  steps: Array<{ activity: string; daysOffset: number; amount?: number }>,
+  steps: Array<{ activity: string; daysOffset: number; amount?: number }>
 ): ActualEvent[] {
-  return steps.map((s) => ({
+  return steps.map(s => ({
     caseId,
     activity: s.activity,
     timestamp: daysFromNow(s.daysOffset),
@@ -250,7 +246,7 @@ describe('ComplianceGapDetector', () => {
     for (let i = 1; i <= 5; i++) {
       events.push(
         { caseId: `C${i}`, activity: 'Y', timestamp: daysFromNow(-10) },
-        { caseId: `C${i}`, activity: 'X', timestamp: daysFromNow(-5) },
+        { caseId: `C${i}`, activity: 'X', timestamp: daysFromNow(-5) }
       );
     }
 
@@ -278,7 +274,7 @@ describe('ComplianceGapDetector', () => {
     for (let i = 1; i <= 15; i++) {
       events.push(
         { caseId: `C${i}`, activity: 'B', timestamp: daysFromNow(-2) },
-        { caseId: `C${i}`, activity: 'A', timestamp: daysFromNow(-1) },
+        { caseId: `C${i}`, activity: 'A', timestamp: daysFromNow(-1) }
       );
     }
 
@@ -456,7 +452,7 @@ describe('ComplianceGapDetector', () => {
     const findings = detector.detectGaps(rules, events);
 
     expect(findings).toHaveLength(2);
-    const ruleIds = findings.map((f) => f.ruleId);
+    const ruleIds = findings.map(f => f.ruleId);
     expect(ruleIds).toContain('SEQ-001');
     expect(ruleIds).toContain('SLA-001');
   });

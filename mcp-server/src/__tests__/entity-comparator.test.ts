@@ -202,10 +202,14 @@ describe('EntityMismatchComparator', () => {
     expect(highFinding).not.toBeNull();
     // Lower confidence → higher or equal severity
     const severityOrder: Record<string, number> = {
-      CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1, INFO: 0,
+      CRITICAL: 4,
+      HIGH: 3,
+      MEDIUM: 2,
+      LOW: 1,
+      INFO: 0,
     };
     expect(severityOrder[lowFinding!.severity]).toBeGreaterThanOrEqual(
-      severityOrder[highFinding!.severity]!,
+      severityOrder[highFinding!.severity]!
     );
   });
 
@@ -225,7 +229,7 @@ describe('EntityMismatchComparator', () => {
         fields: { AccountName: 'Acme Corporation', CurrencyIsoCode: 'USD' },
         extractionId: 'ext-sfdc-1',
       },
-      matchConfidence: 0.80,
+      matchConfidence: 0.8,
       matchStrategy: 'proximity',
     });
 
@@ -400,7 +404,7 @@ describe('DuplicateReferenceComparator', () => {
     ];
 
     const findings = comparator.compare(pairs, defaultConfig());
-    expect(findings[0]!.confidence).toBe(0.80);
+    expect(findings[0]!.confidence).toBe(0.8);
   });
 });
 
@@ -434,7 +438,7 @@ describe('OrphanRecordComparator', () => {
     expect(finding!.leftSystem).toBe('Salesforce');
     expect(finding!.rightSystem).toBe('SAP');
     expect(finding!.description).toContain('Closed Won');
-    expect(finding!.confidence).toBe(0.70);
+    expect(finding!.confidence).toBe(0.7);
   });
 
   it('returns null when match exists', () => {

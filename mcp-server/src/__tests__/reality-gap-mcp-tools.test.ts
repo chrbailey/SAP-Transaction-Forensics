@@ -25,11 +25,7 @@ import type {
   FindingState,
   FindingSource,
 } from '../tools/reality-gap-tools.js';
-import type {
-  GapFinding,
-  GapDetectionResult,
-  GapSeverity,
-} from '../reality-gap/types.js';
+import type { GapFinding, GapDetectionResult, GapSeverity } from '../reality-gap/types.js';
 
 // ============================================================================
 // Mock factories
@@ -59,7 +55,9 @@ function makeGapFinding(overrides: Partial<GapFinding> = {}): GapFinding {
 
 function mockEngine(): RealityGapEngine {
   const designGaps = [makeGapFinding({ id: 'DG-001', gapType: 'design', severity: 'MEDIUM' })];
-  const complianceGaps = [makeGapFinding({ id: 'CG-001', gapType: 'compliance', severity: 'HIGH' })];
+  const complianceGaps = [
+    makeGapFinding({ id: 'CG-001', gapType: 'compliance', severity: 'HIGH' }),
+  ];
   const shadowGaps = [makeGapFinding({ id: 'SG-001', gapType: 'shadow', severity: 'CRITICAL' })];
 
   return {
@@ -96,10 +94,34 @@ function mockFindingStore(): FindingStore {
   const findings = new Map<string, ManagedFinding>();
 
   // Pre-populate with test data
-  const f1 = makeManagedFinding({ id: 'MF-001', source: 'reality_gap', state: 'DETECTED', severity: 'HIGH', riskScore: 0.85 });
-  const f2 = makeManagedFinding({ id: 'MF-002', source: 'contradiction', state: 'TRIAGED', severity: 'CRITICAL', riskScore: 0.95 });
-  const f3 = makeManagedFinding({ id: 'MF-003', source: 'conformance', state: 'INVESTIGATING', severity: 'MEDIUM', riskScore: 0.6 });
-  const f4 = makeManagedFinding({ id: 'MF-004', source: 'fi_co_anomaly', state: 'DETECTED', severity: 'LOW', riskScore: 0.3 });
+  const f1 = makeManagedFinding({
+    id: 'MF-001',
+    source: 'reality_gap',
+    state: 'DETECTED',
+    severity: 'HIGH',
+    riskScore: 0.85,
+  });
+  const f2 = makeManagedFinding({
+    id: 'MF-002',
+    source: 'contradiction',
+    state: 'TRIAGED',
+    severity: 'CRITICAL',
+    riskScore: 0.95,
+  });
+  const f3 = makeManagedFinding({
+    id: 'MF-003',
+    source: 'conformance',
+    state: 'INVESTIGATING',
+    severity: 'MEDIUM',
+    riskScore: 0.6,
+  });
+  const f4 = makeManagedFinding({
+    id: 'MF-004',
+    source: 'fi_co_anomaly',
+    state: 'DETECTED',
+    severity: 'LOW',
+    riskScore: 0.3,
+  });
   findings.set('MF-001', f1);
   findings.set('MF-002', f2);
   findings.set('MF-003', f3);
@@ -113,7 +135,7 @@ function mockFindingStore(): FindingStore {
     get: jest.fn<FindingStore['get']>().mockImplementation((id: string) => {
       return findings.get(id);
     }),
-    query: jest.fn<FindingStore['query']>().mockImplementation((filter) => {
+    query: jest.fn<FindingStore['query']>().mockImplementation(filter => {
       let result = Array.from(findings.values());
       if (filter.state) result = result.filter(f => f.state === filter.state);
       if (filter.source) result = result.filter(f => f.source === filter.source);
@@ -121,13 +143,15 @@ function mockFindingStore(): FindingStore {
       if (filter.assignee) result = result.filter(f => f.assignee === filter.assignee);
       return result;
     }),
-    update: jest.fn<FindingStore['update']>().mockImplementation((id: string, updates: Partial<ManagedFinding>) => {
-      const existing = findings.get(id);
-      if (!existing) return undefined;
-      const updated = { ...existing, ...updates };
-      findings.set(id, updated);
-      return updated;
-    }),
+    update: jest
+      .fn<FindingStore['update']>()
+      .mockImplementation((id: string, updates: Partial<ManagedFinding>) => {
+        const existing = findings.get(id);
+        if (!existing) return undefined;
+        const updated = { ...existing, ...updates };
+        findings.set(id, updated);
+        return updated;
+      }),
     all: jest.fn<FindingStore['all']>().mockImplementation(() => {
       return Array.from(findings.values());
     }),
@@ -188,8 +212,8 @@ describe('analyze_reality_gaps', () => {
 
     expect(engine.analyze).toHaveBeenCalledTimes(1);
     const callArgs = (engine.analyze as jest.Mock).mock.calls[0]!;
-    expect(callArgs[0]).toHaveLength(1);  // rules
-    expect(callArgs[1]).toHaveLength(2);  // events
+    expect(callArgs[0]).toHaveLength(1); // rules
+    expect(callArgs[1]).toHaveLength(2); // events
 
     const typed = result as GapDetectionResult & { summary: Record<string, unknown> };
     expect(typed.totalCasesAnalyzed).toBe(100);
@@ -208,7 +232,7 @@ describe('analyze_reality_gaps', () => {
       executeAnalyzeRealityGaps(deps, {
         rules: sampleRules,
         events: sampleEvents,
-      }),
+      })
     ).rejects.toThrow('Reality gap engine not configured');
   });
 });
@@ -330,7 +354,7 @@ describe('manage_finding', () => {
     const deps: RealityGapToolDeps = {};
 
     await expect(
-      executeManageFinding(deps, { action: 'get', finding_id: 'MF-001' }),
+      executeManageFinding(deps, { action: 'get', finding_id: 'MF-001' })
     ).rejects.toThrow('Finding store not configured');
   });
 });
@@ -382,9 +406,9 @@ describe('get_finding_summary', () => {
   it('throws when finding store is not configured', async () => {
     const deps: RealityGapToolDeps = {};
 
-    await expect(
-      executeGetFindingSummary(deps, {}),
-    ).rejects.toThrow('Finding store not configured');
+    await expect(executeGetFindingSummary(deps, {})).rejects.toThrow(
+      'Finding store not configured'
+    );
   });
 });
 

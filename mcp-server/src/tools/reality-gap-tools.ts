@@ -29,11 +29,7 @@ export type FindingState =
   | 'FALSE_POSITIVE'
   | 'ACCEPTED_RISK';
 
-export type FindingSource =
-  | 'contradiction'
-  | 'reality_gap'
-  | 'conformance'
-  | 'fi_co_anomaly';
+export type FindingSource = 'contradiction' | 'reality_gap' | 'conformance' | 'fi_co_anomaly';
 
 export interface ManagedFinding {
   id: string;
@@ -42,7 +38,7 @@ export interface ManagedFinding {
   severity: GapSeverity;
   title: string;
   description: string;
-  riskScore: number;            // 0.0–1.0
+  riskScore: number; // 0.0–1.0
   assignee?: string | undefined;
   createdAt: string;
   updatedAt: string;
@@ -83,7 +79,7 @@ export interface RealityGapEngine {
     rules: WorkflowRule[],
     events: ActualEvent[],
     config?: Partial<GapDetectionConfig>,
-    referenceModelId?: string,
+    referenceModelId?: string
   ): GapDetectionResult;
 }
 
@@ -94,7 +90,14 @@ export interface RealityGapEngine {
 export interface FindingStore {
   create(finding: ManagedFinding): ManagedFinding;
   get(id: string): ManagedFinding | undefined;
-  query(filter: Partial<{ state: FindingState; source: FindingSource; severity: GapSeverity; assignee: string }>): ManagedFinding[];
+  query(
+    filter: Partial<{
+      state: FindingState;
+      source: FindingSource;
+      severity: GapSeverity;
+      assignee: string;
+    }>
+  ): ManagedFinding[];
   update(id: string, updates: Partial<ManagedFinding>): ManagedFinding | undefined;
   all(): ManagedFinding[];
 }
@@ -119,8 +122,12 @@ const WorkflowRuleSchema = z.object({
   ruleText: z.string(),
   systemScope: z.union([z.enum(['SAP', 'NetSuite', 'Salesforce']), z.literal('cross-system')]),
   ruleType: z.enum([
-    'approval_threshold', 'sod_constraint', 'sequence_requirement',
-    'timing_sla', 'field_validation', 'routing_rule',
+    'approval_threshold',
+    'sod_constraint',
+    'sequence_requirement',
+    'timing_sla',
+    'field_validation',
+    'routing_rule',
   ]),
   parameters: z.record(z.union([z.string(), z.number()])),
   extractionPathId: z.string().optional(),
@@ -142,14 +149,16 @@ export const AnalyzeRealityGapsSchema = z.object({
   reference_model_id: z.string().optional(),
   rules: z.array(WorkflowRuleSchema).min(1, 'At least one rule is required'),
   events: z.array(ActualEventSchema).min(1, 'At least one event is required'),
-  config: z.object({
-    minFrequency: z.number().optional(),
-    minMateriality: z.number().optional(),
-    lookbackDays: z.number().optional(),
-    includeDesignGaps: z.boolean().optional(),
-    includeComplianceGaps: z.boolean().optional(),
-    includeShadowGaps: z.boolean().optional(),
-  }).optional(),
+  config: z
+    .object({
+      minFrequency: z.number().optional(),
+      minMateriality: z.number().optional(),
+      lookbackDays: z.number().optional(),
+      includeDesignGaps: z.boolean().optional(),
+      includeComplianceGaps: z.boolean().optional(),
+      includeShadowGaps: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export type AnalyzeRealityGapsInput = z.infer<typeof AnalyzeRealityGapsSchema>;
@@ -163,7 +172,8 @@ export const analyzeRealityGapsTool = {
     properties: {
       reference_model_id: {
         type: 'string',
-        description: 'Reference process model ID (e.g., "o2c-detailed"). If omitted, uses default model.',
+        description:
+          'Reference process model ID (e.g., "o2c-detailed"). If omitted, uses default model.',
       },
       rules: {
         type: 'array',
@@ -174,13 +184,35 @@ export const analyzeRealityGapsTool = {
             sourceDocument: { type: 'string' },
             section: { type: 'string' },
             ruleText: { type: 'string' },
-            systemScope: { type: 'string', enum: ['SAP', 'NetSuite', 'Salesforce', 'cross-system'] },
-            ruleType: { type: 'string', enum: ['approval_threshold', 'sod_constraint', 'sequence_requirement', 'timing_sla', 'field_validation', 'routing_rule'] },
+            systemScope: {
+              type: 'string',
+              enum: ['SAP', 'NetSuite', 'Salesforce', 'cross-system'],
+            },
+            ruleType: {
+              type: 'string',
+              enum: [
+                'approval_threshold',
+                'sod_constraint',
+                'sequence_requirement',
+                'timing_sla',
+                'field_validation',
+                'routing_rule',
+              ],
+            },
             parameters: { type: 'object', description: 'Key-value pairs for rule parameters' },
             extractionPathId: { type: 'string' },
             active: { type: 'boolean' },
           },
-          required: ['id', 'sourceDocument', 'section', 'ruleText', 'systemScope', 'ruleType', 'parameters', 'active'],
+          required: [
+            'id',
+            'sourceDocument',
+            'section',
+            'ruleText',
+            'systemScope',
+            'ruleType',
+            'parameters',
+            'active',
+          ],
         },
         description: 'Array of documented business rules from SOPs',
       },
@@ -198,19 +230,42 @@ export const analyzeRealityGapsTool = {
             recordId: { type: 'string' },
             extractionId: { type: 'string' },
           },
-          required: ['caseId', 'activityName', 'timestamp', 'userId', 'systemType', 'tableName', 'recordId'],
+          required: [
+            'caseId',
+            'activityName',
+            'timestamp',
+            'userId',
+            'systemType',
+            'tableName',
+            'recordId',
+          ],
         },
         description: 'Array of actual events from the event log',
       },
       config: {
         type: 'object',
         properties: {
-          minFrequency: { type: 'number', description: 'Minimum occurrences to report (default: 1)' },
-          minMateriality: { type: 'number', description: 'Minimum materiality score (default: 0.0)' },
+          minFrequency: {
+            type: 'number',
+            description: 'Minimum occurrences to report (default: 1)',
+          },
+          minMateriality: {
+            type: 'number',
+            description: 'Minimum materiality score (default: 0.0)',
+          },
           lookbackDays: { type: 'number', description: 'How far back to analyze (default: 365)' },
-          includeDesignGaps: { type: 'boolean', description: 'Include design gaps (default: true)' },
-          includeComplianceGaps: { type: 'boolean', description: 'Include compliance gaps (default: true)' },
-          includeShadowGaps: { type: 'boolean', description: 'Include shadow process gaps (default: true)' },
+          includeDesignGaps: {
+            type: 'boolean',
+            description: 'Include design gaps (default: true)',
+          },
+          includeComplianceGaps: {
+            type: 'boolean',
+            description: 'Include compliance gaps (default: true)',
+          },
+          includeShadowGaps: {
+            type: 'boolean',
+            description: 'Include shadow process gaps (default: true)',
+          },
         },
         description: 'Override gap detection configuration',
       },
@@ -221,7 +276,7 @@ export const analyzeRealityGapsTool = {
 
 export async function executeAnalyzeRealityGaps(
   deps: RealityGapToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = AnalyzeRealityGapsSchema.parse(rawInput);
 
@@ -235,11 +290,7 @@ export async function executeAnalyzeRealityGaps(
 
   const result = deps.engine.analyze(rules, events, config, input.reference_model_id);
 
-  const allGaps = [
-    ...result.designGaps,
-    ...result.complianceGaps,
-    ...result.shadowGaps,
-  ];
+  const allGaps = [...result.designGaps, ...result.complianceGaps, ...result.shadowGaps];
 
   return {
     designGaps: result.designGaps,
@@ -273,28 +324,46 @@ function getHighestSeverity(gaps: GapFinding[]): GapSeverity | null {
 export const ManageFindingSchema = z.object({
   action: z.enum(['create', 'transition', 'query', 'get']),
   finding_id: z.string().optional(),
-  params: z.object({
-    // create params
-    source: z.enum(['contradiction', 'reality_gap', 'conformance', 'fi_co_anomaly']).optional(),
-    severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']).optional(),
-    title: z.string().optional(),
-    description: z.string().optional(),
-    riskScore: z.number().optional(),
-    assignee: z.string().optional(),
-    relatedFindingIds: z.array(z.string()).optional(),
-    metadata: z.record(z.unknown()).optional(),
-    // transition params
-    to_state: z.enum([
-      'DETECTED', 'TRIAGED', 'INVESTIGATING', 'CONFIRMED',
-      'REMEDIATION', 'RESOLVED', 'FALSE_POSITIVE', 'ACCEPTED_RISK',
-    ]).optional(),
-    transitioned_by: z.string().optional(),
-    // query params
-    state: z.enum([
-      'DETECTED', 'TRIAGED', 'INVESTIGATING', 'CONFIRMED',
-      'REMEDIATION', 'RESOLVED', 'FALSE_POSITIVE', 'ACCEPTED_RISK',
-    ]).optional(),
-  }).optional(),
+  params: z
+    .object({
+      // create params
+      source: z.enum(['contradiction', 'reality_gap', 'conformance', 'fi_co_anomaly']).optional(),
+      severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']).optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      riskScore: z.number().optional(),
+      assignee: z.string().optional(),
+      relatedFindingIds: z.array(z.string()).optional(),
+      metadata: z.record(z.unknown()).optional(),
+      // transition params
+      to_state: z
+        .enum([
+          'DETECTED',
+          'TRIAGED',
+          'INVESTIGATING',
+          'CONFIRMED',
+          'REMEDIATION',
+          'RESOLVED',
+          'FALSE_POSITIVE',
+          'ACCEPTED_RISK',
+        ])
+        .optional(),
+      transitioned_by: z.string().optional(),
+      // query params
+      state: z
+        .enum([
+          'DETECTED',
+          'TRIAGED',
+          'INVESTIGATING',
+          'CONFIRMED',
+          'REMEDIATION',
+          'RESOLVED',
+          'FALSE_POSITIVE',
+          'ACCEPTED_RISK',
+        ])
+        .optional(),
+    })
+    .optional(),
 });
 
 export type ManageFindingInput = z.infer<typeof ManageFindingSchema>;
@@ -318,17 +387,58 @@ export const manageFindingTool = {
       params: {
         type: 'object',
         properties: {
-          source: { type: 'string', enum: ['contradiction', 'reality_gap', 'conformance', 'fi_co_anomaly'], description: 'Finding source (for create)' },
-          severity: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'], description: 'Finding severity (for create)' },
+          source: {
+            type: 'string',
+            enum: ['contradiction', 'reality_gap', 'conformance', 'fi_co_anomaly'],
+            description: 'Finding source (for create)',
+          },
+          severity: {
+            type: 'string',
+            enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'],
+            description: 'Finding severity (for create)',
+          },
           title: { type: 'string', description: 'Finding title (for create)' },
           description: { type: 'string', description: 'Finding description (for create)' },
           riskScore: { type: 'number', description: 'Risk score 0.0-1.0 (for create)' },
           assignee: { type: 'string', description: 'Assignee (for create or query)' },
-          relatedFindingIds: { type: 'array', items: { type: 'string' }, description: 'Related findings (for create)' },
+          relatedFindingIds: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Related findings (for create)',
+          },
           metadata: { type: 'object', description: 'Additional metadata (for create)' },
-          to_state: { type: 'string', enum: ['DETECTED', 'TRIAGED', 'INVESTIGATING', 'CONFIRMED', 'REMEDIATION', 'RESOLVED', 'FALSE_POSITIVE', 'ACCEPTED_RISK'], description: 'Target state (for transition)' },
-          transitioned_by: { type: 'string', description: 'Who performed the transition (for transition)' },
-          state: { type: 'string', enum: ['DETECTED', 'TRIAGED', 'INVESTIGATING', 'CONFIRMED', 'REMEDIATION', 'RESOLVED', 'FALSE_POSITIVE', 'ACCEPTED_RISK'], description: 'Filter by state (for query)' },
+          to_state: {
+            type: 'string',
+            enum: [
+              'DETECTED',
+              'TRIAGED',
+              'INVESTIGATING',
+              'CONFIRMED',
+              'REMEDIATION',
+              'RESOLVED',
+              'FALSE_POSITIVE',
+              'ACCEPTED_RISK',
+            ],
+            description: 'Target state (for transition)',
+          },
+          transitioned_by: {
+            type: 'string',
+            description: 'Who performed the transition (for transition)',
+          },
+          state: {
+            type: 'string',
+            enum: [
+              'DETECTED',
+              'TRIAGED',
+              'INVESTIGATING',
+              'CONFIRMED',
+              'REMEDIATION',
+              'RESOLVED',
+              'FALSE_POSITIVE',
+              'ACCEPTED_RISK',
+            ],
+            description: 'Filter by state (for query)',
+          },
         },
         description: 'Action-specific parameters',
       },
@@ -339,7 +449,7 @@ export const manageFindingTool = {
 
 export async function executeManageFinding(
   deps: RealityGapToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = ManageFindingSchema.parse(rawInput);
 
@@ -414,7 +524,12 @@ export async function executeManageFinding(
 
     case 'query': {
       const params = input.params ?? {};
-      const filter: Partial<{ state: FindingState; source: FindingSource; severity: GapSeverity; assignee: string }> = {};
+      const filter: Partial<{
+        state: FindingState;
+        source: FindingSource;
+        severity: GapSeverity;
+        assignee: string;
+      }> = {};
       if (params.state) filter.state = params.state as FindingState;
       if (params.source) filter.source = params.source as FindingSource;
       if (params.severity) filter.severity = params.severity as GapSeverity;
@@ -458,7 +573,7 @@ export const getFindingSummaryTool = {
 
 export async function executeGetFindingSummary(
   deps: RealityGapToolDeps,
-  _rawInput: unknown,
+  _rawInput: unknown
 ): Promise<unknown> {
   if (!deps.findingStore) {
     throw new Error('Finding store not configured');

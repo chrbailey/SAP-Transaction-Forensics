@@ -88,49 +88,49 @@ export class ProvenanceLogger {
       shutdown: () => adapter.shutdown(),
       isReady: () => adapter.isReady(),
 
-      searchDocText: async (params) => {
+      searchDocText: async params => {
         const result = await adapter.searchDocText(params);
         logExtraction('searchDocText', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getDocText: async (params) => {
+      getDocText: async params => {
         const result = await adapter.getDocText(params);
         logExtraction('getDocText', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getDocFlow: async (params) => {
+      getDocFlow: async params => {
         const result = await adapter.getDocFlow(params);
         logExtraction('getDocFlow', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getSalesDocHeader: async (params) => {
+      getSalesDocHeader: async params => {
         const result = await adapter.getSalesDocHeader(params);
         logExtraction('getSalesDocHeader', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getSalesDocItems: async (params) => {
+      getSalesDocItems: async params => {
         const result = await adapter.getSalesDocItems(params);
         logExtraction('getSalesDocItems', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getDeliveryTiming: async (params) => {
+      getDeliveryTiming: async params => {
         const result = await adapter.getDeliveryTiming(params);
         logExtraction('getDeliveryTiming', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getInvoiceTiming: async (params) => {
+      getInvoiceTiming: async params => {
         const result = await adapter.getInvoiceTiming(params);
         logExtraction('getInvoiceTiming', params as unknown as Record<string, unknown>, result);
         return result;
       },
 
-      getMasterStub: async (params) => {
+      getMasterStub: async params => {
         const result = await adapter.getMasterStub(params);
         logExtraction('getMasterStub', params as unknown as Record<string, unknown>, result);
         return result;
@@ -251,10 +251,17 @@ export class ProvenanceLogger {
               `${fieldName}.${i}`
             );
           } else {
-            out.push(this.makeRecord(
-              tableName, recordId, `${fieldName}.${i}`,
-              String(element ?? ''), queryHash, replayHash, timestamp
-            ));
+            out.push(
+              this.makeRecord(
+                tableName,
+                recordId,
+                `${fieldName}.${i}`,
+                String(element ?? ''),
+                queryHash,
+                replayHash,
+                timestamp
+              )
+            );
           }
         }
       } else if (typeof value === 'object') {
@@ -270,10 +277,9 @@ export class ProvenanceLogger {
         );
       } else {
         const raw = String(value);
-        out.push(this.makeRecord(
-          tableName, recordId, fieldName,
-          raw, queryHash, replayHash, timestamp
-        ));
+        out.push(
+          this.makeRecord(tableName, recordId, fieldName, raw, queryHash, replayHash, timestamp)
+        );
       }
     }
   }
@@ -326,9 +332,10 @@ export class ProvenanceLogger {
    * Same result always produces the same hash.
    */
   private computeReplayHash(result: unknown): string {
-    const canonical = JSON.stringify(result, Object.keys(
-      typeof result === 'object' && result !== null ? result : {}
-    ).sort());
+    const canonical = JSON.stringify(
+      result,
+      Object.keys(typeof result === 'object' && result !== null ? result : {}).sort()
+    );
     return createHash('sha256').update(canonical).digest('hex');
   }
 }

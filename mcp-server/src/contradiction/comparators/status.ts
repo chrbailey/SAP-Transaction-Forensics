@@ -94,14 +94,13 @@ export class StatusIncompatibleComparator {
     const [sap, sfdc] = this._orientRecords(a, b);
     if (!sap || !sfdc) return null;
 
-    const isCancelled =
-      fieldString(sap, 'ABSTK') === 'X' || fieldString(sap, 'status') === 'X';
+    const isCancelled = fieldString(sap, 'ABSTK') === 'X' || fieldString(sap, 'status') === 'X';
     const isClosedWon = fieldString(sfdc, 'StageName', 'stage') === 'Closed Won';
 
     if (isCancelled && isClosedWon) {
       return this._makeFinding(
         'cancelled_vs_won',
-        'SAP order is cancelled but SFDC opportunity is Closed Won',
+        'SAP order is cancelled but SFDC opportunity is Closed Won'
       );
     }
     return null;
@@ -121,7 +120,7 @@ export class StatusIncompatibleComparator {
     if (isBlocked && isClosedWon) {
       return this._makeFinding(
         'blocked_vs_won',
-        'SAP order is blocked (delivery or billing) but SFDC opportunity is Closed Won',
+        'SAP order is blocked (delivery or billing) but SFDC opportunity is Closed Won'
       );
     }
     return null;
@@ -132,7 +131,7 @@ export class StatusIncompatibleComparator {
    */
   private _sapDeliveryCompleteVsSfdcEarlyStage(
     a: FieldRecord,
-    b: FieldRecord,
+    b: FieldRecord
   ): ContradictionFinding | null {
     const [sap, sfdc] = this._orientRecords(a, b);
     if (!sap || !sfdc) return null;
@@ -140,13 +139,13 @@ export class StatusIncompatibleComparator {
     const deliveryComplete =
       fieldString(sap, 'WBSTK') === 'C' || fieldString(sap, 'delivery_status') === 'complete';
     const earlyStage = ['Prospecting', 'Qualification'].includes(
-      fieldString(sfdc, 'StageName', 'stage') ?? '',
+      fieldString(sfdc, 'StageName', 'stage') ?? ''
     );
 
     if (deliveryComplete && earlyStage) {
       return this._makeFinding(
         'delivered_vs_early_stage',
-        'SAP delivery is complete but SFDC opportunity is still in early stage',
+        'SAP delivery is complete but SFDC opportunity is still in early stage'
       );
     }
     return null;
@@ -160,14 +159,13 @@ export class StatusIncompatibleComparator {
     if (!sap || !sfdc) return null;
 
     const isClosedLost = fieldString(sfdc, 'StageName', 'stage') === 'Closed Lost';
-    const isCancelled =
-      fieldString(sap, 'ABSTK') === 'X' || fieldString(sap, 'status') === 'X';
+    const isCancelled = fieldString(sap, 'ABSTK') === 'X' || fieldString(sap, 'status') === 'X';
     const isActive = !isCancelled && fieldValue(sap, 'VBELN', 'vbeln') !== undefined;
 
     if (isClosedLost && isActive) {
       return this._makeFinding(
         'closed_lost_vs_active',
-        'SFDC opportunity is Closed Lost but SAP order is still active',
+        'SFDC opportunity is Closed Lost but SAP order is still active'
       );
     }
     return null;
@@ -178,7 +176,7 @@ export class StatusIncompatibleComparator {
    */
   private _netsuiteInactiveWithTransactions(
     a: FieldRecord,
-    b: FieldRecord,
+    b: FieldRecord
   ): ContradictionFinding | null {
     // Check either record order
     const userInactive = (r: FieldRecord): boolean =>
@@ -196,7 +194,7 @@ export class StatusIncompatibleComparator {
     ) {
       return this._makeFinding(
         'inactive_user_with_transactions',
-        'NetSuite user is inactive but has recent transactions',
+        'NetSuite user is inactive but has recent transactions'
       );
     }
     return null;
@@ -210,16 +208,12 @@ export class StatusIncompatibleComparator {
    * Orient two records: returns [sapRecord, sfdcRecord] or null if
    * we cannot determine which is which. Uses heuristics on field names.
    */
-  private _orientRecords(
-    a: FieldRecord,
-    b: FieldRecord,
-  ): [FieldRecord | null, FieldRecord | null] {
+  private _orientRecords(a: FieldRecord, b: FieldRecord): [FieldRecord | null, FieldRecord | null] {
     const looksLikeSAP = (r: FieldRecord): boolean =>
       fieldValue(r, 'VBELN', 'vbeln', 'ABSTK', 'LIFSK', 'FAKSK', 'WBSTK') !== undefined ||
       r['_system'] === 'sap';
     const looksLikeSFDC = (r: FieldRecord): boolean =>
-      fieldValue(r, 'StageName', 'stage', 'OpportunityId') !== undefined ||
-      r['_system'] === 'sfdc';
+      fieldValue(r, 'StageName', 'stage', 'OpportunityId') !== undefined || r['_system'] === 'sfdc';
 
     if (looksLikeSAP(a) && looksLikeSFDC(b)) return [a, b];
     if (looksLikeSAP(b) && looksLikeSFDC(a)) return [b, a];
@@ -228,14 +222,11 @@ export class StatusIncompatibleComparator {
     return [a, b];
   }
 
-  private _makeFinding(
-    incompatiblePair: string,
-    description: string,
-  ): ContradictionFinding {
+  private _makeFinding(incompatiblePair: string, description: string): ContradictionFinding {
     return {
       type: this.type,
       severity: 'HIGH',
-      confidence: 0.90,
+      confidence: 0.9,
       description,
       scoringDetails: { incompatiblePair },
     };
@@ -280,9 +271,10 @@ export class ApprovalBypassComparator {
         type: this.type,
         severity,
         confidence: 0.85,
-        description: sameUser && hasApproval
-          ? `Transaction amount ${amount} exceeds threshold ${threshold} and was created and posted by the same user`
-          : `Transaction amount ${amount} exceeds threshold ${threshold} without approval`,
+        description:
+          sameUser && hasApproval
+            ? `Transaction amount ${amount} exceeds threshold ${threshold} and was created and posted by the same user`
+            : `Transaction amount ${amount} exceeds threshold ${threshold} without approval`,
         scoringDetails: {
           amount,
           threshold,

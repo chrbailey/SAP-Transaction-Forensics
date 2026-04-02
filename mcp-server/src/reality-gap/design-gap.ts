@@ -77,11 +77,7 @@ function now(): string {
  * strip underscores and hyphens.
  */
 function normalise(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[_-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return s.toLowerCase().replace(/[_-]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -100,10 +96,7 @@ export class DesignGapDetector {
    *  - Sequence deviations — docs prescribe different order than reference
    *  - Missing SoD     — reference implies segregation, docs don't enforce
    */
-  detectGaps(
-    referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
-  ): GapFinding[] {
+  detectGaps(referenceSteps: ReferenceStep[], documentedRules: WorkflowRule[]): GapFinding[] {
     const findings: GapFinding[] = [];
 
     // 1. Missing steps
@@ -130,7 +123,7 @@ export class DesignGapDetector {
 
   private detectMissingSteps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
@@ -170,18 +163,18 @@ export class DesignGapDetector {
 
   private detectExtraSteps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
     // Only consider active rules of type "step" or "process_step"
     const stepRules = documentedRules.filter(
-      r => r.active && (r.ruleType === 'step' || r.ruleType === 'process_step'),
+      r => r.active && (r.ruleType === 'step' || r.ruleType === 'process_step')
     );
 
     for (const rule of stepRules) {
       const matched = referenceSteps.some(
-        s => normalise(s.activityName) === normalise(rule.ruleText),
+        s => normalise(s.activityName) === normalise(rule.ruleText)
       );
       if (!matched) {
         findings.push({
@@ -215,14 +208,12 @@ export class DesignGapDetector {
 
   private detectThresholdGaps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
     // Find reference steps that imply approval
-    const approvalSteps = referenceSteps.filter(s =>
-      /approv/i.test(s.activityName),
-    );
+    const approvalSteps = referenceSteps.filter(s => /approv/i.test(s.activityName));
 
     for (const step of approvalSteps) {
       // Look for matching approval rules in docs
@@ -230,7 +221,7 @@ export class DesignGapDetector {
         r =>
           r.active &&
           r.ruleType === 'approval' &&
-          normalise(r.ruleText).includes(normalise(step.activityName)),
+          normalise(r.ruleText).includes(normalise(step.activityName))
       );
 
       if (approvalRules.length === 0) {
@@ -269,15 +260,12 @@ export class DesignGapDetector {
         const _refThreshold = Number(
           referenceSteps.find(s => s === step)
             ? (step as ReferenceStep & { threshold?: number }).threshold
-            : undefined,
+            : undefined
         );
 
         // If rule has a threshold parameter and it exceeds a reasonable
         // best-practice default (e.g. reference model sets one via convention)
-        if (
-          !Number.isNaN(docThreshold) &&
-          rule.parameters['referenceThreshold'] !== undefined
-        ) {
+        if (!Number.isNaN(docThreshold) && rule.parameters['referenceThreshold'] !== undefined) {
           const bestPractice = Number(rule.parameters['referenceThreshold']);
           if (!Number.isNaN(bestPractice) && docThreshold > bestPractice) {
             findings.push({
@@ -314,7 +302,7 @@ export class DesignGapDetector {
 
   private detectMissingSoDGaps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
@@ -323,9 +311,7 @@ export class DesignGapDetector {
     // post journal vs approve journal, create invoice vs clear invoice).
     const sodPairs = this.identifySoDPairs(referenceSteps);
 
-    const sodRules = documentedRules.filter(
-      r => r.active && r.ruleType === 'sod',
-    );
+    const sodRules = documentedRules.filter(r => r.active && r.ruleType === 'sod');
 
     for (const [stepA, stepB] of sodPairs) {
       const hasSoDRule = sodRules.some(r => {
@@ -335,10 +321,8 @@ export class DesignGapDetector {
             ruleNorm.includes(normalise(stepB.activityName))) ||
           (r.parameters['stepA'] !== undefined &&
             r.parameters['stepB'] !== undefined &&
-            normalise(String(r.parameters['stepA'])) ===
-              normalise(stepA.activityName) &&
-            normalise(String(r.parameters['stepB'])) ===
-              normalise(stepB.activityName))
+            normalise(String(r.parameters['stepA'])) === normalise(stepA.activityName) &&
+            normalise(String(r.parameters['stepB'])) === normalise(stepB.activityName))
         );
       });
 
@@ -378,13 +362,11 @@ export class DesignGapDetector {
 
   private detectSequenceGaps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
-    const sequenceRules = documentedRules.filter(
-      r => r.active && r.ruleType === 'sequence',
-    );
+    const sequenceRules = documentedRules.filter(r => r.active && r.ruleType === 'sequence');
 
     for (const rule of sequenceRules) {
       const fromStep = rule.parameters['from'];
@@ -392,10 +374,10 @@ export class DesignGapDetector {
       if (fromStep === undefined || toStep === undefined) continue;
 
       const fromRef = referenceSteps.find(
-        s => normalise(s.activityName) === normalise(String(fromStep)),
+        s => normalise(s.activityName) === normalise(String(fromStep))
       );
       const toRef = referenceSteps.find(
-        s => normalise(s.activityName) === normalise(String(toStep)),
+        s => normalise(s.activityName) === normalise(String(toStep))
       );
 
       if (fromRef && toRef && fromRef.stepIndex > toRef.stepIndex) {
@@ -434,10 +416,7 @@ export class DesignGapDetector {
    * Check if a specific reference step has a corresponding documented rule.
    * Matches by normalised activity name against rule text for step-type rules.
    */
-  private findMatchingRule(
-    step: ReferenceStep,
-    rules: WorkflowRule[],
-  ): WorkflowRule | null {
+  private findMatchingRule(step: ReferenceStep, rules: WorkflowRule[]): WorkflowRule | null {
     const stepNorm = normalise(step.activityName);
 
     for (const rule of rules) {
@@ -474,15 +453,11 @@ export class DesignGapDetector {
    * another contains "approve"/"clear"/"confirm" within the same model
    * implies a segregation requirement.
    */
-  private identifySoDPairs(
-    steps: ReferenceStep[],
-  ): Array<[ReferenceStep, ReferenceStep]> {
+  private identifySoDPairs(steps: ReferenceStep[]): Array<[ReferenceStep, ReferenceStep]> {
     const pairs: Array<[ReferenceStep, ReferenceStep]> = [];
-    const initiators = steps.filter(s =>
-      /\b(create|post|enter|submit)/i.test(s.activityName),
-    );
+    const initiators = steps.filter(s => /\b(create|post|enter|submit)/i.test(s.activityName));
     const controllers = steps.filter(s =>
-      /\b(approv|clear|confirm|review|verif)/i.test(s.activityName),
+      /\b(approv|clear|confirm|review|verif)/i.test(s.activityName)
     );
 
     for (const init of initiators) {

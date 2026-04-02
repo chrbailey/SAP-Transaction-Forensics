@@ -6,20 +6,11 @@
  * and produces a complete file structure for auditor delivery.
  */
 
-import {
-  HandoffPacketGenerator,
-} from '../handoff/generator.js';
+import { HandoffPacketGenerator } from '../handoff/generator.js';
 
-import type {
-  ContradictionFinding,
-  GapFinding,
-  ExtractionInfo,
-} from '../handoff/generator.js';
+import type { ContradictionFinding, GapFinding, ExtractionInfo } from '../handoff/generator.js';
 
-import type {
-  HandoffConfig,
-  HandoffPacket,
-} from '../handoff/types.js';
+import type { HandoffConfig, HandoffPacket } from '../handoff/types.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -199,7 +190,11 @@ describe('HandoffPacketGenerator', () => {
   // 5. manifest has entries for each extraction
   test('manifest has entries for each extraction', () => {
     const e1 = makeExtraction({ extractionPathId: 'sap.o2c.order-header', rowCount: 1500 });
-    const e2 = makeExtraction({ extractionPathId: 'sfdc.pipeline.opp', rowCount: 350, systemType: 'Salesforce' });
+    const e2 = makeExtraction({
+      extractionPathId: 'sfdc.pipeline.opp',
+      rowCount: 350,
+      systemType: 'Salesforce',
+    });
 
     const packet = gen.generate({
       config: makeConfig(),
@@ -300,7 +295,10 @@ describe('HandoffPacketGenerator', () => {
       config: makeConfig(),
       contradictions: [],
       gaps: [],
-      extractions: [makeExtraction(), makeExtraction({ extractionPathId: 'sfdc.pipeline.opp', systemType: 'Salesforce' })],
+      extractions: [
+        makeExtraction(),
+        makeExtraction({ extractionPathId: 'sfdc.pipeline.opp', systemType: 'Salesforce' }),
+      ],
     });
 
     const files = gen.generateFileStructure(packet);

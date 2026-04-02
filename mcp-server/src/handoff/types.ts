@@ -15,7 +15,7 @@ export interface HandoffConfig {
   preparedBy: string;
   dateRange: { from: string; to: string };
   systemsAccessed: SystemType[];
-  scope: string;                // e.g., "FY2025 Q1-Q3 O2C Process Audit"
+  scope: string; // e.g., "FY2025 Q1-Q3 O2C Process Audit"
   includeReproduction: boolean;
   includeChecklist: boolean;
   outputDir: string;
@@ -27,16 +27,16 @@ export interface RenderedFinding {
   title: string;
   severity: string;
   riskScore: number;
-  markdown: string;             // Full Markdown rendering of the finding
+  markdown: string; // Full Markdown rendering of the finding
   evidenceFiles: EvidenceFile[];
 }
 
 /** A file to include in the evidence directory */
 export interface EvidenceFile {
   filename: string;
-  content: string;              // CSV, JSON, or text content
+  content: string; // CSV, JSON, or text content
   mimeType: 'text/csv' | 'application/json' | 'text/plain' | 'text/markdown';
-  extractionId?: string;        // FK to provenance
+  extractionId?: string; // FK to provenance
 }
 
 /** Extraction manifest entry for independent reproduction */
@@ -83,12 +83,12 @@ export interface ReviewerChecklist {
 /** The full handoff packet structure */
 export interface HandoffPacket {
   config: HandoffConfig;
-  summary: string;              // Executive summary markdown
+  summary: string; // Executive summary markdown
   findings: RenderedFinding[];
   contradictions: RenderedFinding[];
   realityGaps: RenderedFinding[];
   manifest: ExtractionManifest;
   checklist: ReviewerChecklist;
-  provenanceGraph: string;      // JSON DAG
+  provenanceGraph: string; // JSON DAG
   generatedAt: string;
 }

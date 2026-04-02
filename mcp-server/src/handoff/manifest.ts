@@ -54,11 +54,8 @@ export class ManifestGenerator {
    * Aggregates extraction inputs into a manifest with deduped system list,
    * total row count, and ISO 8601 timestamp.
    */
-  generateManifest(
-    engagementId: string,
-    extractions: ExtractionInput[],
-  ): ExtractionManifest {
-    const entries: ManifestEntry[] = extractions.map((ext) => ({
+  generateManifest(engagementId: string, extractions: ExtractionInput[]): ExtractionManifest {
+    const entries: ManifestEntry[] = extractions.map(ext => ({
       extractionPathId: ext.extractionPathId,
       extractionPathVersion: ext.extractionPathVersion,
       parameters: ext.parameters,
@@ -68,7 +65,7 @@ export class ManifestGenerator {
       rowCount: ext.rowCount,
     }));
 
-    const systems = [...new Set(extractions.map((ext) => ext.systemType))];
+    const systems = [...new Set(extractions.map(ext => ext.systemType))];
     const totalRows = entries.reduce((sum, e) => sum + e.rowCount, 0);
 
     return {
@@ -142,10 +139,14 @@ export class ManifestGenerator {
       lines.push(``);
       lines.push('```bash');
       lines.push(`# Re-run extraction and verify hash`);
-      lines.push(`RESULT_HASH=$(run_extraction --path "${entry.extractionPathId}" --version "${entry.extractionPathVersion}" | sha256sum | awk '{print $1}')`);
+      lines.push(
+        `RESULT_HASH=$(run_extraction --path "${entry.extractionPathId}" --version "${entry.extractionPathVersion}" | sha256sum | awk '{print $1}')`
+      );
       lines.push(`echo "Expected: ${entry.replayHash}"`);
       lines.push(`echo "Actual:   $RESULT_HASH"`);
-      lines.push(`[ "$RESULT_HASH" = "${entry.replayHash}" ] && echo "VERIFIED" || echo "MISMATCH"`);
+      lines.push(
+        `[ "$RESULT_HASH" = "${entry.replayHash}" ] && echo "VERIFIED" || echo "MISMATCH"`
+      );
       lines.push('```');
       lines.push(``);
     }
@@ -210,8 +211,12 @@ export class ManifestGenerator {
         .map(([k, v]) => `--param "${k}=${v}"`)
         .join(' ');
 
-      lines.push(`echo "[${idx}/$TOTAL] Verifying ${entry.extractionPathId} v${entry.extractionPathVersion}..."`);
-      lines.push(`RESULT_HASH=$(run_extraction --path "${entry.extractionPathId}" --version "${entry.extractionPathVersion}" ${paramArgs} | sha256sum | awk '{print $1}')`);
+      lines.push(
+        `echo "[${idx}/$TOTAL] Verifying ${entry.extractionPathId} v${entry.extractionPathVersion}..."`
+      );
+      lines.push(
+        `RESULT_HASH=$(run_extraction --path "${entry.extractionPathId}" --version "${entry.extractionPathVersion}" ${paramArgs} | sha256sum | awk '{print $1}')`
+      );
       lines.push(`EXPECTED="${entry.replayHash}"`);
       lines.push(`if [ "$RESULT_HASH" = "$EXPECTED" ]; then`);
       lines.push(`  echo "  PASS - Hash matches"`);

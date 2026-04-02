@@ -16,7 +16,9 @@ import type {
 
 // --- Fixture helper ---
 
-function makeParams(overrides: Partial<Parameters<FindingLifecycleManager['createFinding']>[0]> = {}) {
+function makeParams(
+  overrides: Partial<Parameters<FindingLifecycleManager['createFinding']>[0]> = {}
+) {
   return {
     source: 'contradiction' as FindingSource,
     sourceId: 'ctr-001',
@@ -66,9 +68,9 @@ describe('FindingLifecycleManager', () => {
   // 4. transition from DETECTED to CONFIRMED fails (invalid)
   test('transition from DETECTED to CONFIRMED throws', () => {
     const f = mgr.createFinding(makeParams());
-    expect(() =>
-      mgr.transition(f.id, 'CONFIRMED', 'analyst-1', 'Skip triage'),
-    ).toThrow('Invalid transition from DETECTED to CONFIRMED');
+    expect(() => mgr.transition(f.id, 'CONFIRMED', 'analyst-1', 'Skip triage')).toThrow(
+      'Invalid transition from DETECTED to CONFIRMED'
+    );
   });
 
   // 5. transition records in transitions array
@@ -144,7 +146,7 @@ describe('FindingLifecycleManager', () => {
 
     const high = mgr.query({ minRiskScore: 60 });
     expect(high).toHaveLength(2);
-    expect(high.every((f) => f.riskScore >= 60)).toBe(true);
+    expect(high.every(f => f.riskScore >= 60)).toBe(true);
   });
 
   // 12. isDuplicate returns true for matching key
@@ -239,9 +241,9 @@ describe('FindingLifecycleManager', () => {
     expect(resolved.transitions).toHaveLength(5);
 
     // Cannot transition further from terminal
-    expect(() =>
-      mgr.transition(f.id, 'DETECTED', 'system', 'reopen'),
-    ).toThrow('Invalid transition');
+    expect(() => mgr.transition(f.id, 'DETECTED', 'system', 'reopen')).toThrow(
+      'Invalid transition'
+    );
   });
 
   // 19. Transition includes evidence and notes
@@ -258,8 +260,12 @@ describe('FindingLifecycleManager', () => {
   // 20. Multiple findings tracked simultaneously
   test('multiple findings tracked simultaneously', () => {
     const f1 = mgr.createFinding(makeParams({ sourceId: 'ctr-001', riskScore: 80 }));
-    const f2 = mgr.createFinding(makeParams({ source: 'reality_gap', sourceId: 'gap-001', riskScore: 50 }));
-    const f3 = mgr.createFinding(makeParams({ source: 'conformance', sourceId: 'conf-001', riskScore: 95 }));
+    const f2 = mgr.createFinding(
+      makeParams({ source: 'reality_gap', sourceId: 'gap-001', riskScore: 50 })
+    );
+    const f3 = mgr.createFinding(
+      makeParams({ source: 'conformance', sourceId: 'conf-001', riskScore: 95 })
+    );
 
     mgr.transition(f1.id, 'TRIAGED', 'system', 'auto');
     mgr.transition(f2.id, 'FALSE_POSITIVE', 'analyst-1', 'Not an issue');

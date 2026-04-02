@@ -141,7 +141,7 @@ describe('computeAggregateGapRisk', () => {
 
   it('topFindings limited to 5', () => {
     const gaps = Array.from({ length: 10 }, (_, i) =>
-      makeGap({ id: `gap-${i}`, title: `Gap ${i}`, materiality: (i + 1) / 10 }),
+      makeGap({ id: `gap-${i}`, title: `Gap ${i}`, materiality: (i + 1) / 10 })
     );
     const agg = computeAggregateGapRisk(gaps);
     expect(agg.topFindings).toHaveLength(5);
@@ -185,7 +185,13 @@ describe('computeAggregateGapRisk', () => {
 describe('sortGapsByRisk', () => {
   it('highest risk first', () => {
     const low = makeGap({ severity: 'LOW', confidence: 0.2, materiality: 0.1 });
-    const high = makeGap({ severity: 'CRITICAL', confidence: 1.0, materiality: 1.0, frequency: 10, recency: 1.0 });
+    const high = makeGap({
+      severity: 'CRITICAL',
+      confidence: 1.0,
+      materiality: 1.0,
+      frequency: 10,
+      recency: 1.0,
+    });
     const mid = makeGap({ severity: 'MEDIUM', confidence: 0.5, materiality: 0.5 });
 
     const sorted = sortGapsByRisk([low, high, mid]);

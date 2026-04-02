@@ -57,7 +57,10 @@ export interface HandoffPacketGenerator {
  * list of every extraction executed during the engagement.
  */
 export interface ManifestGenerator {
-  generateManifest(engagementId: string, systems: string[]): Promise<import('./types.js').ExtractionManifest>;
+  generateManifest(
+    engagementId: string,
+    systems: string[]
+  ): Promise<import('./types.js').ExtractionManifest>;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +110,7 @@ export class DefaultHandoffPacketGenerator implements HandoffPacketGenerator {
     const checklist = this.checklistGenerator.generateChecklist(
       config.engagementId,
       0,
-      config.systemsAccessed.length,
+      config.systemsAccessed.length
     );
 
     // Build the manifest (empty for default)

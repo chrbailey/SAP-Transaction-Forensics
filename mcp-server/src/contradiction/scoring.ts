@@ -65,15 +65,15 @@ export const TYPE_BASE_WEIGHTS: Record<ContradictionType, number> = {
   TEMPORAL_IMPOSSIBILITY: 1.0,
   SCHEMA_GHOST: 1.0,
   SOD_VIOLATION: 0.95,
-  APPROVAL_BYPASS: 0.90,
+  APPROVAL_BYPASS: 0.9,
   STATUS_INCOMPATIBLE: 0.85,
-  RETROACTIVE_CHANGE: 0.80,
+  RETROACTIVE_CHANGE: 0.8,
   AMOUNT_DIVERGENCE: 0.75,
-  QUANTITY_DIVERGENCE: 0.70,
+  QUANTITY_DIVERGENCE: 0.7,
   DATE_CONFLICT: 0.65,
-  DUPLICATE_REFERENCE: 0.60,
+  DUPLICATE_REFERENCE: 0.6,
   ENTITY_MISMATCH: 0.55,
-  ORPHAN_RECORD: 0.50,
+  ORPHAN_RECORD: 0.5,
 };
 
 // ---------------------------------------------------------------------------
@@ -134,11 +134,21 @@ export function computeAggregateRisk(findings: ContradictionFinding[]): Aggregat
 
     // Severity counts
     switch (finding.severity) {
-      case 'CRITICAL': criticalCount++; break;
-      case 'HIGH': highCount++; break;
-      case 'MEDIUM': mediumCount++; break;
-      case 'LOW': lowCount++; break;
-      case 'INFO': infoCount++; break;
+      case 'CRITICAL':
+        criticalCount++;
+        break;
+      case 'HIGH':
+        highCount++;
+        break;
+      case 'MEDIUM':
+        mediumCount++;
+        break;
+      case 'LOW':
+        lowCount++;
+        break;
+      case 'INFO':
+        infoCount++;
+        break;
     }
 
     // byType accumulation
@@ -150,9 +160,7 @@ export function computeAggregateRisk(findings: ContradictionFinding[]): Aggregat
     typeAccum[typeKey]!.count += 1;
 
     // bySystem accumulation — use leftSystem if present, fallback to 'unknown'
-    const system = typeof finding['leftSystem'] === 'string'
-      ? finding['leftSystem']
-      : 'unknown';
+    const system = typeof finding['leftSystem'] === 'string' ? finding['leftSystem'] : 'unknown';
     if (systemAccum[system] === undefined) {
       systemAccum[system] = { total: 0, count: 0 };
     }
@@ -203,9 +211,9 @@ export function sortByRisk(findings: ContradictionFinding[]): ContradictionFindi
  */
 export function filterByMinRisk(
   findings: ContradictionFinding[],
-  minScore: number,
+  minScore: number
 ): ContradictionFinding[] {
-  return findings.filter((f) => computeRiskScore(f) >= minScore);
+  return findings.filter(f => computeRiskScore(f) >= minScore);
 }
 
 /**
@@ -221,7 +229,7 @@ export function generateRiskSummary(findings: ContradictionFinding[]): string {
   // Severity breakdown
   lines.push(
     `${agg.criticalCount} critical, ${agg.highCount} high, ` +
-    `${agg.mediumCount} medium, ${agg.lowCount} low, ${agg.infoCount} info`,
+      `${agg.mediumCount} medium, ${agg.lowCount} low, ${agg.infoCount} info`
   );
   lines.push('');
 
@@ -236,19 +244,14 @@ export function generateRiskSummary(findings: ContradictionFinding[]): string {
     lines.push('|------|-------|-----------|-----------|');
 
     // Sort types by avg score descending
-    const typeEntries = Object.entries(agg.byType).sort(
-      (a, b) => b[1].avgScore - a[1].avgScore,
-    );
+    const typeEntries = Object.entries(agg.byType).sort((a, b) => b[1].avgScore - a[1].avgScore);
 
     for (const [typeName, stats] of typeEntries) {
       // Compute max score for this type
-      const typeFindings = findings.filter((f) => f.type === typeName);
-      const typeMax = typeFindings.reduce(
-        (max, f) => Math.max(max, computeRiskScore(f)),
-        0,
-      );
+      const typeFindings = findings.filter(f => f.type === typeName);
+      const typeMax = typeFindings.reduce((max, f) => Math.max(max, computeRiskScore(f)), 0);
       lines.push(
-        `| ${typeName} | ${stats.count} | ${stats.avgScore.toFixed(1)} | ${typeMax.toFixed(1)} |`,
+        `| ${typeName} | ${stats.count} | ${stats.avgScore.toFixed(1)} | ${typeMax.toFixed(1)} |`
       );
     }
 

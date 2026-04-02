@@ -11,7 +11,7 @@ import type { ExtractionPath } from '../extraction-registry/types.js';
 // --- Helpers ---
 
 function findPath(id: string): ExtractionPath {
-  const path = SAP_FICO_PATHS.find((p) => p.id === id);
+  const path = SAP_FICO_PATHS.find(p => p.id === id);
   if (!path) {
     throw new Error(`Path not found: ${id}`);
   }
@@ -19,15 +19,15 @@ function findPath(id: string): ExtractionPath {
 }
 
 function hasRequiredParam(path: ExtractionPath, name: string): boolean {
-  return path.parameters.some((p) => p.name === name && p.required);
+  return path.parameters.some(p => p.name === name && p.required);
 }
 
 function hasOptionalParam(path: ExtractionPath, name: string): boolean {
-  return path.parameters.some((p) => p.name === name && !p.required);
+  return path.parameters.some(p => p.name === name && !p.required);
 }
 
 function getField(path: ExtractionPath, name: string) {
-  return path.expectedFields.find((f) => f.name === name);
+  return path.expectedFields.find(f => f.name === name);
 }
 
 // --- Tests ---
@@ -53,8 +53,7 @@ describe('SAP FI/CO Extraction Paths', () => {
 
   it('all paths reference correct SAP tables (BKPF or BSEG)', () => {
     for (const path of SAP_FICO_PATHS) {
-      const referencesTable =
-        path.query.includes('BKPF') || path.query.includes('BSEG');
+      const referencesTable = path.query.includes('BKPF') || path.query.includes('BSEG');
       expect(referencesTable).toBe(true);
     }
   });
@@ -94,8 +93,8 @@ describe('SAP FI/CO Extraction Paths', () => {
       expect(hasOptionalParam(path, 'period_from')).toBe(true);
       expect(hasOptionalParam(path, 'period_to')).toBe(true);
 
-      const periodFrom = path.parameters.find((p) => p.name === 'period_from');
-      const periodTo = path.parameters.find((p) => p.name === 'period_to');
+      const periodFrom = path.parameters.find(p => p.name === 'period_from');
+      const periodTo = path.parameters.find(p => p.name === 'period_to');
       expect(periodFrom!.defaultValue).toBe('01');
       expect(periodTo!.defaultValue).toBe('12');
     });

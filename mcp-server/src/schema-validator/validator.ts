@@ -51,11 +51,7 @@ export class SchemaValidator {
   }
 
   /** Validate a single extraction path against a client schema */
-  validatePath(
-    pathId: string,
-    path: ExtractionPath,
-    clientSchema: ClientSchema,
-  ): PathValidation {
+  validatePath(pathId: string, path: ExtractionPath, clientSchema: ClientSchema): PathValidation {
     const now = new Date().toISOString();
     const errors: string[] = [];
     const warnings: string[] = [];
@@ -114,7 +110,7 @@ export class SchemaValidator {
 
         if (!typeCompat.compatible && expectedType !== 'unknown') {
           warnings.push(
-            `Type mismatch on '${tableName}.${fieldName}': expected '${expectedType}', got '${clientField.dataType}'`,
+            `Type mismatch on '${tableName}.${fieldName}': expected '${expectedType}', got '${clientField.dataType}'`
           );
         }
 
@@ -133,7 +129,7 @@ export class SchemaValidator {
 
       if (extraFields.length > 0) {
         warnings.push(
-          `Table '${tableName}' has ${String(extraFields.length)} extra field(s): ${extraFields.join(', ')}`,
+          `Table '${tableName}' has ${String(extraFields.length)} extra field(s): ${extraFields.join(', ')}`
         );
       }
 
@@ -164,7 +160,7 @@ export class SchemaValidator {
   /** Validate all paths in a registry against a client schema */
   validateRegistry(
     registry: ExtractionPath[],
-    clientSchema: ClientSchema,
+    clientSchema: ClientSchema
   ): {
     validPaths: PathValidation[];
     invalidPaths: PathValidation[];
@@ -250,11 +246,7 @@ export class SchemaValidator {
   }
 
   /** Quick check: does a specific table.field exist in the client schema? */
-  fieldExists(
-    clientSchema: ClientSchema,
-    tableName: string,
-    fieldName: string,
-  ): boolean {
+  fieldExists(clientSchema: ClientSchema, tableName: string, fieldName: string): boolean {
     const table = clientSchema.tables.get(tableName);
     if (!table) return false;
     return table.fields.has(fieldName);
@@ -263,7 +255,7 @@ export class SchemaValidator {
   /** Get type compatibility between reference and client */
   checkTypeCompatibility(
     referenceType: string,
-    clientType: string,
+    clientType: string
   ): { compatible: boolean; reason?: string } {
     const refUpper = referenceType.toUpperCase();
     const clientUpper = clientType.toUpperCase();

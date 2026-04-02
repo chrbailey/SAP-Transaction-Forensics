@@ -7,10 +7,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import {
-  VALID_TRANSITIONS,
-  TERMINAL_STATES,
-} from './types.js';
+import { VALID_TRANSITIONS, TERMINAL_STATES } from './types.js';
 import type {
   FindingState,
   FindingSource,
@@ -90,16 +87,14 @@ export class FindingLifecycleManager {
     toState: FindingState,
     by: string,
     notes: string,
-    evidence?: string,
+    evidence?: string
   ): UnifiedFinding {
     const finding = this.findings.get(findingId);
     if (!finding) {
       throw new Error(`Finding not found: ${findingId}`);
     }
     if (!this.isValidTransition(finding.state, toState)) {
-      throw new Error(
-        `Invalid transition from ${finding.state} to ${toState}`,
-      );
+      throw new Error(`Invalid transition from ${finding.state} to ${toState}`);
     }
 
     const now = new Date().toISOString();
@@ -142,16 +137,16 @@ export class FindingLifecycleManager {
     let results = Array.from(this.findings.values());
 
     if (filter?.state !== undefined) {
-      results = results.filter((f) => f.state === filter.state);
+      results = results.filter(f => f.state === filter.state);
     }
     if (filter?.source !== undefined) {
-      results = results.filter((f) => f.source === filter.source);
+      results = results.filter(f => f.source === filter.source);
     }
     if (filter?.severity !== undefined) {
-      results = results.filter((f) => f.severity === filter.severity);
+      results = results.filter(f => f.severity === filter.severity);
     }
     if (filter?.minRiskScore !== undefined) {
-      results = results.filter((f) => f.riskScore >= filter.minRiskScore!);
+      results = results.filter(f => f.riskScore >= filter.minRiskScore!);
     }
 
     return results;
@@ -159,16 +154,12 @@ export class FindingLifecycleManager {
 
   /** Get all findings in terminal states */
   getResolved(): UnifiedFinding[] {
-    return Array.from(this.findings.values()).filter((f) =>
-      TERMINAL_STATES.includes(f.state),
-    );
+    return Array.from(this.findings.values()).filter(f => TERMINAL_STATES.includes(f.state));
   }
 
   /** Get all findings needing attention (non-terminal) */
   getActive(): UnifiedFinding[] {
-    return Array.from(this.findings.values()).filter(
-      (f) => !TERMINAL_STATES.includes(f.state),
-    );
+    return Array.from(this.findings.values()).filter(f => !TERMINAL_STATES.includes(f.state));
   }
 
   // ------------------------------------------------------------------
@@ -227,7 +218,7 @@ export class FindingLifecycleManager {
 
       // Find the first DETECTED -> TRIAGED transition
       const triageTx = f.transitions.find(
-        (t) => t.fromState === 'DETECTED' && t.toState === 'TRIAGED',
+        t => t.fromState === 'DETECTED' && t.toState === 'TRIAGED'
       );
       if (triageTx) {
         const detected = new Date(f.detectedAt).getTime();

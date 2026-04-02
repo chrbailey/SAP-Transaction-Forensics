@@ -22,7 +22,7 @@ import type {
 
 function makePair(
   leftFields: Record<string, string> = {},
-  rightFields: Record<string, string> = {},
+  rightFields: Record<string, string> = {}
 ): ComparisonPair {
   return {
     left: {
@@ -158,10 +158,7 @@ describe('ContradictionEngine', () => {
     engine.registerComparator(new NeverFindsComparator());
     engine.registerComparator(new SecondFindsComparator());
 
-    expect(engine.getRegisteredTypes()).toEqual([
-      'STATUS_INCOMPATIBLE',
-      'ENTITY_MISMATCH',
-    ]);
+    expect(engine.getRegisteredTypes()).toEqual(['STATUS_INCOMPATIBLE', 'ENTITY_MISMATCH']);
   });
 
   // -----------------------------------------------------------------------
@@ -170,10 +167,7 @@ describe('ContradictionEngine', () => {
 
   it('analyzePair runs all comparators on one pair', () => {
     const engine = new ContradictionEngine();
-    engine.registerAll([
-      new AlwaysFindsComparator(),
-      new NeverFindsComparator(),
-    ]);
+    engine.registerAll([new AlwaysFindsComparator(), new NeverFindsComparator()]);
 
     const findings = engine.analyzePair(makePair());
 
@@ -184,15 +178,12 @@ describe('ContradictionEngine', () => {
 
   it('analyzePair collects findings from multiple comparators', () => {
     const engine = new ContradictionEngine();
-    engine.registerAll([
-      new AlwaysFindsComparator(),
-      new SecondFindsComparator(),
-    ]);
+    engine.registerAll([new AlwaysFindsComparator(), new SecondFindsComparator()]);
 
     const findings = engine.analyzePair(makePair());
 
     expect(findings).toHaveLength(2);
-    const types = findings.map((f) => f.type);
+    const types = findings.map(f => f.type);
     expect(types).toContain('AMOUNT_DIVERGENCE');
     expect(types).toContain('ENTITY_MISMATCH');
   });
@@ -254,9 +245,9 @@ describe('ContradictionEngine', () => {
   it('analyzeWithTypes filters by type', () => {
     const engine = new ContradictionEngine();
     engine.registerAll([
-      new AlwaysFindsComparator(),   // AMOUNT_DIVERGENCE
-      new NeverFindsComparator(),    // STATUS_INCOMPATIBLE
-      new SecondFindsComparator(),   // ENTITY_MISMATCH
+      new AlwaysFindsComparator(), // AMOUNT_DIVERGENCE
+      new NeverFindsComparator(), // STATUS_INCOMPATIBLE
+      new SecondFindsComparator(), // ENTITY_MISMATCH
     ]);
 
     const pairs = [makePair()];
@@ -275,10 +266,7 @@ describe('ContradictionEngine', () => {
 
   it('a throwing comparator does not crash the engine', () => {
     const engine = new ContradictionEngine();
-    engine.registerAll([
-      new ThrowingComparator(),
-      new AlwaysFindsComparator(),
-    ]);
+    engine.registerAll([new ThrowingComparator(), new AlwaysFindsComparator()]);
 
     // Suppress console.error for this test
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});

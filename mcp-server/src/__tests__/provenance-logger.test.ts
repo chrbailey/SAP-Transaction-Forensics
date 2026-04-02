@@ -96,12 +96,8 @@ function createMockAdapter(): IDataAdapter & { calls: CallLog[] } {
   };
 
   const sampleDocText: DocTextResult = {
-    header_texts: [
-      { text_id: '0001', lang: 'EN', text: 'Test header text' },
-    ],
-    item_texts: [
-      { item_number: '000010', text_id: '0001', lang: 'EN', text: 'Test item text' },
-    ],
+    header_texts: [{ text_id: '0001', lang: 'EN', text: 'Test header text' }],
+    item_texts: [{ item_number: '000010', text_id: '0001', lang: 'EN', text: 'Test item text' }],
   };
 
   const sampleSearchResult: SearchResult[] = [
@@ -121,9 +117,7 @@ function createMockAdapter(): IDataAdapter & { calls: CallLog[] } {
       requested_date: '20240120',
       actual_gi_date: '20240121',
     },
-    item_timing: [
-      { item_number: '000010', material: 'MAT001' },
-    ],
+    item_timing: [{ item_number: '000010', material: 'MAT001' }],
   };
 
   const sampleInvoiceTiming: InvoiceTimingResult = {
@@ -567,7 +561,10 @@ describe('ProvenanceLogger', () => {
       { name: 'getSalesDocItems', call: w => w.getSalesDocItems({ vbeln: '12345' }) },
       { name: 'getDeliveryTiming', call: w => w.getDeliveryTiming({ vbeln: '12345' }) },
       { name: 'getInvoiceTiming', call: w => w.getInvoiceTiming({ vbeln: '12345' }) },
-      { name: 'getMasterStub', call: w => w.getMasterStub({ entity_type: 'customer', id: '12345' }) },
+      {
+        name: 'getMasterStub',
+        call: w => w.getMasterStub({ entity_type: 'customer', id: '12345' }),
+      },
     ];
 
     for (const { name, call } of methods) {

@@ -7,21 +7,14 @@
  * or in-memory mock).
  */
 
-import type {
-  ExtractionRecord,
-  EvidenceRole,
-  ProvenanceSummary,
-  SystemType,
-} from './types.js';
+import type { ExtractionRecord, EvidenceRole, ProvenanceSummary, SystemType } from './types.js';
 
 /**
  * Minimal reader interface matching ProvenanceDB query surface.
  * Decoupled from schema.ts so query logic can be tested with mocks.
  */
 export interface ProvenanceReader {
-  getExtractionsByFinding(
-    findingId: string,
-  ): Array<ExtractionRecord & { role: EvidenceRole }>;
+  getExtractionsByFinding(findingId: string): Array<ExtractionRecord & { role: EvidenceRole }>;
   getExtraction(id: string): ExtractionRecord | null;
   getExtractionsByQuery(queryHash: string): ExtractionRecord[];
   verifyReplay(queryHash: string, currentReplayHash: string): boolean;
@@ -118,10 +111,13 @@ export class ProvenanceQuery {
    * with record counts per system/table pair.
    */
   getTableCoverage(
-    findingId: string,
+    findingId: string
   ): Array<{ systemType: SystemType; tableName: string; recordCount: number }> {
     const extractions = this.reader.getExtractionsByFinding(findingId);
-    const countMap = new Map<string, { systemType: SystemType; tableName: string; count: number }>();
+    const countMap = new Map<
+      string,
+      { systemType: SystemType; tableName: string; count: number }
+    >();
 
     for (const ext of extractions) {
       const key = `${ext.systemType}:${ext.tableName}`;
@@ -138,7 +134,7 @@ export class ProvenanceQuery {
     }
 
     return [...countMap.values()]
-      .map((entry) => ({
+      .map(entry => ({
         systemType: entry.systemType,
         tableName: entry.tableName,
         recordCount: entry.count,
@@ -156,7 +152,7 @@ export class ProvenanceQuery {
    */
   verifyFindingReplayability(
     findingId: string,
-    currentHashes: Map<string, string>,
+    currentHashes: Map<string, string>
   ): {
     allReplayable: boolean;
     staleExtractions: Array<{

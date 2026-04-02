@@ -104,11 +104,13 @@ describe('SummaryGenerator', () => {
 
   // 9. High finding count triggers different narrative
   test('high critical/high counts appear in significant-risk narrative', () => {
-    const md = gen.generateSummary(makeSummaryParams({
-      overallRiskScore: 88,
-      criticalCount: 10,
-      highCount: 15,
-    }));
+    const md = gen.generateSummary(
+      makeSummaryParams({
+        overallRiskScore: 88,
+        criticalCount: 10,
+        highCount: 15,
+      })
+    );
     expect(md).toContain('10 critical');
     expect(md).toContain('15 high-severity');
     expect(md).toContain('significant concerns');
@@ -116,14 +118,16 @@ describe('SummaryGenerator', () => {
 
   // 10. Zero findings produces clean report narrative
   test('zero findings with low risk produces clean report', () => {
-    const md = gen.generateSummary(makeSummaryParams({
-      overallRiskScore: 5,
-      criticalCount: 0,
-      highCount: 0,
-      mediumCount: 0,
-      contradictionCount: 0,
-      gapCount: 0,
-    }));
+    const md = gen.generateSummary(
+      makeSummaryParams({
+        overallRiskScore: 5,
+        criticalCount: 0,
+        highCount: 0,
+        mediumCount: 0,
+        contradictionCount: 0,
+        gapCount: 0,
+      })
+    );
     expect(md).toContain('| Critical Findings | 0 |');
     expect(md).toContain('| High Findings | 0 |');
     expect(md).toContain('no significant issues requiring urgent attention');
@@ -147,7 +151,13 @@ describe('ChecklistGenerator', () => {
   // 6. Checklist has 5 items per category
   test('checklist has 5 items per category', () => {
     const cl = gen.generateChecklist('ENG-2025-042', 10, 2);
-    const categories = ['data_quality', 'completeness', 'methodology', 'findings', 'remediation'] as const;
+    const categories = [
+      'data_quality',
+      'completeness',
+      'methodology',
+      'findings',
+      'remediation',
+    ] as const;
 
     for (const cat of categories) {
       const count = cl.items.filter(i => i.category === cat).length;

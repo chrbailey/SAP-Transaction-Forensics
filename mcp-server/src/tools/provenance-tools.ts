@@ -22,7 +22,7 @@ export interface ProvenanceToolDeps {
   registry?: ExtractionRegistry;
   executeExtraction?: (
     pathId: string,
-    parameters: Record<string, string>,
+    parameters: Record<string, string>
   ) => Promise<ExtractionResult>;
 }
 
@@ -59,7 +59,7 @@ export const queryProvenanceTool = {
 
 export async function executeQueryProvenance(
   deps: ProvenanceToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = QueryProvenanceSchema.parse(rawInput);
 
@@ -112,7 +112,7 @@ export const listExtractionPathsTool = {
 
 export async function executeListExtractionPaths(
   deps: ProvenanceToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = ListExtractionPathsSchema.parse(rawInput);
 
@@ -120,7 +120,10 @@ export async function executeListExtractionPaths(
     throw new Error('Extraction registry not configured');
   }
 
-  const filter: { systemType?: 'SAP' | 'NetSuite' | 'Salesforce'; domain?: 'o2c' | 'fi-co' | 'p2p' | 'user-audit' | 'pipeline' } = {};
+  const filter: {
+    systemType?: 'SAP' | 'NetSuite' | 'Salesforce';
+    domain?: 'o2c' | 'fi-co' | 'p2p' | 'user-audit' | 'pipeline';
+  } = {};
   if (input.system_type) {
     filter.systemType = input.system_type;
   }
@@ -130,7 +133,7 @@ export async function executeListExtractionPaths(
 
   const paths = deps.registry.list(Object.keys(filter).length > 0 ? filter : undefined);
 
-  return paths.map((p) => ({
+  return paths.map(p => ({
     id: p.id,
     version: p.version,
     name: p.name,
@@ -180,7 +183,7 @@ export const runExtractionTool = {
 
 export async function executeRunExtraction(
   deps: ProvenanceToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = RunExtractionSchema.parse(rawInput);
 
@@ -208,7 +211,7 @@ export async function executeRunExtraction(
       version: path.version,
       query: path.query,
       parameters: input.parameters,
-      expectedFields: path.expectedFields.map((f) => ({
+      expectedFields: path.expectedFields.map(f => ({
         name: f.name,
         type: f.type,
         description: f.description,

@@ -67,10 +67,7 @@ interface ComparisonPair {
 
 interface Comparator {
   readonly type: ContradictionType;
-  compare(
-    pair: ComparisonPair,
-    config: ContradictionConfig,
-  ): ContradictionFinding | null;
+  compare(pair: ComparisonPair, config: ContradictionConfig): ContradictionFinding | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,13 +78,18 @@ const MS_PER_DAY = 86_400_000;
 
 /** SAP date fields (transaction, document, posting, change dates). */
 const SAP_DATE_FIELDS = new Set([
-  'ERDAT', 'AEDAT', 'FKDAT', 'BUDAT', 'BLDAT', 'CPUDT', 'LFDAT', 'WADAT',
+  'ERDAT',
+  'AEDAT',
+  'FKDAT',
+  'BUDAT',
+  'BLDAT',
+  'CPUDT',
+  'LFDAT',
+  'WADAT',
 ]);
 
 /** Salesforce standard date fields. */
-const SFDC_DATE_FIELDS = new Set([
-  'CloseDate', 'CreatedDate', 'LastModifiedDate', 'ActivityDate',
-]);
+const SFDC_DATE_FIELDS = new Set(['CloseDate', 'CreatedDate', 'LastModifiedDate', 'ActivityDate']);
 
 /** Regex to detect date-suffixed field names. */
 const DATE_SUFFIX_RE = /(?:_date|_DATE|Date)$/;
@@ -117,11 +119,7 @@ export function parseFlexibleDate(value: string): Date | null {
     const m = Number(trimmed.slice(4, 6)) - 1;
     const d = Number(trimmed.slice(6, 8));
     const date = new Date(Date.UTC(y, m, d));
-    if (
-      date.getUTCFullYear() === y &&
-      date.getUTCMonth() === m &&
-      date.getUTCDate() === d
-    ) {
+    if (date.getUTCFullYear() === y && date.getUTCMonth() === m && date.getUTCDate() === d) {
       return date;
     }
     return null;
@@ -134,11 +132,7 @@ export function parseFlexibleDate(value: string): Date | null {
     const m = Number(euMatch[2]) - 1;
     const y = Number(euMatch[3]);
     const date = new Date(Date.UTC(y, m, d));
-    if (
-      date.getUTCFullYear() === y &&
-      date.getUTCMonth() === m &&
-      date.getUTCDate() === d
-    ) {
+    if (date.getUTCFullYear() === y && date.getUTCMonth() === m && date.getUTCDate() === d) {
       return date;
     }
     return null;
@@ -147,7 +141,7 @@ export function parseFlexibleDate(value: string): Date | null {
   // ISO 8601 date or datetime (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss...)
   const isoMatch =
     /^(\d{4})-(\d{2})-(\d{2})(?:T\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.exec(
-      trimmed,
+      trimmed
     );
   if (isoMatch) {
     const parsed = new Date(trimmed);
@@ -199,10 +193,7 @@ function findingId(type: string, leftId: string, rightId: string): string {
 export class DateConflictComparator implements Comparator {
   readonly type = 'DATE_CONFLICT' as const;
 
-  compare(
-    pair: ComparisonPair,
-    config: ContradictionConfig,
-  ): ContradictionFinding | null {
+  compare(pair: ComparisonPair, config: ContradictionConfig): ContradictionFinding | null {
     const leftDateFields = dateFieldsIn(pair.left.fields);
     const rightDateFields = dateFieldsIn(pair.right.fields);
 
@@ -316,13 +307,9 @@ const CAUSAL_RULES: CausalRule[] = [
 export class TemporalImpossibilityComparator implements Comparator {
   readonly type = 'TEMPORAL_IMPOSSIBILITY' as const;
 
-  compare(
-    pair: ComparisonPair,
-    _config: ContradictionConfig,
-  ): ContradictionFinding | null {
+  compare(pair: ComparisonPair, _config: ContradictionConfig): ContradictionFinding | null {
     // Merge fields from both sides so we can check cross-system sequences
-    const merged: Record<string, { value: string; side: 'left' | 'right' }> =
-      {};
+    const merged: Record<string, { value: string; side: 'left' | 'right' }> = {};
 
     for (const [k, v] of Object.entries(pair.left.fields)) {
       merged[k] = { value: v, side: 'left' };
@@ -347,16 +334,11 @@ export class TemporalImpossibilityComparator implements Comparator {
       if (beforeDate.getTime() > afterDate.getTime()) {
         const impossibleGapDays = dayGap(beforeDate, afterDate);
 
-        const beforeSide =
-          beforeEntry.side === 'left' ? pair.left : pair.right;
+        const beforeSide = beforeEntry.side === 'left' ? pair.left : pair.right;
         const afterSide = afterEntry.side === 'left' ? pair.left : pair.right;
 
         return {
-          id: findingId(
-            this.type,
-            pair.left.recordId,
-            pair.right.recordId,
-          ),
+          id: findingId(this.type, pair.left.recordId, pair.right.recordId),
           type: this.type,
           severity: 'CRITICAL',
           confidence: 0.95,

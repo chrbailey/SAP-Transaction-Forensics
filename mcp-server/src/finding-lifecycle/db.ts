@@ -45,14 +45,14 @@ interface FindingRow {
   description: string;
   severity: string;
   risk_score: number;
-  systems_covered: string;   // JSON array
-  tables_covered: string;    // JSON array
-  extraction_ids: string;    // JSON array
+  systems_covered: string; // JSON array
+  tables_covered: string; // JSON array
+  extraction_ids: string; // JSON array
   assigned_to: string | null;
   detected_at: string;
   last_transition_at: string;
   resolved_at: string | null;
-  transitions: string;       // JSON array of StateTransition
+  transitions: string; // JSON array of StateTransition
 }
 
 // ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ export class FindingLifecycleDB {
       finding.detectedAt,
       finding.lastTransitionAt,
       finding.resolvedAt ?? null,
-      JSON.stringify(finding.transitions),
+      JSON.stringify(finding.transitions)
     );
   }
 
@@ -147,21 +147,25 @@ export class FindingLifecycleDB {
   loadAll(): UnifiedFinding[] {
     const stmt = this.db.prepare('SELECT * FROM findings ORDER BY detected_at DESC');
     const rows = stmt.all() as FindingRow[];
-    return rows.map((r) => this.rowToFinding(r));
+    return rows.map(r => this.rowToFinding(r));
   }
 
   /** Load findings by state */
   loadByState(state: FindingState): UnifiedFinding[] {
-    const stmt = this.db.prepare('SELECT * FROM findings WHERE state = ? ORDER BY detected_at DESC');
+    const stmt = this.db.prepare(
+      'SELECT * FROM findings WHERE state = ? ORDER BY detected_at DESC'
+    );
     const rows = stmt.all(state) as FindingRow[];
-    return rows.map((r) => this.rowToFinding(r));
+    return rows.map(r => this.rowToFinding(r));
   }
 
   /** Load findings by source */
   loadBySource(source: FindingSource): UnifiedFinding[] {
-    const stmt = this.db.prepare('SELECT * FROM findings WHERE source = ? ORDER BY detected_at DESC');
+    const stmt = this.db.prepare(
+      'SELECT * FROM findings WHERE source = ? ORDER BY detected_at DESC'
+    );
     const rows = stmt.all(source) as FindingRow[];
-    return rows.map((r) => this.rowToFinding(r));
+    return rows.map(r => this.rowToFinding(r));
   }
 
   /** Count findings by state */

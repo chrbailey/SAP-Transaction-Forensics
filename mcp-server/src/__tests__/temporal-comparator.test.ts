@@ -73,7 +73,7 @@ describe('DateConflictComparator', () => {
   it('detects 45-day gap between SAP ERDAT and SFDC CloseDate', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-15' } },
-      { fields: { CloseDate: '2025-03-01' } },
+      { fields: { CloseDate: '2025-03-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -87,7 +87,7 @@ describe('DateConflictComparator', () => {
   it('returns null for dates within threshold', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-15' } },
-      { fields: { CloseDate: '2025-01-18' } },
+      { fields: { CloseDate: '2025-01-18' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
     expect(finding).toBeNull();
@@ -97,7 +97,7 @@ describe('DateConflictComparator', () => {
   it('assigns HIGH severity for >60-day gap', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-01' } },
-      { fields: { CloseDate: '2025-04-01' } },
+      { fields: { CloseDate: '2025-04-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -109,7 +109,7 @@ describe('DateConflictComparator', () => {
   it('assigns MEDIUM severity for 30-60 day gap', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-01' } },
-      { fields: { CloseDate: '2025-02-15' } },
+      { fields: { CloseDate: '2025-02-15' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -121,7 +121,7 @@ describe('DateConflictComparator', () => {
   it('handles SAP YYYYMMDD format', () => {
     const pair = makePair(
       { fields: { ERDAT: '20250115' } },
-      { fields: { CloseDate: '2025-03-01' } },
+      { fields: { CloseDate: '2025-03-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -133,7 +133,7 @@ describe('DateConflictComparator', () => {
   it('handles DD.MM.YYYY format', () => {
     const pair = makePair(
       { fields: { ERDAT: '15.01.2025' } },
-      { fields: { CloseDate: '2025-03-01' } },
+      { fields: { CloseDate: '2025-03-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -145,7 +145,7 @@ describe('DateConflictComparator', () => {
   it('handles ISO format with time component', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-15T10:30:00Z' } },
-      { fields: { CloseDate: '2025-03-01' } },
+      { fields: { CloseDate: '2025-03-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -165,7 +165,7 @@ describe('DateConflictComparator', () => {
       {
         system: 'Salesforce',
         fields: { CloseDate: '2025-01-10' },
-      },
+      }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
@@ -188,10 +188,7 @@ describe('TemporalImpossibilityComparator', () => {
 
   // 9. detects invoice before delivery
   it('detects invoice before delivery (FKDAT before LFDAT)', () => {
-    const pair = makePair(
-      { fields: { LFDAT: '2025-03-15', FKDAT: '2025-03-01' } },
-      { fields: {} },
-    );
+    const pair = makePair({ fields: { LFDAT: '2025-03-15', FKDAT: '2025-03-01' } }, { fields: {} });
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
     expect(finding).not.toBeNull();
@@ -201,10 +198,7 @@ describe('TemporalImpossibilityComparator', () => {
 
   // 10. detects delivery before order
   it('detects delivery before order (LFDAT before ERDAT)', () => {
-    const pair = makePair(
-      { fields: { ERDAT: '2025-04-01', LFDAT: '2025-03-15' } },
-      { fields: {} },
-    );
+    const pair = makePair({ fields: { ERDAT: '2025-04-01', LFDAT: '2025-03-15' } }, { fields: {} });
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
     expect(finding).not.toBeNull();
@@ -216,7 +210,7 @@ describe('TemporalImpossibilityComparator', () => {
   it('returns null for correct temporal sequence', () => {
     const pair = makePair(
       { fields: { ERDAT: '2025-01-01', LFDAT: '2025-02-01', FKDAT: '2025-03-01' } },
-      { fields: {} },
+      { fields: {} }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
     expect(finding).toBeNull();
@@ -224,10 +218,7 @@ describe('TemporalImpossibilityComparator', () => {
 
   // 12. always CRITICAL severity
   it('always assigns CRITICAL severity', () => {
-    const pair = makePair(
-      { fields: { ERDAT: '2025-03-02', LFDAT: '2025-03-01' } },
-      { fields: {} },
-    );
+    const pair = makePair({ fields: { ERDAT: '2025-03-02', LFDAT: '2025-03-01' } }, { fields: {} });
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
     expect(finding).not.toBeNull();
@@ -236,10 +227,7 @@ describe('TemporalImpossibilityComparator', () => {
 
   // 13. high confidence (0.95)
   it('reports confidence 0.95', () => {
-    const pair = makePair(
-      { fields: { ERDAT: '2025-03-02', LFDAT: '2025-03-01' } },
-      { fields: {} },
-    );
+    const pair = makePair({ fields: { ERDAT: '2025-03-02', LFDAT: '2025-03-01' } }, { fields: {} });
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 
     expect(finding).not.toBeNull();
@@ -250,7 +238,7 @@ describe('TemporalImpossibilityComparator', () => {
   it('detects SFDC CloseDate before CreatedDate across systems', () => {
     const pair = makePair(
       { fields: {} },
-      { fields: { CreatedDate: '2025-06-01', CloseDate: '2025-05-01' } },
+      { fields: { CreatedDate: '2025-06-01', CloseDate: '2025-05-01' } }
     );
     const finding = comparator.compare(pair, DEFAULT_CONFIG);
 

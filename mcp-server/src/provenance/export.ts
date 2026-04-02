@@ -8,11 +8,7 @@
  *   - Markdown: human-readable table for review documents
  */
 
-import type {
-  EvidenceRole,
-  ProvenanceDAG,
-  ProvenanceNode,
-} from './types.js';
+import type { EvidenceRole, ProvenanceDAG, ProvenanceNode } from './types.js';
 import type { ProvenanceQuery } from './query.js';
 
 export class ProvenanceExporter {
@@ -32,7 +28,7 @@ export class ProvenanceExporter {
       const extractions = chain[role];
       if (extractions.length === 0) continue;
 
-      const extractionNodes: ProvenanceNode[] = extractions.map((ext) => ({
+      const extractionNodes: ProvenanceNode[] = extractions.map(ext => ({
         type: 'extraction' as const,
         id: ext.id,
         data: {
@@ -138,24 +134,18 @@ export class ProvenanceExporter {
     const rows = this.exportFlat(findingId);
 
     const header = '| Role | System | Table | Record | Field | Value | Extracted At | Query Hash |';
-    const separator = '|------|--------|-------|--------|-------|-------|--------------|------------|';
+    const separator =
+      '|------|--------|-------|--------|-------|-------|--------------|------------|';
 
     if (rows.length === 0) {
       return `# Provenance: ${findingId}\n\nNo evidence found.\n`;
     }
 
     const dataRows = rows.map(
-      (r) =>
-        `| ${r.role} | ${r.systemType} | ${r.tableName} | ${r.recordId} | ${r.fieldName} | ${r.rawValue} | ${r.extractedAt} | ${r.queryHash.slice(0, 8)}... |`,
+      r =>
+        `| ${r.role} | ${r.systemType} | ${r.tableName} | ${r.recordId} | ${r.fieldName} | ${r.rawValue} | ${r.extractedAt} | ${r.queryHash.slice(0, 8)}... |`
     );
 
-    return [
-      `# Provenance: ${findingId}`,
-      '',
-      header,
-      separator,
-      ...dataRows,
-      '',
-    ].join('\n');
+    return [`# Provenance: ${findingId}`, '', header, separator, ...dataRows, ''].join('\n');
   }
 }

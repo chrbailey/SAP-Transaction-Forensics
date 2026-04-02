@@ -134,26 +134,23 @@ describe('SAP O2C Extraction Paths — query content', () => {
 // ============================================================================
 
 describe('SAP O2C Extraction Paths — field alignment', () => {
-  test.each([
-    'order-header',
-    'order-items',
-    'document-flow',
-    'delivery-timing',
-    'invoice-timing',
-  ])('%s: expectedFields match SELECT clause fields', (suffix) => {
-    const path = findPath(suffix);
-    const selectFields = extractSelectFields(path.query);
-    const expectedFieldNames = path.expectedFields.map(f => f.name);
+  test.each(['order-header', 'order-items', 'document-flow', 'delivery-timing', 'invoice-timing'])(
+    '%s: expectedFields match SELECT clause fields',
+    suffix => {
+      const path = findPath(suffix);
+      const selectFields = extractSelectFields(path.query);
+      const expectedFieldNames = path.expectedFields.map(f => f.name);
 
-    // Every SELECT field should have a matching expectedField
-    for (const field of selectFields) {
-      expect(expectedFieldNames).toContain(field);
+      // Every SELECT field should have a matching expectedField
+      for (const field of selectFields) {
+        expect(expectedFieldNames).toContain(field);
+      }
+      // And every expectedField should appear in SELECT
+      for (const fieldName of expectedFieldNames) {
+        expect(selectFields).toContain(fieldName);
+      }
     }
-    // And every expectedField should appear in SELECT
-    for (const fieldName of expectedFieldNames) {
-      expect(selectFields).toContain(fieldName);
-    }
-  });
+  );
 });
 
 // ============================================================================
@@ -174,8 +171,13 @@ describe('SAP O2C Extraction Paths — field types', () => {
 
   test('date fields (ERDAT, FKDAT, LFDAT, WADAT, WADAT_IST, LIKP_ERDAT, VBRK_ERDAT) have type date', () => {
     const dateFieldNames = [
-      'ERDAT', 'FKDAT', 'LFDAT', 'WADAT', 'WADAT_IST',
-      'LIKP_ERDAT', 'VBRK_ERDAT',
+      'ERDAT',
+      'FKDAT',
+      'LFDAT',
+      'WADAT',
+      'WADAT_IST',
+      'LIKP_ERDAT',
+      'VBRK_ERDAT',
     ];
     for (const path of SAP_O2C_PATHS) {
       for (const field of path.expectedFields) {

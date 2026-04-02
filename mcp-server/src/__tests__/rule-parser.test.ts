@@ -78,7 +78,7 @@ describe('RuleParser', () => {
     const def = validDef({ type: 'bogus_type' });
     const { valid, errors } = parser.validateDefinition(def);
     expect(valid).toBe(false);
-    expect(errors.some((e) => e.includes('invalid rule type'))).toBe(true);
+    expect(errors.some(e => e.includes('invalid rule type'))).toBe(true);
   });
 
   // 5. generateId produces a deterministic ID
@@ -99,7 +99,7 @@ describe('RuleParser', () => {
   // 7. parseApprovalText extracts currency from "EUR 10,000"
   it('parseApprovalText extracts currency from ISO code amount', () => {
     const result = RuleParser.parseApprovalText(
-      'Invoices exceeding EUR 10,000 must be reviewed by Finance Manager',
+      'Invoices exceeding EUR 10,000 must be reviewed by Finance Manager'
     );
     expect(result.currency).toBe('EUR');
     expect(result.threshold).toBe(10000);
@@ -114,7 +114,7 @@ describe('RuleParser', () => {
   // 9. parseTimingSLA extracts days from "5 business days"
   it('parseTimingSLA extracts day count from business days', () => {
     const result = RuleParser.parseTimingSLA(
-      'Delivery must occur within 5 business days of order confirmation',
+      'Delivery must occur within 5 business days of order confirmation'
     );
     expect(result.maxDays).toBe(5);
   });
@@ -122,7 +122,7 @@ describe('RuleParser', () => {
   // 10. parseTimingSLA extracts activity
   it('parseTimingSLA extracts the reference activity', () => {
     const result = RuleParser.parseTimingSLA(
-      'Delivery must occur within 5 business days of order confirmation',
+      'Delivery must occur within 5 business days of order confirmation'
     );
     expect(result.activity).toBe('order confirmation');
   });
@@ -149,8 +149,12 @@ describe('RuleParser', () => {
   // 13. Standard ruleset rules have valid IDs and types
   it('standard ruleset rules have valid IDs and rule types', () => {
     const validTypes = new Set([
-      'approval_threshold', 'sod_constraint', 'sequence_requirement',
-      'timing_sla', 'field_validation', 'routing_rule',
+      'approval_threshold',
+      'sod_constraint',
+      'sequence_requirement',
+      'timing_sla',
+      'field_validation',
+      'routing_rule',
     ]);
     for (const sys of ['SAP', 'NetSuite', 'Salesforce'] as const) {
       const rules = RuleParser.createStandardRuleset(sys);
@@ -170,7 +174,7 @@ describe('RuleParser', () => {
       validDef({ section: '5.1' }),
     ];
     const { rules, errors } = parser.parseRules(defs);
-    expect(rules).toHaveLength(2);   // first and third are valid
+    expect(rules).toHaveLength(2); // first and third are valid
     expect(errors.length).toBeGreaterThanOrEqual(2); // at least 2 errors from the bad one
   });
 
@@ -181,7 +185,7 @@ describe('RuleParser', () => {
       validDef({ section: 'Section B' }),
       validDef({ document: 'OTHER-DOC', section: 'Section A' }),
     ];
-    const ids = defs.map((d) => parser.parseRule(d).id);
+    const ids = defs.map(d => parser.parseRule(d).id);
     const unique = new Set(ids);
     expect(unique.size).toBe(ids.length);
   });

@@ -25,9 +25,9 @@ export interface ParameterDefinition {
 export interface FieldDefinition {
   name: string;
   type: FieldType;
-  sapFieldName?: string;    // Original SAP field name if applicable
-  netsuiteName?: string;    // Original NetSuite field name if applicable
-  sfdcName?: string;        // Original Salesforce field name if applicable
+  sapFieldName?: string; // Original SAP field name if applicable
+  netsuiteName?: string; // Original NetSuite field name if applicable
+  sfdcName?: string; // Original Salesforce field name if applicable
   description: string;
 }
 
@@ -41,14 +41,14 @@ export interface TestExpectation {
 
 /** A named, versioned, deterministic extraction path */
 export interface ExtractionPath {
-  id: string;                   // e.g., 'sap.o2c.order-header'
-  version: string;              // semver
-  name: string;                 // Human-readable name
-  description: string;          // What this extracts and why
+  id: string; // e.g., 'sap.o2c.order-header'
+  version: string; // semver
+  name: string; // Human-readable name
+  description: string; // What this extracts and why
   systemType: SystemType;
   domain: ExtractionDomain;
   queryType: QueryType;
-  query: string;                // The actual query text
+  query: string; // The actual query text
   parameters: ParameterDefinition[];
   expectedFields: FieldDefinition[];
   testData?: TestExpectation;
@@ -62,7 +62,7 @@ export interface ExtractionResult {
   rows: Record<string, string>[];
   rowCount: number;
   replayHash: string;
-  extractedAt: string;          // ISO 8601
+  extractedAt: string; // ISO 8601
 }
 
 /** Registry metadata for version tracking */

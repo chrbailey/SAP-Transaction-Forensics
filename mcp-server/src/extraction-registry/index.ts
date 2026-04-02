@@ -9,9 +9,7 @@
 import { validatePathId, validateVersion } from './metadata.js';
 
 // Re-export all types for consumer convenience
-export type {
-  SystemType,
-} from '../provenance/types.js';
+export type { SystemType } from '../provenance/types.js';
 
 export type {
   QueryType,
@@ -35,12 +33,7 @@ export {
 } from './metadata.js';
 
 import type { SystemType } from '../provenance/types.js';
-import type {
-  QueryType,
-  ExtractionDomain,
-  ExtractionPath,
-  RegistryMetadata,
-} from './types.js';
+import type { QueryType, ExtractionDomain, ExtractionPath, RegistryMetadata } from './types.js';
 
 export class ExtractionRegistry {
   private paths: Map<string, ExtractionPath> = new Map();
@@ -98,7 +91,7 @@ export class ExtractionRegistry {
       return all;
     }
 
-    return all.filter((path) => {
+    return all.filter(path => {
       if (filter.systemType && path.systemType !== filter.systemType) return false;
       if (filter.domain && path.domain !== filter.domain) return false;
       if (filter.queryType && path.queryType !== filter.queryType) return false;
@@ -109,7 +102,7 @@ export class ExtractionRegistry {
   /** Validate parameters against a path's parameter definitions */
   validateParameters(
     pathId: string,
-    params: Record<string, string>,
+    params: Record<string, string>
   ): { valid: boolean; errors: string[] } {
     const path = this.paths.get(pathId);
     if (!path) {
@@ -131,8 +124,8 @@ export class ExtractionRegistry {
   getMetadata(): RegistryMetadata {
     const all = [...this.paths.values()];
 
-    const domains = [...new Set(all.map((p) => p.domain))];
-    const systems = [...new Set(all.map((p) => p.systemType))];
+    const domains = [...new Set(all.map(p => p.domain))];
+    const systems = [...new Set(all.map(p => p.systemType))];
 
     return {
       registryVersion: '1.0',

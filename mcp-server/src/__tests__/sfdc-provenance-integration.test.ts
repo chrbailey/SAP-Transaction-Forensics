@@ -295,7 +295,10 @@ describe('SFDC Provenance Integration', () => {
     });
 
     it('should return the same getMasterStub result', async () => {
-      const directResult = await mockAdapter.getMasterStub({ entity_type: 'customer', id: 'ACC-001' });
+      const directResult = await mockAdapter.getMasterStub({
+        entity_type: 'customer',
+        id: 'ACC-001',
+      });
       const wrappedResult = await wrapped.getMasterStub({ entity_type: 'customer', id: 'ACC-001' });
       expect(wrappedResult).toEqual(directResult);
     });

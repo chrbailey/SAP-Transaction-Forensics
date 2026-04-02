@@ -23,8 +23,12 @@ import { DEFAULT_GAP_CONFIG } from '../reality-gap/types.js';
 const VALID_GAP_TYPES: readonly string[] = ['design', 'compliance', 'shadow'];
 const VALID_GAP_SEVERITIES: readonly string[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
 const VALID_RULE_TYPES: readonly string[] = [
-  'approval_threshold', 'sod_constraint', 'sequence_requirement',
-  'timing_sla', 'field_validation', 'routing_rule',
+  'approval_threshold',
+  'sod_constraint',
+  'sequence_requirement',
+  'timing_sla',
+  'field_validation',
+  'routing_rule',
 ];
 const VALID_SYSTEM_SCOPES: readonly string[] = ['SAP', 'NetSuite', 'Salesforce', 'cross-system'];
 const VALID_EXPECTED_SOURCES: readonly string[] = ['reference', 'documented'];
@@ -240,7 +244,7 @@ describe('Reality Gap types', () => {
       actualEvents: ['SO-12345', 'SO-12346', 'SO-12347'],
       frequency: 23,
       materiality: 0.85,
-      recency: 0.70,
+      recency: 0.7,
       detectedAt: '2026-03-31T15:00:00.000Z',
       systemScope: 'SAP',
     };

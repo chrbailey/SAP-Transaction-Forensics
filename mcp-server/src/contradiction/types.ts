@@ -15,18 +15,18 @@ import type { SystemType } from '../provenance/types.js';
 
 /** 12-category contradiction taxonomy */
 export type ContradictionType =
-  | 'AMOUNT_DIVERGENCE'        // SAP↔SFDC, SAP↔NetSuite: amounts differ >5%
-  | 'DATE_CONFLICT'            // Cross-system: dates logically inconsistent
-  | 'STATUS_INCOMPATIBLE'      // Cross-system: statuses can't both be true
-  | 'ENTITY_MISMATCH'          // Cross-system: matched entities don't match on key fields
-  | 'QUANTITY_DIVERGENCE'      // Intra-system: ordered ≠ delivered ≠ invoiced
-  | 'APPROVAL_BYPASS'          // Any: transaction exceeds threshold without approval
-  | 'TEMPORAL_IMPOSSIBILITY'   // Any: event B happened before event A (impossible sequence)
-  | 'DUPLICATE_REFERENCE'      // Cross-system: two records reference same external ID
-  | 'ORPHAN_RECORD'            // Cross-system: record in system A has no counterpart in B
-  | 'RETROACTIVE_CHANGE'       // Any: change made to record in a closed period
-  | 'SOD_VIOLATION'            // Any: same user performed conflicting actions
-  | 'SCHEMA_GHOST';            // Any: referenced field/table doesn't exist in client schema
+  | 'AMOUNT_DIVERGENCE' // SAP↔SFDC, SAP↔NetSuite: amounts differ >5%
+  | 'DATE_CONFLICT' // Cross-system: dates logically inconsistent
+  | 'STATUS_INCOMPATIBLE' // Cross-system: statuses can't both be true
+  | 'ENTITY_MISMATCH' // Cross-system: matched entities don't match on key fields
+  | 'QUANTITY_DIVERGENCE' // Intra-system: ordered ≠ delivered ≠ invoiced
+  | 'APPROVAL_BYPASS' // Any: transaction exceeds threshold without approval
+  | 'TEMPORAL_IMPOSSIBILITY' // Any: event B happened before event A (impossible sequence)
+  | 'DUPLICATE_REFERENCE' // Cross-system: two records reference same external ID
+  | 'ORPHAN_RECORD' // Cross-system: record in system A has no counterpart in B
+  | 'RETROACTIVE_CHANGE' // Any: change made to record in a closed period
+  | 'SOD_VIOLATION' // Any: same user performed conflicting actions
+  | 'SCHEMA_GHOST'; // Any: referenced field/table doesn't exist in client schema
 
 // ---------------------------------------------------------------------------
 // Severity
@@ -56,11 +56,11 @@ export type ResolutionStatus = 'open' | 'confirmed' | 'explained' | 'false_posit
 
 /** A single contradiction finding with full evidence */
 export interface ContradictionFinding {
-  id: string;                      // UUID
+  id: string; // UUID
   type: ContradictionType;
   severity: Severity;
-  confidence: number;              // 0.0-1.0
-  description: string;             // Human-readable description
+  confidence: number; // 0.0-1.0
+  description: string; // Human-readable description
 
   // Evidence from both sides
   leftSystem: SystemType;
@@ -68,20 +68,20 @@ export interface ContradictionFinding {
   leftRecordId: string;
   leftField: string;
   leftValue: string;
-  leftExtractionId: string;        // FK to provenance extraction_records
+  leftExtractionId: string; // FK to provenance extraction_records
 
   rightSystem: SystemType;
   rightTable: string;
   rightRecordId: string;
   rightField: string;
   rightValue: string;
-  rightExtractionId: string;       // FK to provenance extraction_records
+  rightExtractionId: string; // FK to provenance extraction_records
 
   // Scoring details
-  scoringDetails: Record<string, number>;  // e.g., { percentDivergence: 0.15, absoluteAmount: 50000 }
+  scoringDetails: Record<string, number>; // e.g., { percentDivergence: 0.15, absoluteAmount: 50000 }
 
   // Lifecycle
-  detectedAt: string;              // ISO 8601
+  detectedAt: string; // ISO 8601
   resolutionStatus: ResolutionStatus;
   reviewerNotes: string;
 }
@@ -92,13 +92,13 @@ export interface ContradictionFinding {
 
 /** Configuration for contradiction detection thresholds */
 export interface ContradictionConfig {
-  amountDivergencePercent: number;     // default 0.05 (5%)
+  amountDivergencePercent: number; // default 0.05 (5%)
   amountDivergenceMinAbsolute: number; // minimum absolute difference to flag
-  dateConflictDays: number;            // default 30 days
-  dateConflictHighDays: number;        // default 60 days
-  approvalThreshold: number;           // default 50000
-  stalePeriodDays: number;             // default 90
-  retroactiveDays: number;             // default 0 (any change in closed period)
+  dateConflictDays: number; // default 30 days
+  dateConflictHighDays: number; // default 60 days
+  approvalThreshold: number; // default 50000
+  stalePeriodDays: number; // default 90
+  retroactiveDays: number; // default 0 (any change in closed period)
 }
 
 export const DEFAULT_CONFIG: ContradictionConfig = {
@@ -120,7 +120,7 @@ export interface ComparisonResult {
   contradictions: ContradictionFinding[];
   recordsCompared: number;
   comparisonsRun: number;
-  duration: number;  // ms
+  duration: number; // ms
 }
 
 /** Input for comparators: a pair of records to compare */

@@ -44,7 +44,7 @@ function makePair(
     rightSystem?: 'SAP' | 'NetSuite' | 'Salesforce';
     leftTable?: string;
     rightTable?: string;
-  } = {},
+  } = {}
 ): ComparisonPair {
   return {
     left: {
@@ -170,12 +170,16 @@ describe('QuantityDivergenceComparator', () => {
 
   it('detects ordered vs delivered mismatch', () => {
     // KWMENG (ordered) 100, LFIMG (delivered) 70 → 30% divergence
-    const pair = makePair({ KWMENG: '100' }, { LFIMG: '70' }, {
-      leftSystem: 'SAP',
-      rightSystem: 'SAP',
-      leftTable: 'VBAP',
-      rightTable: 'LIPS',
-    });
+    const pair = makePair(
+      { KWMENG: '100' },
+      { LFIMG: '70' },
+      {
+        leftSystem: 'SAP',
+        rightSystem: 'SAP',
+        leftTable: 'VBAP',
+        rightTable: 'LIPS',
+      }
+    );
     const finding = comparator.compare(pair, defaultConfig());
 
     expect(finding).not.toBeNull();
@@ -185,10 +189,14 @@ describe('QuantityDivergenceComparator', () => {
 
   it('CRITICAL for >50% divergence', () => {
     // 80% divergence
-    const pair = makePair({ KWMENG: '100' }, { LFIMG: '20' }, {
-      leftSystem: 'SAP',
-      rightSystem: 'SAP',
-    });
+    const pair = makePair(
+      { KWMENG: '100' },
+      { LFIMG: '20' },
+      {
+        leftSystem: 'SAP',
+        rightSystem: 'SAP',
+      }
+    );
     const finding = comparator.compare(pair, defaultConfig());
 
     expect(finding).not.toBeNull();
@@ -196,10 +204,14 @@ describe('QuantityDivergenceComparator', () => {
   });
 
   it('returns null for matching quantities', () => {
-    const pair = makePair({ KWMENG: '100' }, { LFIMG: '98' }, {
-      leftSystem: 'SAP',
-      rightSystem: 'SAP',
-    });
+    const pair = makePair(
+      { KWMENG: '100' },
+      { LFIMG: '98' },
+      {
+        leftSystem: 'SAP',
+        rightSystem: 'SAP',
+      }
+    );
     const finding = comparator.compare(pair, defaultConfig());
 
     expect(finding).toBeNull();
@@ -221,10 +233,14 @@ describe('Finding structure', () => {
     expect(finding.id).toMatch(UUID_RE);
     expect(finding.detectedAt).toMatch(ISO_RE);
 
-    const qPair = makePair({ KWMENG: '100' }, { LFIMG: '50' }, {
-      leftSystem: 'SAP',
-      rightSystem: 'SAP',
-    });
+    const qPair = makePair(
+      { KWMENG: '100' },
+      { LFIMG: '50' },
+      {
+        leftSystem: 'SAP',
+        rightSystem: 'SAP',
+      }
+    );
     const qFinding = qtyCmp.compare(qPair, defaultConfig())!;
 
     expect(qFinding.id).toMatch(UUID_RE);
@@ -235,7 +251,7 @@ describe('Finding structure', () => {
     const pair = makePair(
       { NETWR: '2000' },
       { Amount: '1500' },
-      { leftSystem: 'SAP', rightSystem: 'Salesforce', leftTable: 'VBAK', rightTable: 'Opportunity' },
+      { leftSystem: 'SAP', rightSystem: 'Salesforce', leftTable: 'VBAK', rightTable: 'Opportunity' }
     );
     const finding = amtCmp.compare(pair, defaultConfig())!;
 

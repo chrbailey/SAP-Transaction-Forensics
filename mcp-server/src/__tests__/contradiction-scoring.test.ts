@@ -164,8 +164,18 @@ describe('computeAggregateRisk', () => {
 describe('sortByRisk', () => {
   it('highest score first', () => {
     const low = makeFinding({ id: 'low', severity: 'LOW', type: 'ORPHAN_RECORD', confidence: 0.3 });
-    const high = makeFinding({ id: 'high', severity: 'CRITICAL', type: 'TEMPORAL_IMPOSSIBILITY', confidence: 1.0 });
-    const mid = makeFinding({ id: 'mid', severity: 'MEDIUM', type: 'DATE_CONFLICT', confidence: 0.6 });
+    const high = makeFinding({
+      id: 'high',
+      severity: 'CRITICAL',
+      type: 'TEMPORAL_IMPOSSIBILITY',
+      confidence: 1.0,
+    });
+    const mid = makeFinding({
+      id: 'mid',
+      severity: 'MEDIUM',
+      type: 'DATE_CONFLICT',
+      confidence: 0.6,
+    });
 
     const sorted = sortByRisk([low, high, mid]);
     expect(sorted[0]!.id).toBe('high');

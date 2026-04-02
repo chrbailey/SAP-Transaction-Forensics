@@ -9,35 +9,17 @@
  * overrides, or undocumented procedures.
  */
 
-import type {
-  ReferenceStep,
-  WorkflowRule,
-  ActualEvent,
-  GapFinding,
-  GapSeverity,
-} from './types.js';
+import type { ReferenceStep, WorkflowRule, ActualEvent, GapFinding, GapSeverity } from './types.js';
 
 /** Admin user-ID patterns (case-insensitive match) */
-const ADMIN_USER_PATTERNS = [
-  /^admin$/i,
-  /^batch$/i,
-  /^rfc/i,
-  /^system$/i,
-  /^sap/i,
-];
+const ADMIN_USER_PATTERNS = [/^admin$/i, /^batch$/i, /^rfc/i, /^system$/i, /^sap/i];
 
 /** Activity-name keywords that indicate admin-level operations */
-const ADMIN_ACTIVITY_KEYWORDS = [
-  'config',
-  'maintain',
-  'customize',
-  'transport',
-  'change_master',
-];
+const ADMIN_ACTIVITY_KEYWORDS = ['config', 'maintain', 'customize', 'transport', 'change_master'];
 
 /** Business-hours boundaries (inclusive start, exclusive end) */
-const BUSINESS_HOUR_START = 7;  // 07:00
-const BUSINESS_HOUR_END = 19;   // 19:00 (7 PM)
+const BUSINESS_HOUR_START = 7; // 07:00
+const BUSINESS_HOUR_END = 19; // 19:00 (7 PM)
 
 let gapIdCounter = 0;
 
@@ -59,13 +41,13 @@ export class ShadowGapDetector {
   detectGaps(
     referenceSteps: ReferenceStep[],
     documentedRules: WorkflowRule[],
-    actualEvents: ActualEvent[],
+    actualEvents: ActualEvent[]
   ): GapFinding[] {
     const knownActivities = this.buildKnownActivities(referenceSteps, documentedRules);
 
     // Filter to events whose normalized activity is not in the known set
     const unknownEvents = actualEvents.filter(
-      (e) => !knownActivities.has(this.normalizeActivity(e.activityName)),
+      e => !knownActivities.has(this.normalizeActivity(e.activityName))
     );
 
     if (unknownEvents.length === 0) return [];
@@ -117,7 +99,7 @@ export class ShadowGapDetector {
         expectedRule: normalizedName,
         expectedBehavior: 'Activity should map to a known reference step or documented rule',
         actualBehavior: `"${sample.activityName}" executed ${events.length} time(s)`,
-        actualEvents: events.map((e) => e.caseId),
+        actualEvents: events.map(e => e.caseId),
         frequency: events.length,
         materiality: 0.3,
         recency: 0.5,
@@ -134,10 +116,7 @@ export class ShadowGapDetector {
   // -----------------------------------------------------------------------
 
   /** Build a set of all "known" activity names from reference + documented */
-  private buildKnownActivities(
-    steps: ReferenceStep[],
-    rules: WorkflowRule[],
-  ): Set<string> {
+  private buildKnownActivities(steps: ReferenceStep[], rules: WorkflowRule[]): Set<string> {
     const known = new Set<string>();
 
     for (const step of steps) {
@@ -205,7 +184,7 @@ export class ShadowGapDetector {
         expectedRule: normalizedName,
         expectedBehavior: 'Activity should map to a known reference step or documented rule',
         actualBehavior: `"${sample.activityName}" executed by privileged user "${sample.userId}"`,
-        actualEvents: events.map((e) => e.caseId),
+        actualEvents: events.map(e => e.caseId),
         frequency: events.length,
         materiality: 0.7,
         recency: 0.5,
@@ -243,7 +222,7 @@ export class ShadowGapDetector {
         id: nextGapId(),
         gapType: 'shadow',
         severity: 'HIGH',
-        confidence: 0.80,
+        confidence: 0.8,
         title: `After-hours shadow activity: ${sample.activityName}`,
         description:
           `Undocumented activity "${sample.activityName}" performed outside ` +
@@ -254,7 +233,7 @@ export class ShadowGapDetector {
         actualBehavior:
           `"${sample.activityName}" executed outside business hours ` +
           `(before ${BUSINESS_HOUR_START}:00 or after ${BUSINESS_HOUR_END}:00)`,
-        actualEvents: events.map((e) => e.caseId),
+        actualEvents: events.map(e => e.caseId),
         frequency: events.length,
         materiality: 0.5,
         recency: 0.5,
@@ -272,10 +251,10 @@ export class ShadowGapDetector {
 
   private isHighPrivilege(event: ActualEvent): boolean {
     const uid = event.userId;
-    if (ADMIN_USER_PATTERNS.some((p) => p.test(uid))) return true;
+    if (ADMIN_USER_PATTERNS.some(p => p.test(uid))) return true;
 
     const normAct = this.normalizeActivity(event.activityName);
-    if (ADMIN_ACTIVITY_KEYWORDS.some((kw) => normAct.includes(kw))) return true;
+    if (ADMIN_ACTIVITY_KEYWORDS.some(kw => normAct.includes(kw))) return true;
 
     return false;
   }

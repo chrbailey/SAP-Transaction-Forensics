@@ -18,10 +18,7 @@ import type {
   Comparator,
 } from '../contradiction/types.js';
 
-import {
-  SEVERITY_WEIGHTS,
-  DEFAULT_CONFIG,
-} from '../contradiction/types.js';
+import { SEVERITY_WEIGHTS, DEFAULT_CONFIG } from '../contradiction/types.js';
 
 // --- Runtime validation helpers ---
 
@@ -166,7 +163,7 @@ describe('Contradiction types', () => {
 
     it('should have dateConflictHighDays >= dateConflictDays', () => {
       expect(DEFAULT_CONFIG.dateConflictHighDays).toBeGreaterThanOrEqual(
-        DEFAULT_CONFIG.dateConflictDays,
+        DEFAULT_CONFIG.dateConflictDays
       );
     });
 

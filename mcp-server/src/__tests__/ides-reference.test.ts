@@ -56,8 +56,20 @@ function getExpectedSapFields(path: ExtractionPath): string[] {
  * Valid SAP data types from the IDES Data Dictionary
  */
 const VALID_DATA_TYPES = new Set([
-  'CHAR', 'CLNT', 'CUKY', 'CURR', 'DATS', 'DEC', 'INT4', 'LANG',
-  'NUMC', 'QUAN', 'TIMS', 'UNIT', 'ACCP', 'RAW',
+  'CHAR',
+  'CLNT',
+  'CUKY',
+  'CURR',
+  'DATS',
+  'DEC',
+  'INT4',
+  'LANG',
+  'NUMC',
+  'QUAN',
+  'TIMS',
+  'UNIT',
+  'ACCP',
+  'RAW',
 ]);
 
 // ============================================================================

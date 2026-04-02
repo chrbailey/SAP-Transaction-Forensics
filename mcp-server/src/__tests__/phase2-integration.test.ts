@@ -44,10 +44,7 @@ import {
   DuplicateReferenceComparator,
   OrphanRecordComparator,
 } from '../contradiction/comparators/entity.js';
-import type {
-  MatchedEntityPair,
-  OrphanCheckInput,
-} from '../contradiction/comparators/entity.js';
+import type { MatchedEntityPair, OrphanCheckInput } from '../contradiction/comparators/entity.js';
 
 import {
   SoDViolationComparator,
@@ -70,20 +67,14 @@ import {
   sortByRisk,
   generateRiskSummary,
 } from '../contradiction/scoring.js';
-import type {
-  ContradictionFinding as ScoringFinding,
-} from '../contradiction/scoring.js';
+import type { ContradictionFinding as ScoringFinding } from '../contradiction/scoring.js';
 
 // ---------------------------------------------------------------------------
 // Schema Validator
 // ---------------------------------------------------------------------------
 
 import { SchemaValidator } from '../schema-validator/validator.js';
-import type {
-  ClientSchema,
-  ClientTable,
-  ReferenceTable,
-} from '../schema-validator/types.js';
+import type { ClientSchema, ClientTable, ReferenceTable } from '../schema-validator/types.js';
 
 // ---------------------------------------------------------------------------
 // Extraction Registry (for cross-phase linkage)
@@ -155,7 +146,7 @@ function sfdcOpportunityPairSide(overrides: Record<string, string> = {}) {
 /** Build a ComparisonPair from left + right convenience helpers */
 function makePair(
   leftOverrides: Record<string, string> = {},
-  rightOverrides: Record<string, string> = {},
+  rightOverrides: Record<string, string> = {}
 ): ComparisonPair {
   return {
     left: sapOrderPairSide(leftOverrides),
@@ -195,10 +186,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
     // 7500/57500 ≈ 13% divergence — clearly above the 5% threshold
 
     it('detects cross-system amount divergence', () => {
-      const pair = makePair(
-        { NETWR: '50000.00' },
-        { Amount: '57500.00' },
-      );
+      const pair = makePair({ NETWR: '50000.00' }, { Amount: '57500.00' });
 
       const findings = engine.analyzePair(pair);
       const amountFinding = findings.find(f => f.type === 'AMOUNT_DIVERGENCE');
@@ -208,10 +196,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
     });
 
     it('finding has correct left/right system metadata', () => {
-      const pair = makePair(
-        { NETWR: '50000.00' },
-        { Amount: '57500.00' },
-      );
+      const pair = makePair({ NETWR: '50000.00' }, { Amount: '57500.00' });
 
       const findings = engine.analyzePair(pair);
       const amountFinding = findings.find(f => f.type === 'AMOUNT_DIVERGENCE');
@@ -226,10 +211,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
     });
 
     it('risk score reflects divergence magnitude', () => {
-      const pair = makePair(
-        { NETWR: '50000.00' },
-        { Amount: '57500.00' },
-      );
+      const pair = makePair({ NETWR: '50000.00' }, { Amount: '57500.00' });
 
       const findings = engine.analyzePair(pair);
       const amountFinding = findings.find(f => f.type === 'AMOUNT_DIVERGENCE');
@@ -243,10 +225,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
 
     it('detects large divergence with certainty', () => {
       // 20% divergence: clearly above threshold
-      const pair = makePair(
-        { NETWR: '50000.00' },
-        { Amount: '60000.00' },
-      );
+      const pair = makePair({ NETWR: '50000.00' }, { Amount: '60000.00' });
 
       const findings = engine.analyzePair(pair);
       const amountFinding = findings.find(f => f.type === 'AMOUNT_DIVERGENCE');
@@ -275,7 +254,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
           table: 'VBRK',
           recordId: '0090001234',
           fields: {
-            FKDAT: '20250315',       // Invoice: March 15
+            FKDAT: '20250315', // Invoice: March 15
             VBELN: '0090001234',
           },
           extractionId: 'ext-sap-invoice-001',
@@ -285,7 +264,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
           table: 'LIKP',
           recordId: '0080005678',
           fields: {
-            WADAT_IST: '20250320',   // Delivery: March 20 — AFTER invoice!
+            WADAT_IST: '20250320', // Delivery: March 20 — AFTER invoice!
             VBELN: '0080005678',
           },
           extractionId: 'ext-sap-delivery-001',
@@ -370,8 +349,8 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
         recordId: '1000001234',
         fields: {
           VBELN: '1000001234',
-          ERNAM: 'JSMITH',        // Creator
-          USNAM: 'JSMITH',        // Poster (same user!)
+          ERNAM: 'JSMITH', // Creator
+          USNAM: 'JSMITH', // Poster (same user!)
           BUDAT: '20250315',
           NETWR: '75000.00',
         },
@@ -445,7 +424,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
 
     it('CRITICAL severity for amount > 5x threshold', () => {
       const record: FieldRecord = {
-        NETWR: '250000',  // 250000 / 50000 = 5x
+        NETWR: '250000', // 250000 / 50000 = 5x
       };
 
       const finding = approvalComparator.compare(record, { approvalThreshold: 50000 });
@@ -486,7 +465,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
     it('detects cancelled order vs won opportunity', () => {
       const sapRecord: FieldRecord = {
         VBELN: '0000012345',
-        ABSTK: 'X',                // SAP cancellation flag
+        ABSTK: 'X', // SAP cancellation flag
         NETWR: '50000.00',
       };
       const sfdcRecord: FieldRecord = {
@@ -711,25 +690,73 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
         name: 'VBAK',
         description: 'Sales Document: Header Data',
         fields: [
-          { name: 'VBELN', dataType: 'CHAR', length: 10, decimals: 0, description: 'Sales document number' },
-          { name: 'AUART', dataType: 'CHAR', length: 4, decimals: 0, description: 'Sales document type' },
-          { name: 'ERDAT', dataType: 'DATS', length: 8, decimals: 0, description: 'Created on date' },
-          { name: 'ERNAM', dataType: 'CHAR', length: 12, decimals: 0, description: 'Created by user' },
+          {
+            name: 'VBELN',
+            dataType: 'CHAR',
+            length: 10,
+            decimals: 0,
+            description: 'Sales document number',
+          },
+          {
+            name: 'AUART',
+            dataType: 'CHAR',
+            length: 4,
+            decimals: 0,
+            description: 'Sales document type',
+          },
+          {
+            name: 'ERDAT',
+            dataType: 'DATS',
+            length: 8,
+            decimals: 0,
+            description: 'Created on date',
+          },
+          {
+            name: 'ERNAM',
+            dataType: 'CHAR',
+            length: 12,
+            decimals: 0,
+            description: 'Created by user',
+          },
           { name: 'NETWR', dataType: 'CURR', length: 15, decimals: 2, description: 'Net value' },
           { name: 'WAERK', dataType: 'CHAR', length: 5, decimals: 0, description: 'Currency' },
           { name: 'KUNNR', dataType: 'CHAR', length: 10, decimals: 0, description: 'Customer' },
           { name: 'BSTNK', dataType: 'CHAR', length: 20, decimals: 0, description: 'Customer PO' },
-          { name: 'ABSTK', dataType: 'CHAR', length: 1, decimals: 0, description: 'Rejection status' },
+          {
+            name: 'ABSTK',
+            dataType: 'CHAR',
+            length: 1,
+            decimals: 0,
+            description: 'Rejection status',
+          },
         ],
       });
       refSchema.set('VBAP', {
         name: 'VBAP',
         description: 'Sales Document: Item Data',
         fields: [
-          { name: 'VBELN', dataType: 'CHAR', length: 10, decimals: 0, description: 'Sales document number' },
+          {
+            name: 'VBELN',
+            dataType: 'CHAR',
+            length: 10,
+            decimals: 0,
+            description: 'Sales document number',
+          },
           { name: 'POSNR', dataType: 'NUMC', length: 6, decimals: 0, description: 'Item number' },
-          { name: 'MATNR', dataType: 'CHAR', length: 18, decimals: 0, description: 'Material number' },
-          { name: 'KWMENG', dataType: 'QUAN', length: 15, decimals: 3, description: 'Order quantity' },
+          {
+            name: 'MATNR',
+            dataType: 'CHAR',
+            length: 18,
+            decimals: 0,
+            description: 'Material number',
+          },
+          {
+            name: 'KWMENG',
+            dataType: 'QUAN',
+            length: 15,
+            decimals: 3,
+            description: 'Order quantity',
+          },
           { name: 'NETWR', dataType: 'CURR', length: 15, decimals: 2, description: 'Net value' },
         ],
       });
@@ -793,9 +820,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
             'VBAK',
             {
               name: 'VBAK',
-              fields: new Map([
-                ['VBELN', { name: 'VBELN', dataType: 'CHAR', length: 10 }],
-              ]),
+              fields: new Map([['VBELN', { name: 'VBELN', dataType: 'CHAR', length: 10 }]]),
             },
           ],
           // VBAP table missing entirely
@@ -829,7 +854,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
                 ['AUART', { name: 'AUART', dataType: 'CHAR' }],
                 ['ERDAT', { name: 'ERDAT', dataType: 'VARCHAR' }], // Type mismatch: should be DATS
                 ['ERNAM', { name: 'ERNAM', dataType: 'CHAR' }],
-                ['NETWR', { name: 'NETWR', dataType: 'INT' }],     // Type mismatch: should be CURR
+                ['NETWR', { name: 'NETWR', dataType: 'INT' }], // Type mismatch: should be CURR
                 ['WAERK', { name: 'WAERK', dataType: 'CHAR' }],
                 ['KUNNR', { name: 'KUNNR', dataType: 'CHAR' }],
                 ['BSTNK', { name: 'BSTNK', dataType: 'CHAR' }],
@@ -911,7 +936,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
       expect(customizations.customFields).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ table: 'VBAK', field: 'ZZ_CUSTOM_FIELD' }),
-        ]),
+        ])
       );
 
       // VBAP should be in missingStandardTables (in reference but not in client)
@@ -1023,8 +1048,8 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
         table: 'BKPF',
         recordId: 'DOC-2025-001',
         fields: {
-          BUDAT: '20250115',    // Posted in January 2025
-          AEDAT: '20250315',    // Changed in March 2025 (2 periods later)
+          BUDAT: '20250115', // Posted in January 2025
+          AEDAT: '20250315', // Changed in March 2025 (2 periods later)
           NETWR: '75000.00',
         },
       };
@@ -1047,7 +1072,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
       // Run the engine and verify extraction IDs flow through
       const pair = makePair(
         { NETWR: '50000.00' },
-        { Amount: '75000.00' }, // 33% divergence
+        { Amount: '75000.00' } // 33% divergence
       );
 
       const findings = engine.analyzePair(pair);
@@ -1113,7 +1138,7 @@ describe('Phase 2 Integration: Contradiction Engine + Schema Validator', () => {
         record: {
           VBELN: '0000012345',
           NETWR: '50000.00',
-          ZPHANTOM: 'ghost_value',  // Not in valid schema
+          ZPHANTOM: 'ghost_value', // Not in valid schema
         },
         validFields: new Set(['VBELN', 'NETWR', 'AUART', 'ERDAT', 'WAERK']),
       };

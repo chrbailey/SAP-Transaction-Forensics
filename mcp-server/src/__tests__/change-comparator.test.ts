@@ -44,7 +44,7 @@ function makeRecord(
     system?: 'SAP' | 'NetSuite' | 'Salesforce';
     table?: string;
     recordId?: string;
-  } = {},
+  } = {}
 ): ChangeRecord {
   return {
     system: opts.system ?? 'SAP',
@@ -61,7 +61,7 @@ function makeSchemaInput(
     system?: 'SAP' | 'NetSuite' | 'Salesforce';
     table?: string;
     recordId?: string;
-  } = {},
+  } = {}
 ): SchemaInput {
   return {
     system: opts.system ?? 'SAP',
@@ -83,7 +83,7 @@ describe('RetroactiveChangeComparator', () => {
     const record = makeRecord({
       MONAT: '02',
       GJAHR: '2025',
-      CPUDT: '20250415',  // April = period 04
+      CPUDT: '20250415', // April = period 04
     });
     const finding = comparator.compare(record, defaultConfig());
 
@@ -98,7 +98,7 @@ describe('RetroactiveChangeComparator', () => {
     const record = makeRecord({
       MONAT: '03',
       GJAHR: '2025',
-      CPUDT: '20250318',  // March = period 03, same as posting
+      CPUDT: '20250318', // March = period 03, same as posting
     });
     const finding = comparator.compare(record, defaultConfig());
 
@@ -109,7 +109,7 @@ describe('RetroactiveChangeComparator', () => {
     const record = makeRecord({
       MONAT: '01',
       GJAHR: '2025',
-      AEDAT: '20250520',  // May = period 05, gap of 4
+      AEDAT: '20250520', // May = period 05, gap of 4
     });
     const finding = comparator.compare(record, defaultConfig());
 
@@ -120,14 +120,14 @@ describe('RetroactiveChangeComparator', () => {
 
   it('handles SAP YYYYMMDD date format', () => {
     const record = makeRecord({
-      BUDAT: '20250210',  // Feb posting date
-      CPUDT: '20250415',  // April change date
+      BUDAT: '20250210', // Feb posting date
+      CPUDT: '20250415', // April change date
     });
     const finding = comparator.compare(record, defaultConfig());
 
     expect(finding).not.toBeNull();
     expect(finding!.type).toBe('RETROACTIVE_CHANGE');
-    expect(finding!.confidence).toBe(0.90);
+    expect(finding!.confidence).toBe(0.9);
     // Verify the dates were parsed correctly
     expect(finding!.scoringDetails['postingDate']).toBe('20250210');
     expect(finding!.scoringDetails['changeDate']).toBe('20250415');
@@ -137,7 +137,7 @@ describe('RetroactiveChangeComparator', () => {
     const record = makeRecord({
       MONAT: '06',
       GJAHR: '2025',
-      CPUDT: '20250715',  // July = period 07, gap of 1
+      CPUDT: '20250715', // July = period 07, gap of 1
     });
     const finding = comparator.compare(record, defaultConfig());
 
@@ -250,10 +250,13 @@ describe('SchemaGhostComparator', () => {
   const comparator = new SchemaGhostComparator();
 
   it('detects field not in valid schema', () => {
-    const input = makeSchemaInput(
-      { BUKRS: '1000', BELNR: '100001', ZZTAXCODE: 'X1' },
-      ['BUKRS', 'BELNR', 'GJAHR', 'MONAT', 'BUDAT'],
-    );
+    const input = makeSchemaInput({ BUKRS: '1000', BELNR: '100001', ZZTAXCODE: 'X1' }, [
+      'BUKRS',
+      'BELNR',
+      'GJAHR',
+      'MONAT',
+      'BUDAT',
+    ]);
     const finding = comparator.compare(input, defaultConfig());
 
     expect(finding).not.toBeNull();
@@ -264,20 +267,20 @@ describe('SchemaGhostComparator', () => {
   });
 
   it('returns null when all fields are valid', () => {
-    const input = makeSchemaInput(
-      { BUKRS: '1000', BELNR: '100001' },
-      ['BUKRS', 'BELNR', 'GJAHR', 'MONAT', 'BUDAT'],
-    );
+    const input = makeSchemaInput({ BUKRS: '1000', BELNR: '100001' }, [
+      'BUKRS',
+      'BELNR',
+      'GJAHR',
+      'MONAT',
+      'BUDAT',
+    ]);
     const finding = comparator.compare(input, defaultConfig());
 
     expect(finding).toBeNull();
   });
 
   it('CRITICAL severity, confidence 1.0', () => {
-    const input = makeSchemaInput(
-      { BUKRS: '1000', PHANTOM_FIELD: 'data' },
-      ['BUKRS', 'BELNR'],
-    );
+    const input = makeSchemaInput({ BUKRS: '1000', PHANTOM_FIELD: 'data' }, ['BUKRS', 'BELNR']);
     const finding = comparator.compare(input, defaultConfig());
 
     expect(finding).not.toBeNull();
@@ -286,10 +289,7 @@ describe('SchemaGhostComparator', () => {
   });
 
   it('finding has valid UUID and ISO timestamp', () => {
-    const input = makeSchemaInput(
-      { GHOST: 'value' },
-      ['BUKRS'],
-    );
+    const input = makeSchemaInput({ GHOST: 'value' }, ['BUKRS']);
     const finding = comparator.compare(input, defaultConfig())!;
 
     expect(finding.id).toMatch(UUID_RE);

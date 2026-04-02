@@ -18,9 +18,7 @@ import {
 // Fixtures
 // ---------------------------------------------------------------------------
 
-function makeStep(
-  overrides: Partial<ReferenceStep> = {},
-): ReferenceStep {
+function makeStep(overrides: Partial<ReferenceStep> = {}): ReferenceStep {
   return {
     modelId: 'p2p-simple',
     stepIndex: 1,
@@ -31,9 +29,7 @@ function makeStep(
   };
 }
 
-function makeRule(
-  overrides: Partial<WorkflowRule> = {},
-): WorkflowRule {
+function makeRule(overrides: Partial<WorkflowRule> = {}): WorkflowRule {
   return {
     id: 'WR-001',
     sourceDocument: 'SOP-100',
@@ -50,7 +46,11 @@ function makeRule(
 /** A minimal P2P-style reference with 4 steps. */
 function p2pReferenceSteps(): ReferenceStep[] {
   return [
-    makeStep({ stepIndex: 1, activityName: 'Purchase Order Created', expectedNext: ['Goods Receipt'] }),
+    makeStep({
+      stepIndex: 1,
+      activityName: 'Purchase Order Created',
+      expectedNext: ['Goods Receipt'],
+    }),
     makeStep({ stepIndex: 2, activityName: 'Goods Receipt', expectedNext: ['Invoice Receipt'] }),
     makeStep({ stepIndex: 3, activityName: 'Invoice Receipt', expectedNext: ['Invoice Cleared'] }),
     makeStep({ stepIndex: 4, activityName: 'Invoice Cleared', expectedNext: [] }),
@@ -87,7 +87,9 @@ describe('DesignGapDetector', () => {
 
     const gaps = detector.detectGaps(steps, rules);
 
-    const missing = gaps.find(g => g.title.includes('Goods Receipt') && g.title.startsWith('Missing'));
+    const missing = gaps.find(
+      g => g.title.includes('Goods Receipt') && g.title.startsWith('Missing')
+    );
     expect(missing).toBeDefined();
     expect(missing!.severity).toBe('HIGH');
     expect(missing!.gapType).toBe('design');
@@ -101,7 +103,9 @@ describe('DesignGapDetector', () => {
     const gaps = detector.detectGaps(steps, rules);
 
     // Filter to only missing-step findings
-    const missingStepGaps = gaps.filter(g => g.title.startsWith('Missing required step') || g.title.startsWith('Missing step'));
+    const missingStepGaps = gaps.filter(
+      g => g.title.startsWith('Missing required step') || g.title.startsWith('Missing step')
+    );
     expect(missingStepGaps).toHaveLength(0);
   });
 
@@ -192,9 +196,7 @@ describe('DesignGapDetector', () => {
     ];
 
     // Only document step 1 — missing step 2 & 3, plus no SoD
-    const rules: WorkflowRule[] = [
-      makeRule({ id: 'WR-001', ruleText: 'Create Invoice' }),
-    ];
+    const rules: WorkflowRule[] = [makeRule({ id: 'WR-001', ruleText: 'Create Invoice' })];
 
     const gaps = detector.detectGaps(steps, rules);
 
@@ -219,14 +221,14 @@ describe('DesignGapDetector', () => {
 
     // Required missing step => HIGH
     const requiredMissing = gaps.find(
-      g => g.title.includes('Create Purchase Order') && g.title.startsWith('Missing required'),
+      g => g.title.includes('Create Purchase Order') && g.title.startsWith('Missing required')
     );
     expect(requiredMissing).toBeDefined();
     expect(requiredMissing!.severity).toBe('HIGH');
 
     // Non-required missing step => LOW
     const optionalMissing = gaps.find(
-      g => g.title.includes('Approve Purchase Order') && g.title.startsWith('Missing step'),
+      g => g.title.includes('Approve Purchase Order') && g.title.startsWith('Missing step')
     );
     expect(optionalMissing).toBeDefined();
     expect(optionalMissing!.severity).toBe('LOW');
@@ -287,7 +289,7 @@ describe('DesignGapDetector', () => {
 
     // All steps should show as missing (4 missing steps + possible SoD gaps)
     const missingStepGaps = gaps.filter(
-      g => g.title.startsWith('Missing') && !g.title.includes('SoD'),
+      g => g.title.startsWith('Missing') && !g.title.includes('SoD')
     );
     expect(missingStepGaps.length).toBe(4);
   });

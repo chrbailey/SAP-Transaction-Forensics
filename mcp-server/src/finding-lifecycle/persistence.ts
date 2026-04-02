@@ -12,11 +12,7 @@ import Database from 'better-sqlite3';
 // Types
 // ---------------------------------------------------------------------------
 
-export type FindingSource =
-  | 'contradiction'
-  | 'reality_gap'
-  | 'conformance'
-  | 'fi_co_anomaly';
+export type FindingSource = 'contradiction' | 'reality_gap' | 'conformance' | 'fi_co_anomaly';
 
 export type FindingSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
@@ -156,14 +152,14 @@ export class FindingLifecycleDB {
       JSON.stringify(finding.extractionIds),
       finding.detectedAt,
       finding.lastTransitionAt,
-      finding.resolvedAt ?? null,
+      finding.resolvedAt ?? null
     );
   }
 
   getFinding(id: string): UnifiedFinding | null {
-    const row = this.db.prepare(
-      'SELECT * FROM unified_findings WHERE id = ?',
-    ).get(id) as Record<string, unknown> | undefined;
+    const row = this.db.prepare('SELECT * FROM unified_findings WHERE id = ?').get(id) as
+      | Record<string, unknown>
+      | undefined;
 
     if (!row) return null;
 
@@ -176,51 +172,56 @@ export class FindingLifecycleDB {
   // State management
   // -------------------------------------------------------------------------
 
-  updateState(
-    id: string,
-    newState: string,
-    transitionedAt: string,
-    resolvedAt?: string,
-  ): void {
+  updateState(id: string, newState: string, transitionedAt: string, resolvedAt?: string): void {
     if (resolvedAt !== undefined) {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         UPDATE unified_findings
         SET state = ?, last_transition_at = ?, resolved_at = ?
         WHERE id = ?
-      `).run(newState, transitionedAt, resolvedAt, id);
+      `
+        )
+        .run(newState, transitionedAt, resolvedAt, id);
     } else {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         UPDATE unified_findings
         SET state = ?, last_transition_at = ?
         WHERE id = ?
-      `).run(newState, transitionedAt, id);
+      `
+        )
+        .run(newState, transitionedAt, id);
     }
   }
 
-  insertTransition(
-    transition: StateTransition & { findingId: string },
-  ): void {
-    this.db.prepare(`
+  insertTransition(transition: StateTransition & { findingId: string }): void {
+    this.db
+      .prepare(
+        `
       INSERT INTO finding_transitions
         (finding_id, from_state, to_state, transitioned_at, transitioned_by, evidence, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      transition.findingId,
-      transition.fromState,
-      transition.toState,
-      transition.transitionedAt,
-      transition.transitionedBy,
-      transition.evidence ?? null,
-      transition.notes,
-    );
+    `
+      )
+      .run(
+        transition.findingId,
+        transition.fromState,
+        transition.toState,
+        transition.transitionedAt,
+        transition.transitionedBy,
+        transition.evidence ?? null,
+        transition.notes
+      );
   }
 
   getTransitions(findingId: string): StateTransition[] {
-    const rows = this.db.prepare(
-      'SELECT * FROM finding_transitions WHERE finding_id = ? ORDER BY id ASC',
-    ).all(findingId) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare('SELECT * FROM finding_transitions WHERE finding_id = ? ORDER BY id ASC')
+      .all(findingId) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToTransition(row));
+    return rows.map(row => this.rowToTransition(row));
   }
 
   // -------------------------------------------------------------------------
@@ -258,15 +259,13 @@ export class FindingLifecycleDB {
       params.push(filter.assignedTo);
     }
 
-    const where = clauses.length > 0
-      ? ' WHERE ' + clauses.join(' AND ')
-      : '';
+    const where = clauses.length > 0 ? ' WHERE ' + clauses.join(' AND ') : '';
 
-    const rows = this.db.prepare(
-      `SELECT * FROM unified_findings${where} ORDER BY risk_score DESC`,
-    ).all(...params) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare(`SELECT * FROM unified_findings${where} ORDER BY risk_score DESC`)
+      .all(...params) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToFinding(row));
+    return rows.map(row => this.rowToFinding(row));
   }
 
   // -------------------------------------------------------------------------
@@ -274,25 +273,31 @@ export class FindingLifecycleDB {
   // -------------------------------------------------------------------------
 
   registerDedupKey(findingId: string, key: FindingKey): void {
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       INSERT INTO finding_dedup_keys
         (finding_id, source, system_left, table_left, record_left,
          system_right, table_right, record_right)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      findingId,
-      key.source,
-      key.systemLeft ?? null,
-      key.tableLeft ?? null,
-      key.recordLeft ?? null,
-      key.systemRight ?? null,
-      key.tableRight ?? null,
-      key.recordRight ?? null,
-    );
+    `
+      )
+      .run(
+        findingId,
+        key.source,
+        key.systemLeft ?? null,
+        key.tableLeft ?? null,
+        key.recordLeft ?? null,
+        key.systemRight ?? null,
+        key.tableRight ?? null,
+        key.recordRight ?? null
+      );
   }
 
   isDuplicate(key: FindingKey): boolean {
-    const row = this.db.prepare(`
+    const row = this.db
+      .prepare(
+        `
       SELECT 1 FROM finding_dedup_keys
       WHERE source = ?
         AND system_left IS ?
@@ -302,15 +307,17 @@ export class FindingLifecycleDB {
         AND table_right IS ?
         AND record_right IS ?
       LIMIT 1
-    `).get(
-      key.source,
-      key.systemLeft ?? null,
-      key.tableLeft ?? null,
-      key.recordLeft ?? null,
-      key.systemRight ?? null,
-      key.tableRight ?? null,
-      key.recordRight ?? null,
-    );
+    `
+      )
+      .get(
+        key.source,
+        key.systemLeft ?? null,
+        key.tableLeft ?? null,
+        key.recordLeft ?? null,
+        key.systemRight ?? null,
+        key.tableRight ?? null,
+        key.recordRight ?? null
+      );
 
     return row !== undefined;
   }
@@ -331,27 +338,27 @@ export class FindingLifecycleDB {
       }
     ).cnt;
 
-    const stateRows = this.db.prepare(
-      'SELECT state, COUNT(*) AS cnt FROM unified_findings GROUP BY state',
-    ).all() as Array<{ state: string; cnt: number }>;
+    const stateRows = this.db
+      .prepare('SELECT state, COUNT(*) AS cnt FROM unified_findings GROUP BY state')
+      .all() as Array<{ state: string; cnt: number }>;
 
     const byState: Record<string, number> = {};
     for (const row of stateRows) {
       byState[row.state] = row.cnt;
     }
 
-    const sourceRows = this.db.prepare(
-      'SELECT source, COUNT(*) AS cnt FROM unified_findings GROUP BY source',
-    ).all() as Array<{ source: string; cnt: number }>;
+    const sourceRows = this.db
+      .prepare('SELECT source, COUNT(*) AS cnt FROM unified_findings GROUP BY source')
+      .all() as Array<{ source: string; cnt: number }>;
 
     const bySource: Record<string, number> = {};
     for (const row of sourceRows) {
       bySource[row.source] = row.cnt;
     }
 
-    const severityRows = this.db.prepare(
-      'SELECT severity, COUNT(*) AS cnt FROM unified_findings GROUP BY severity',
-    ).all() as Array<{ severity: string; cnt: number }>;
+    const severityRows = this.db
+      .prepare('SELECT severity, COUNT(*) AS cnt FROM unified_findings GROUP BY severity')
+      .all() as Array<{ severity: string; cnt: number }>;
 
     const bySeverity: Record<string, number> = {};
     for (const row of severityRows) {

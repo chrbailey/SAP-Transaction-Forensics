@@ -130,7 +130,12 @@ const O2C_DOCUMENTED_RULES: WorkflowRule[] = [
     ruleText: 'Delivery must be completed within 5 business days of order',
     systemScope: 'SAP',
     ruleType: 'timing_sla',
-    parameters: { maxDays: 5, startActivity: 'Create Sales Order', endActivity: 'Delivery', activityName: 'Delivery' },
+    parameters: {
+      maxDays: 5,
+      startActivity: 'Create Sales Order',
+      endActivity: 'Delivery',
+      activityName: 'Delivery',
+    },
     active: true,
   },
   {
@@ -178,37 +183,253 @@ const O2C_DOCUMENTED_RULES: WorkflowRule[] = [
 /** Actual events — mix of compliant and violating cases */
 const O2C_ACTUAL_EVENTS: ActualEvent[] = [
   // Case 1: Compliant order
-  { caseId: 'SO-001', activityName: 'Create Sales Order', timestamp: '2025-03-01T09:00:00Z', userId: 'USER01', systemType: 'SAP', tableName: 'VBAK', recordId: 'SO-001-001', extractionId: 'EXT-001' },
-  { caseId: 'SO-001', activityName: 'Credit Check',      timestamp: '2025-03-01T09:30:00Z', userId: 'USER02', systemType: 'SAP', tableName: 'VBKD', recordId: 'SO-001-002', extractionId: 'EXT-002' },
-  { caseId: 'SO-001', activityName: 'Delivery',           timestamp: '2025-03-03T10:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIKP', recordId: 'SO-001-003', extractionId: 'EXT-003' },
-  { caseId: 'SO-001', activityName: 'Goods Issue',        timestamp: '2025-03-03T14:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIPS', recordId: 'SO-001-004', extractionId: 'EXT-004' },
-  { caseId: 'SO-001', activityName: 'Invoice',            timestamp: '2025-03-04T08:00:00Z', userId: 'USER04', systemType: 'SAP', tableName: 'VBRK', recordId: 'SO-001-005', extractionId: 'EXT-005' },
-  { caseId: 'SO-001', activityName: 'Payment',            timestamp: '2025-03-15T12:00:00Z', userId: 'USER05', systemType: 'SAP', tableName: 'BSAD', recordId: 'SO-001-006', extractionId: 'EXT-006' },
+  {
+    caseId: 'SO-001',
+    activityName: 'Create Sales Order',
+    timestamp: '2025-03-01T09:00:00Z',
+    userId: 'USER01',
+    systemType: 'SAP',
+    tableName: 'VBAK',
+    recordId: 'SO-001-001',
+    extractionId: 'EXT-001',
+  },
+  {
+    caseId: 'SO-001',
+    activityName: 'Credit Check',
+    timestamp: '2025-03-01T09:30:00Z',
+    userId: 'USER02',
+    systemType: 'SAP',
+    tableName: 'VBKD',
+    recordId: 'SO-001-002',
+    extractionId: 'EXT-002',
+  },
+  {
+    caseId: 'SO-001',
+    activityName: 'Delivery',
+    timestamp: '2025-03-03T10:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIKP',
+    recordId: 'SO-001-003',
+    extractionId: 'EXT-003',
+  },
+  {
+    caseId: 'SO-001',
+    activityName: 'Goods Issue',
+    timestamp: '2025-03-03T14:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIPS',
+    recordId: 'SO-001-004',
+    extractionId: 'EXT-004',
+  },
+  {
+    caseId: 'SO-001',
+    activityName: 'Invoice',
+    timestamp: '2025-03-04T08:00:00Z',
+    userId: 'USER04',
+    systemType: 'SAP',
+    tableName: 'VBRK',
+    recordId: 'SO-001-005',
+    extractionId: 'EXT-005',
+  },
+  {
+    caseId: 'SO-001',
+    activityName: 'Payment',
+    timestamp: '2025-03-15T12:00:00Z',
+    userId: 'USER05',
+    systemType: 'SAP',
+    tableName: 'BSAD',
+    recordId: 'SO-001-006',
+    extractionId: 'EXT-006',
+  },
 
   // Case 2: Missing credit check (skipped required step)
-  { caseId: 'SO-002', activityName: 'Create Sales Order', timestamp: '2025-03-02T08:00:00Z', userId: 'USER01', systemType: 'SAP', tableName: 'VBAK', recordId: 'SO-002-001', extractionId: 'EXT-007' },
+  {
+    caseId: 'SO-002',
+    activityName: 'Create Sales Order',
+    timestamp: '2025-03-02T08:00:00Z',
+    userId: 'USER01',
+    systemType: 'SAP',
+    tableName: 'VBAK',
+    recordId: 'SO-002-001',
+    extractionId: 'EXT-007',
+  },
   // No credit check event!
-  { caseId: 'SO-002', activityName: 'Delivery',           timestamp: '2025-03-04T09:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIKP', recordId: 'SO-002-002', extractionId: 'EXT-008' },
-  { caseId: 'SO-002', activityName: 'Goods Issue',        timestamp: '2025-03-04T15:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIPS', recordId: 'SO-002-003', extractionId: 'EXT-009' },
-  { caseId: 'SO-002', activityName: 'Invoice',            timestamp: '2025-03-05T10:00:00Z', userId: 'USER04', systemType: 'SAP', tableName: 'VBRK', recordId: 'SO-002-004', extractionId: 'EXT-010' },
-  { caseId: 'SO-002', activityName: 'Payment',            timestamp: '2025-03-20T16:00:00Z', userId: 'USER05', systemType: 'SAP', tableName: 'BSAD', recordId: 'SO-002-005', extractionId: 'EXT-011' },
+  {
+    caseId: 'SO-002',
+    activityName: 'Delivery',
+    timestamp: '2025-03-04T09:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIKP',
+    recordId: 'SO-002-002',
+    extractionId: 'EXT-008',
+  },
+  {
+    caseId: 'SO-002',
+    activityName: 'Goods Issue',
+    timestamp: '2025-03-04T15:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIPS',
+    recordId: 'SO-002-003',
+    extractionId: 'EXT-009',
+  },
+  {
+    caseId: 'SO-002',
+    activityName: 'Invoice',
+    timestamp: '2025-03-05T10:00:00Z',
+    userId: 'USER04',
+    systemType: 'SAP',
+    tableName: 'VBRK',
+    recordId: 'SO-002-004',
+    extractionId: 'EXT-010',
+  },
+  {
+    caseId: 'SO-002',
+    activityName: 'Payment',
+    timestamp: '2025-03-20T16:00:00Z',
+    userId: 'USER05',
+    systemType: 'SAP',
+    tableName: 'BSAD',
+    recordId: 'SO-002-005',
+    extractionId: 'EXT-011',
+  },
 
   // Case 3: SLA breach — delivery 8 days after order (5-day limit)
-  { caseId: 'SO-003', activityName: 'Create Sales Order', timestamp: '2025-03-05T10:00:00Z', userId: 'USER01', systemType: 'SAP', tableName: 'VBAK', recordId: 'SO-003-001', extractionId: 'EXT-012' },
-  { caseId: 'SO-003', activityName: 'Credit Check',      timestamp: '2025-03-05T11:00:00Z', userId: 'USER02', systemType: 'SAP', tableName: 'VBKD', recordId: 'SO-003-002', extractionId: 'EXT-013' },
-  { caseId: 'SO-003', activityName: 'Delivery',           timestamp: '2025-03-13T09:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIKP', recordId: 'SO-003-003', extractionId: 'EXT-014' },
-  { caseId: 'SO-003', activityName: 'Goods Issue',        timestamp: '2025-03-13T14:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIPS', recordId: 'SO-003-004', extractionId: 'EXT-015' },
-  { caseId: 'SO-003', activityName: 'Invoice',            timestamp: '2025-03-14T08:00:00Z', userId: 'USER04', systemType: 'SAP', tableName: 'VBRK', recordId: 'SO-003-005', extractionId: 'EXT-016' },
-  { caseId: 'SO-003', activityName: 'Payment',            timestamp: '2025-03-25T10:00:00Z', userId: 'USER05', systemType: 'SAP', tableName: 'BSAD', recordId: 'SO-003-006', extractionId: 'EXT-017' },
+  {
+    caseId: 'SO-003',
+    activityName: 'Create Sales Order',
+    timestamp: '2025-03-05T10:00:00Z',
+    userId: 'USER01',
+    systemType: 'SAP',
+    tableName: 'VBAK',
+    recordId: 'SO-003-001',
+    extractionId: 'EXT-012',
+  },
+  {
+    caseId: 'SO-003',
+    activityName: 'Credit Check',
+    timestamp: '2025-03-05T11:00:00Z',
+    userId: 'USER02',
+    systemType: 'SAP',
+    tableName: 'VBKD',
+    recordId: 'SO-003-002',
+    extractionId: 'EXT-013',
+  },
+  {
+    caseId: 'SO-003',
+    activityName: 'Delivery',
+    timestamp: '2025-03-13T09:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIKP',
+    recordId: 'SO-003-003',
+    extractionId: 'EXT-014',
+  },
+  {
+    caseId: 'SO-003',
+    activityName: 'Goods Issue',
+    timestamp: '2025-03-13T14:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIPS',
+    recordId: 'SO-003-004',
+    extractionId: 'EXT-015',
+  },
+  {
+    caseId: 'SO-003',
+    activityName: 'Invoice',
+    timestamp: '2025-03-14T08:00:00Z',
+    userId: 'USER04',
+    systemType: 'SAP',
+    tableName: 'VBRK',
+    recordId: 'SO-003-005',
+    extractionId: 'EXT-016',
+  },
+  {
+    caseId: 'SO-003',
+    activityName: 'Payment',
+    timestamp: '2025-03-25T10:00:00Z',
+    userId: 'USER05',
+    systemType: 'SAP',
+    tableName: 'BSAD',
+    recordId: 'SO-003-006',
+    extractionId: 'EXT-017',
+  },
 
   // Case 4: Shadow process — unauthorized batch job (admin user, after hours)
-  { caseId: 'SO-004', activityName: 'Create Sales Order', timestamp: '2025-03-10T09:00:00Z', userId: 'USER01', systemType: 'SAP', tableName: 'VBAK', recordId: 'SO-004-001', extractionId: 'EXT-018' },
-  { caseId: 'SO-004', activityName: 'Credit Check',      timestamp: '2025-03-10T09:30:00Z', userId: 'USER02', systemType: 'SAP', tableName: 'VBKD', recordId: 'SO-004-002', extractionId: 'EXT-019' },
-  { caseId: 'SO-004', activityName: 'BATCH_PRICING_OVERRIDE', timestamp: '2025-03-10T23:15:00Z', userId: 'BATCH_USER', systemType: 'SAP', tableName: 'KONV', recordId: 'SO-004-010', extractionId: 'EXT-020' },
-  { caseId: 'SO-004', activityName: 'Delivery',           timestamp: '2025-03-12T10:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIKP', recordId: 'SO-004-003', extractionId: 'EXT-021' },
-  { caseId: 'SO-004', activityName: 'Goods Issue',        timestamp: '2025-03-12T14:00:00Z', userId: 'USER03', systemType: 'SAP', tableName: 'LIPS', recordId: 'SO-004-004', extractionId: 'EXT-022' },
-  { caseId: 'SO-004', activityName: 'Invoice',            timestamp: '2025-03-13T08:00:00Z', userId: 'USER04', systemType: 'SAP', tableName: 'VBRK', recordId: 'SO-004-005', extractionId: 'EXT-023' },
-  { caseId: 'SO-004', activityName: 'Payment',            timestamp: '2025-03-28T12:00:00Z', userId: 'USER05', systemType: 'SAP', tableName: 'BSAD', recordId: 'SO-004-006', extractionId: 'EXT-024' },
+  {
+    caseId: 'SO-004',
+    activityName: 'Create Sales Order',
+    timestamp: '2025-03-10T09:00:00Z',
+    userId: 'USER01',
+    systemType: 'SAP',
+    tableName: 'VBAK',
+    recordId: 'SO-004-001',
+    extractionId: 'EXT-018',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'Credit Check',
+    timestamp: '2025-03-10T09:30:00Z',
+    userId: 'USER02',
+    systemType: 'SAP',
+    tableName: 'VBKD',
+    recordId: 'SO-004-002',
+    extractionId: 'EXT-019',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'BATCH_PRICING_OVERRIDE',
+    timestamp: '2025-03-10T23:15:00Z',
+    userId: 'BATCH_USER',
+    systemType: 'SAP',
+    tableName: 'KONV',
+    recordId: 'SO-004-010',
+    extractionId: 'EXT-020',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'Delivery',
+    timestamp: '2025-03-12T10:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIKP',
+    recordId: 'SO-004-003',
+    extractionId: 'EXT-021',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'Goods Issue',
+    timestamp: '2025-03-12T14:00:00Z',
+    userId: 'USER03',
+    systemType: 'SAP',
+    tableName: 'LIPS',
+    recordId: 'SO-004-004',
+    extractionId: 'EXT-022',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'Invoice',
+    timestamp: '2025-03-13T08:00:00Z',
+    userId: 'USER04',
+    systemType: 'SAP',
+    tableName: 'VBRK',
+    recordId: 'SO-004-005',
+    extractionId: 'EXT-023',
+  },
+  {
+    caseId: 'SO-004',
+    activityName: 'Payment',
+    timestamp: '2025-03-28T12:00:00Z',
+    userId: 'USER05',
+    systemType: 'SAP',
+    tableName: 'BSAD',
+    recordId: 'SO-004-006',
+    extractionId: 'EXT-024',
+  },
 ];
 
 // ===========================================================================
@@ -216,7 +437,6 @@ const O2C_ACTUAL_EVENTS: ActualEvent[] = [
 // ===========================================================================
 
 describe('Phase 3 Integration', () => {
-
   // =========================================================================
   // Reality-Gap Engine
   // =========================================================================
@@ -235,9 +455,7 @@ describe('Phase 3 Integration', () => {
 
       // Should find at least one design gap for the undocumented Credit Check
       const creditCheckGap = result.find(
-        (g) =>
-          g.gapType === 'design' &&
-          g.title.toLowerCase().includes('credit check'),
+        g => g.gapType === 'design' && g.title.toLowerCase().includes('credit check')
       );
       expect(creditCheckGap).toBeDefined();
       expect(creditCheckGap!.severity).toBe('HIGH');
@@ -265,15 +483,15 @@ describe('Phase 3 Integration', () => {
       const result = engine.analyzeShadowGaps(
         O2C_REFERENCE_STEPS,
         O2C_DOCUMENTED_RULES,
-        O2C_ACTUAL_EVENTS,
+        O2C_ACTUAL_EVENTS
       );
 
       // Should find the batch pricing override as a shadow activity
       const batchGap = result.find(
-        (g) =>
+        g =>
           g.gapType === 'shadow' &&
           (g.title.toLowerCase().includes('batch_pricing_override') ||
-           g.title.toLowerCase().includes('batch pricing override')),
+            g.title.toLowerCase().includes('batch pricing override'))
       );
       expect(batchGap).toBeDefined();
       expect(batchGap!.gapType).toBe('shadow');
@@ -282,11 +500,7 @@ describe('Phase 3 Integration', () => {
     });
 
     test('full three-way analysis returns all gap types', () => {
-      const result = engine.analyze(
-        O2C_REFERENCE_STEPS,
-        O2C_DOCUMENTED_RULES,
-        O2C_ACTUAL_EVENTS,
-      );
+      const result = engine.analyze(O2C_REFERENCE_STEPS, O2C_DOCUMENTED_RULES, O2C_ACTUAL_EVENTS);
 
       // Verify result structure
       expect(result.designGaps).toBeInstanceOf(Array);
@@ -307,11 +521,7 @@ describe('Phase 3 Integration', () => {
       for (const g of result.shadowGaps) expect(g.gapType).toBe('shadow');
 
       // All findings should have required fields
-      const allFindings = [
-        ...result.designGaps,
-        ...result.complianceGaps,
-        ...result.shadowGaps,
-      ];
+      const allFindings = [...result.designGaps, ...result.complianceGaps, ...result.shadowGaps];
       for (const finding of allFindings) {
         expect(finding.id).toBeDefined();
         expect(finding.title).toBeDefined();
@@ -336,11 +546,7 @@ describe('Phase 3 Integration', () => {
     test('creates finding from gap detection result', () => {
       // Run gap detection first
       const engine = createDefaultEngine();
-      const result = engine.analyze(
-        O2C_REFERENCE_STEPS,
-        O2C_DOCUMENTED_RULES,
-        O2C_ACTUAL_EVENTS,
-      );
+      const result = engine.analyze(O2C_REFERENCE_STEPS, O2C_DOCUMENTED_RULES, O2C_ACTUAL_EVENTS);
 
       // Convert a design gap to a unified finding
       const gap = result.designGaps[0]!;
@@ -379,47 +585,58 @@ describe('Phase 3 Integration', () => {
 
       // DETECTED -> TRIAGED
       let updated = manager.transition(
-        finding.id, 'TRIAGED', 'analyst-1',
-        'Confirmed as real gap, needs investigation',
+        finding.id,
+        'TRIAGED',
+        'analyst-1',
+        'Confirmed as real gap, needs investigation'
       );
       expect(updated.state).toBe('TRIAGED');
       expect(updated.transitions).toHaveLength(1);
 
       // TRIAGED -> INVESTIGATING
       updated = manager.transition(
-        finding.id, 'INVESTIGATING', 'analyst-1',
-        'Reviewing all cases without credit check',
+        finding.id,
+        'INVESTIGATING',
+        'analyst-1',
+        'Reviewing all cases without credit check'
       );
       expect(updated.state).toBe('INVESTIGATING');
       expect(updated.transitions).toHaveLength(2);
 
       // INVESTIGATING -> CONFIRMED
       updated = manager.transition(
-        finding.id, 'CONFIRMED', 'analyst-1',
-        'Found 5 cases bypassing credit check', 'EXT-007',
+        finding.id,
+        'CONFIRMED',
+        'analyst-1',
+        'Found 5 cases bypassing credit check',
+        'EXT-007'
       );
       expect(updated.state).toBe('CONFIRMED');
 
       // CONFIRMED -> REMEDIATION
       updated = manager.transition(
-        finding.id, 'REMEDIATION', 'manager-1',
-        'Adding mandatory credit check workflow step',
+        finding.id,
+        'REMEDIATION',
+        'manager-1',
+        'Adding mandatory credit check workflow step'
       );
       expect(updated.state).toBe('REMEDIATION');
 
       // REMEDIATION -> RESOLVED
       updated = manager.transition(
-        finding.id, 'RESOLVED', 'manager-1',
-        'Credit check now mandatory in VA01 config',
+        finding.id,
+        'RESOLVED',
+        'manager-1',
+        'Credit check now mandatory in VA01 config'
       );
       expect(updated.state).toBe('RESOLVED');
       expect(updated.resolvedAt).toBeDefined();
       expect(updated.transitions).toHaveLength(5);
 
       // Verify terminal state — should not allow further transitions
-      expect(() =>
-        manager.transition(finding.id, 'DETECTED', 'system', 'reset'),
-      ).toThrow(/Invalid transition/);
+      expect(() => manager.transition(finding.id, 'DETECTED', 'system', 'reset')).toThrow(
+        /Invalid transition/
+      );
     });
 
     test('deduplication prevents duplicate findings', () => {
@@ -496,12 +713,8 @@ describe('Phase 3 Integration', () => {
       });
 
       // Transition one finding to FALSE_POSITIVE
-      manager.transition(
-        finding3.id, 'TRIAGED', 'analyst-1', 'Reviewing',
-      );
-      manager.transition(
-        finding3.id, 'FALSE_POSITIVE', 'analyst-1', 'System timing artifact',
-      );
+      manager.transition(finding3.id, 'TRIAGED', 'analyst-1', 'Reviewing');
+      manager.transition(finding3.id, 'FALSE_POSITIVE', 'analyst-1', 'System timing artifact');
 
       const summary = manager.getSummary();
       expect(summary.total).toBe(3);
@@ -519,32 +732,23 @@ describe('Phase 3 Integration', () => {
   // =========================================================================
 
   describe('Cross-Phase: Gap + Contradiction + Provenance', () => {
-
     test('gap findings reference extraction IDs from provenance', () => {
       const engine = createDefaultEngine();
       const manager = new FindingLifecycleManager();
 
       // Run full gap analysis
-      const result = engine.analyze(
-        O2C_REFERENCE_STEPS,
-        O2C_DOCUMENTED_RULES,
-        O2C_ACTUAL_EVENTS,
-      );
+      const result = engine.analyze(O2C_REFERENCE_STEPS, O2C_DOCUMENTED_RULES, O2C_ACTUAL_EVENTS);
 
       // Convert all gap findings to unified findings with provenance links
-      const allGaps = [
-        ...result.designGaps,
-        ...result.complianceGaps,
-        ...result.shadowGaps,
-      ];
+      const allGaps = [...result.designGaps, ...result.complianceGaps, ...result.shadowGaps];
 
       // Create unified findings, linking back to extraction IDs
       for (const gap of allGaps) {
         // In a real pipeline, gap.actualEvents would contain event IDs that
         // link to extraction records. Here we simulate the linkage.
         const extractionIds = gap.actualEvents
-          .map((caseId) => {
-            const event = O2C_ACTUAL_EVENTS.find((e) => e.caseId === caseId);
+          .map(caseId => {
+            const event = O2C_ACTUAL_EVENTS.find(e => e.caseId === caseId);
             return event?.extractionId;
           })
           .filter((id): id is string => id !== undefined);
@@ -571,9 +775,7 @@ describe('Phase 3 Integration', () => {
 
       // At least one finding should have extraction IDs (from shadow gaps
       // which reference actual events with extractionIds)
-      const withProvenance = gapFindings.filter(
-        (f) => f.extractionIds.length > 0,
-      );
+      const withProvenance = gapFindings.filter(f => f.extractionIds.length > 0);
       expect(withProvenance.length).toBeGreaterThan(0);
     });
 
@@ -585,7 +787,7 @@ describe('Phase 3 Integration', () => {
       const gapResult = engine.analyze(
         O2C_REFERENCE_STEPS,
         O2C_DOCUMENTED_RULES,
-        O2C_ACTUAL_EVENTS,
+        O2C_ACTUAL_EVENTS
       );
 
       for (const gap of gapResult.designGaps) {
@@ -630,7 +832,7 @@ describe('Phase 3 Integration', () => {
 
       // Verify multi-source tracking
       const allFindings = manager.query();
-      const sources = new Set(allFindings.map((f) => f.source));
+      const sources = new Set(allFindings.map(f => f.source));
       expect(sources.has('reality_gap')).toBe(true);
       expect(sources.has('contradiction')).toBe(true);
       expect(sources.has('conformance')).toBe(true);
@@ -653,9 +855,19 @@ describe('Phase 3 Integration', () => {
       const contraFinding = contradictionOnly[0]!;
       manager.transition(contraFinding.id, 'TRIAGED', 'system', 'Auto-triaged');
       manager.transition(contraFinding.id, 'INVESTIGATING', 'analyst-1', 'Checking amounts');
-      manager.transition(contraFinding.id, 'CONFIRMED', 'analyst-1', 'Amount discrepancy confirmed');
+      manager.transition(
+        contraFinding.id,
+        'CONFIRMED',
+        'analyst-1',
+        'Amount discrepancy confirmed'
+      );
       manager.transition(contraFinding.id, 'REMEDIATION', 'manager-1', 'Correcting SAP amount');
-      manager.transition(contraFinding.id, 'RESOLVED', 'manager-1', 'SAP amount corrected to match');
+      manager.transition(
+        contraFinding.id,
+        'RESOLVED',
+        'manager-1',
+        'SAP amount corrected to match'
+      );
 
       expect(manager.getResolved().length).toBe(1);
       expect(manager.getActive().length).toBe(allFindings.length - 1);

@@ -18,10 +18,10 @@ export interface ExtractionRecord {
   fieldName: string;
   rawValue: string;
   normalizedValue: string;
-  extractionTimestamp: string;  // ISO 8601
-  queryHash: string;            // SHA-256 of the extraction query
-  replayHash: string;           // SHA-256 of the result set
-  extractionPathId: string;     // FK to extraction registry
+  extractionTimestamp: string; // ISO 8601
+  queryHash: string; // SHA-256 of the extraction query
+  replayHash: string; // SHA-256 of the result set
+  extractionPathId: string; // FK to extraction registry
   extractionPathVersion: string;
 }
 
@@ -30,7 +30,7 @@ export interface FindingEvidence {
   findingId: string;
   extractionId: string;
   role: EvidenceRole;
-  addedAt: string;  // ISO 8601
+  addedAt: string; // ISO 8601
 }
 
 /** A node in the provenance DAG */
@@ -46,7 +46,7 @@ export interface ProvenanceDAG {
   rootFindingId: string;
   nodes: ProvenanceNode[];
   generatedAt: string;
-  replayable: boolean;  // true if all extraction replay hashes can be verified
+  replayable: boolean; // true if all extraction replay hashes can be verified
 }
 
 /** Summary stats for a provenance chain */

@@ -7,11 +7,7 @@
  */
 
 import Database from 'better-sqlite3';
-import type {
-  ExtractionRecord,
-  EvidenceRole,
-  SystemType,
-} from './types.js';
+import type { ExtractionRecord, EvidenceRole, SystemType } from './types.js';
 
 const SCHEMA_SQL = `
   CREATE TABLE IF NOT EXISTS extraction_records (
@@ -96,11 +92,7 @@ export class ProvenanceDB {
     insertAll(records);
   }
 
-  linkEvidence(
-    findingId: string,
-    extractionId: string,
-    role: EvidenceRole,
-  ): void {
+  linkEvidence(findingId: string, extractionId: string, role: EvidenceRole): void {
     const stmt = this.db.prepare(`
       INSERT INTO finding_evidence (finding_id, extraction_id, role, added_at)
       VALUES (?, ?, ?, ?)
@@ -113,66 +105,64 @@ export class ProvenanceDB {
   // ---------------------------------------------------------------------------
 
   getExtraction(id: string): ExtractionRecord | null {
-    const row = this.db.prepare(
-      'SELECT * FROM extraction_records WHERE id = ?',
-    ).get(id) as Record<string, unknown> | undefined;
+    const row = this.db.prepare('SELECT * FROM extraction_records WHERE id = ?').get(id) as
+      | Record<string, unknown>
+      | undefined;
 
     if (!row) return null;
     return this.rowToExtractionRecord(row);
   }
 
-  getExtractionsByFinding(
-    findingId: string,
-  ): Array<ExtractionRecord & { role: EvidenceRole }> {
-    const rows = this.db.prepare(`
+  getExtractionsByFinding(findingId: string): Array<ExtractionRecord & { role: EvidenceRole }> {
+    const rows = this.db
+      .prepare(
+        `
       SELECT er.*, fe.role
       FROM finding_evidence fe
       JOIN extraction_records er ON er.id = fe.extraction_id
       WHERE fe.finding_id = ?
-    `).all(findingId) as Array<Record<string, unknown>>;
+    `
+      )
+      .all(findingId) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => ({
+    return rows.map(row => ({
       ...this.rowToExtractionRecord(row),
       role: row['role'] as EvidenceRole,
     }));
   }
 
   getExtractionsByQuery(queryHash: string): ExtractionRecord[] {
-    const rows = this.db.prepare(
-      'SELECT * FROM extraction_records WHERE query_hash = ?',
-    ).all(queryHash) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare('SELECT * FROM extraction_records WHERE query_hash = ?')
+      .all(queryHash) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToExtractionRecord(row));
+    return rows.map(row => this.rowToExtractionRecord(row));
   }
 
-  getExtractionsByTable(
-    systemType: SystemType,
-    tableName: string,
-  ): ExtractionRecord[] {
-    const rows = this.db.prepare(
-      'SELECT * FROM extraction_records WHERE system_type = ? AND table_name = ?',
-    ).all(systemType, tableName) as Array<Record<string, unknown>>;
+  getExtractionsByTable(systemType: SystemType, tableName: string): ExtractionRecord[] {
+    const rows = this.db
+      .prepare('SELECT * FROM extraction_records WHERE system_type = ? AND table_name = ?')
+      .all(systemType, tableName) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToExtractionRecord(row));
+    return rows.map(row => this.rowToExtractionRecord(row));
   }
 
-  getExtractionsByPath(
-    pathId: string,
-    pathVersion?: string,
-  ): ExtractionRecord[] {
+  getExtractionsByPath(pathId: string, pathVersion?: string): ExtractionRecord[] {
     if (pathVersion !== undefined) {
-      const rows = this.db.prepare(
-        'SELECT * FROM extraction_records WHERE extraction_path_id = ? AND extraction_path_version = ?',
-      ).all(pathId, pathVersion) as Array<Record<string, unknown>>;
+      const rows = this.db
+        .prepare(
+          'SELECT * FROM extraction_records WHERE extraction_path_id = ? AND extraction_path_version = ?'
+        )
+        .all(pathId, pathVersion) as Array<Record<string, unknown>>;
 
-      return rows.map((row) => this.rowToExtractionRecord(row));
+      return rows.map(row => this.rowToExtractionRecord(row));
     }
 
-    const rows = this.db.prepare(
-      'SELECT * FROM extraction_records WHERE extraction_path_id = ?',
-    ).all(pathId) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare('SELECT * FROM extraction_records WHERE extraction_path_id = ?')
+      .all(pathId) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToExtractionRecord(row));
+    return rows.map(row => this.rowToExtractionRecord(row));
   }
 
   // ---------------------------------------------------------------------------
@@ -180,9 +170,9 @@ export class ProvenanceDB {
   // ---------------------------------------------------------------------------
 
   getReplayHash(queryHash: string): string | null {
-    const row = this.db.prepare(
-      'SELECT replay_hash FROM extraction_records WHERE query_hash = ? LIMIT 1',
-    ).get(queryHash) as { replay_hash: string } | undefined;
+    const row = this.db
+      .prepare('SELECT replay_hash FROM extraction_records WHERE query_hash = ? LIMIT 1')
+      .get(queryHash) as { replay_hash: string } | undefined;
 
     return row?.replay_hash ?? null;
   }
@@ -209,17 +199,13 @@ export class ProvenanceDB {
     ).cnt;
 
     const totalFindings = (
-      this.db
-        .prepare(
-          'SELECT COUNT(DISTINCT finding_id) AS cnt FROM finding_evidence',
-        )
-        .get() as { cnt: number }
+      this.db.prepare('SELECT COUNT(DISTINCT finding_id) AS cnt FROM finding_evidence').get() as {
+        cnt: number;
+      }
     ).cnt;
 
     const systemRows = this.db
-      .prepare(
-        'SELECT system_type, COUNT(*) AS cnt FROM extraction_records GROUP BY system_type',
-      )
+      .prepare('SELECT system_type, COUNT(*) AS cnt FROM extraction_records GROUP BY system_type')
       .all() as Array<{ system_type: string; cnt: number }>;
 
     const systemCounts: Record<string, number> = {};
@@ -242,9 +228,7 @@ export class ProvenanceDB {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
-  private rowToExtractionRecord(
-    row: Record<string, unknown>,
-  ): ExtractionRecord {
+  private rowToExtractionRecord(row: Record<string, unknown>): ExtractionRecord {
     return {
       id: row['id'] as string,
       adapterId: row['adapter_id'] as string,

@@ -32,7 +32,7 @@ function field(
   dataType: string,
   length: number,
   decimals: number,
-  description: string,
+  description: string
 ): ReferenceField {
   return { name, dataType, length, decimals, description };
 }

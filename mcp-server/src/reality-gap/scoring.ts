@@ -40,9 +40,9 @@ export type { GapType, GapSeverity, GapFinding };
 
 /** Gap type weights — compliance gaps are more actionable than design gaps */
 export const GAP_TYPE_WEIGHTS: Record<GapType, number> = {
-  compliance: 1.0,     // people violating their own rules = highest priority
-  shadow: 0.8,         // undocumented processes = high risk
-  design: 0.6,         // process design issues = important but less urgent
+  compliance: 1.0, // people violating their own rules = highest priority
+  shadow: 0.8, // undocumented processes = high risk
+  design: 0.6, // process design issues = important but less urgent
 };
 
 /** Severity weights */
@@ -205,7 +205,7 @@ export function generateGapRiskSummary(gaps: GapFinding[]): string {
   // Severity breakdown
   lines.push(
     `${agg.bySeverity.CRITICAL} critical, ${agg.bySeverity.HIGH} high, ` +
-    `${agg.bySeverity.MEDIUM} medium, ${agg.bySeverity.LOW} low, ${agg.bySeverity.INFO} info`,
+      `${agg.bySeverity.MEDIUM} medium, ${agg.bySeverity.LOW} low, ${agg.bySeverity.INFO} info`
   );
   lines.push('');
 
@@ -216,13 +216,10 @@ export function generateGapRiskSummary(gaps: GapFinding[]): string {
   for (const gapType of ['compliance', 'shadow', 'design'] as GapType[]) {
     const stats = agg.byType[gapType];
     // Compute max score for this type
-    const typeGaps = gaps.filter((g) => g.gapType === gapType);
-    const typeMax = typeGaps.reduce(
-      (max, g) => Math.max(max, computeGapRiskScore(g)),
-      0,
-    );
+    const typeGaps = gaps.filter(g => g.gapType === gapType);
+    const typeMax = typeGaps.reduce((max, g) => Math.max(max, computeGapRiskScore(g)), 0);
     lines.push(
-      `| ${gapType} | ${stats.count} | ${stats.avgScore.toFixed(1)} | ${typeMax.toFixed(1)} |`,
+      `| ${gapType} | ${stats.count} | ${stats.avgScore.toFixed(1)} | ${typeMax.toFixed(1)} |`
     );
   }
 

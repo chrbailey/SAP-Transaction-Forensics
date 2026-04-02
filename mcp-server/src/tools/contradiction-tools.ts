@@ -14,26 +14,16 @@ import type {
   ContradictionType,
   Severity,
 } from '../contradiction/types.js';
-import type {
-  ClientSchema,
-  PathValidation,
-} from '../schema-validator/types.js';
+import type { ClientSchema, PathValidation } from '../schema-validator/types.js';
 
 // ============================================================================
 // Schema Validator interface (defined here until class exists)
 // ============================================================================
 
 export interface SchemaValidator {
-  validatePath(
-    pathId: string,
-    clientSchema: ClientSchema,
-  ): PathValidation;
-  validateAllPaths(
-    clientSchema: ClientSchema,
-  ): PathValidation[];
-  analyzeCustomizations(
-    clientSchema: ClientSchema,
-  ): CustomizationReport;
+  validatePath(pathId: string, clientSchema: ClientSchema): PathValidation;
+  validateAllPaths(clientSchema: ClientSchema): PathValidation[];
+  analyzeCustomizations(clientSchema: ClientSchema): CustomizationReport;
 }
 
 export interface CustomizationReport {
@@ -105,21 +95,35 @@ const ComparisonPairSchema = z.object({
 
 export const DetectContradictionsSchema = z.object({
   pairs: z.array(ComparisonPairSchema).min(1, 'At least one pair is required'),
-  types: z.array(z.enum([
-    'AMOUNT_DIVERGENCE', 'DATE_CONFLICT', 'STATUS_INCOMPATIBLE',
-    'ENTITY_MISMATCH', 'QUANTITY_DIVERGENCE', 'APPROVAL_BYPASS',
-    'TEMPORAL_IMPOSSIBILITY', 'DUPLICATE_REFERENCE', 'ORPHAN_RECORD',
-    'RETROACTIVE_CHANGE', 'SOD_VIOLATION', 'SCHEMA_GHOST',
-  ])).optional(),
-  config: z.object({
-    amountDivergencePercent: z.number().optional(),
-    amountDivergenceMinAbsolute: z.number().optional(),
-    dateConflictDays: z.number().optional(),
-    dateConflictHighDays: z.number().optional(),
-    approvalThreshold: z.number().optional(),
-    stalePeriodDays: z.number().optional(),
-    retroactiveDays: z.number().optional(),
-  }).optional(),
+  types: z
+    .array(
+      z.enum([
+        'AMOUNT_DIVERGENCE',
+        'DATE_CONFLICT',
+        'STATUS_INCOMPATIBLE',
+        'ENTITY_MISMATCH',
+        'QUANTITY_DIVERGENCE',
+        'APPROVAL_BYPASS',
+        'TEMPORAL_IMPOSSIBILITY',
+        'DUPLICATE_REFERENCE',
+        'ORPHAN_RECORD',
+        'RETROACTIVE_CHANGE',
+        'SOD_VIOLATION',
+        'SCHEMA_GHOST',
+      ])
+    )
+    .optional(),
+  config: z
+    .object({
+      amountDivergencePercent: z.number().optional(),
+      amountDivergenceMinAbsolute: z.number().optional(),
+      dateConflictDays: z.number().optional(),
+      dateConflictHighDays: z.number().optional(),
+      approvalThreshold: z.number().optional(),
+      stalePeriodDays: z.number().optional(),
+      retroactiveDays: z.number().optional(),
+    })
+    .optional(),
   min_severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']).default('LOW'),
 });
 
@@ -140,7 +144,10 @@ export const detectContradictionsTool = {
             left: {
               type: 'object',
               properties: {
-                system: { type: 'string', description: 'Source system (SAP, NetSuite, Salesforce)' },
+                system: {
+                  type: 'string',
+                  description: 'Source system (SAP, NetSuite, Salesforce)',
+                },
                 table: { type: 'string', description: 'Table name' },
                 recordId: { type: 'string', description: 'Record identifier' },
                 fields: { type: 'object', description: 'Field name/value pairs' },
@@ -151,7 +158,10 @@ export const detectContradictionsTool = {
             right: {
               type: 'object',
               properties: {
-                system: { type: 'string', description: 'Target system (SAP, NetSuite, Salesforce)' },
+                system: {
+                  type: 'string',
+                  description: 'Target system (SAP, NetSuite, Salesforce)',
+                },
                 table: { type: 'string', description: 'Table name' },
                 recordId: { type: 'string', description: 'Record identifier' },
                 fields: { type: 'object', description: 'Field name/value pairs' },
@@ -175,10 +185,19 @@ export const detectContradictionsTool = {
       config: {
         type: 'object',
         properties: {
-          amountDivergencePercent: { type: 'number', description: 'Amount divergence threshold (default 0.05 = 5%)' },
-          amountDivergenceMinAbsolute: { type: 'number', description: 'Minimum absolute difference to flag' },
+          amountDivergencePercent: {
+            type: 'number',
+            description: 'Amount divergence threshold (default 0.05 = 5%)',
+          },
+          amountDivergenceMinAbsolute: {
+            type: 'number',
+            description: 'Minimum absolute difference to flag',
+          },
           dateConflictDays: { type: 'number', description: 'Date conflict threshold in days' },
-          dateConflictHighDays: { type: 'number', description: 'High-severity date conflict threshold' },
+          dateConflictHighDays: {
+            type: 'number',
+            description: 'High-severity date conflict threshold',
+          },
           approvalThreshold: { type: 'number', description: 'Approval bypass amount threshold' },
           stalePeriodDays: { type: 'number', description: 'Stale period in days' },
           retroactiveDays: { type: 'number', description: 'Retroactive change threshold in days' },
@@ -197,7 +216,7 @@ export const detectContradictionsTool = {
 
 export async function executeDetectContradictions(
   deps: ContradictionToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = DetectContradictionsSchema.parse(rawInput);
 
@@ -223,9 +242,7 @@ export async function executeDetectContradictions(
 
   // Filter by min_severity
   const minRank = SEVERITY_RANK[input.min_severity];
-  const filtered = result.contradictions.filter(
-    (c) => SEVERITY_RANK[c.severity] <= minRank,
-  );
+  const filtered = result.contradictions.filter(c => SEVERITY_RANK[c.severity] <= minRank);
 
   // Build risk summary
   const riskSummary = buildRiskSummary(filtered);
@@ -239,9 +256,7 @@ export async function executeDetectContradictions(
   };
 }
 
-function buildRiskSummary(
-  contradictions: Array<{ severity: Severity; type: ContradictionType }>,
-): {
+function buildRiskSummary(contradictions: Array<{ severity: Severity; type: ContradictionType }>): {
   totalFindings: number;
   bySeverity: Record<Severity, number>;
   byType: Record<string, number>;
@@ -285,17 +300,21 @@ export const ValidateSchemaSchema = z.object({
   client_schema: z.object({
     clientId: z.string(),
     systemType: z.string(),
-    tables: z.record(z.object({
-      name: z.string(),
-      fields: z.record(z.object({
+    tables: z.record(
+      z.object({
         name: z.string(),
-        dataType: z.string(),
-        length: z.number().optional(),
-        decimals: z.number().optional(),
-        description: z.string().optional(),
-      })),
-      recordCount: z.number().optional(),
-    })),
+        fields: z.record(
+          z.object({
+            name: z.string(),
+            dataType: z.string(),
+            length: z.number().optional(),
+            decimals: z.number().optional(),
+            description: z.string().optional(),
+          })
+        ),
+        recordCount: z.number().optional(),
+      })
+    ),
     extractedAt: z.string(),
   }),
   path_ids: z.array(z.string()).optional(),
@@ -307,7 +326,7 @@ export type ValidateSchemaInput = z.infer<typeof ValidateSchemaSchema>;
 export const validateSchemaTool = {
   name: 'validate_schema',
   description:
-    'Validate extraction paths against a client\'s actual schema before running queries. Checks that all referenced tables and fields exist, types are compatible, and identifies client customizations (Z-tables, custom fields). Run this before any extraction to prevent schema ghost findings.',
+    "Validate extraction paths against a client's actual schema before running queries. Checks that all referenced tables and fields exist, types are compatible, and identifies client customizations (Z-tables, custom fields). Run this before any extraction to prevent schema ghost findings.",
   inputSchema: {
     type: 'object' as const,
     properties: {
@@ -341,7 +360,7 @@ export const validateSchemaTool = {
 
 export async function executeValidateSchema(
   deps: ContradictionToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = ValidateSchemaSchema.parse(rawInput);
 
@@ -356,17 +375,15 @@ export async function executeValidateSchema(
 
   if (input.path_ids && input.path_ids.length > 0) {
     // Validate specific paths
-    validations = input.path_ids.map((pathId) =>
-      deps.validator!.validatePath(pathId, clientSchema),
-    );
+    validations = input.path_ids.map(pathId => deps.validator!.validatePath(pathId, clientSchema));
   } else {
     // Validate all registered paths
     validations = deps.validator.validateAllPaths(clientSchema);
   }
 
   // Build summary
-  const validCount = validations.filter((v) => v.valid).length;
-  const invalidCount = validations.filter((v) => !v.valid).length;
+  const validCount = validations.filter(v => v.valid).length;
+  const invalidCount = validations.filter(v => !v.valid).length;
   const totalErrors = validations.reduce((sum, v) => sum + v.errors.length, 0);
   const totalWarnings = validations.reduce((sum, v) => sum + v.warnings.length, 0);
 
@@ -391,12 +408,37 @@ export async function executeValidateSchema(
 
 /** Convert plain-object schema (from JSON input) to Map-based ClientSchema */
 function toClientSchema(input: ValidateSchemaInput['client_schema']): ClientSchema {
-  const tables = new Map<string, { name: string; fields: Map<string, { name: string; dataType: string; length?: number; decimals?: number; description?: string }>; recordCount?: number }>();
+  const tables = new Map<
+    string,
+    {
+      name: string;
+      fields: Map<
+        string,
+        { name: string; dataType: string; length?: number; decimals?: number; description?: string }
+      >;
+      recordCount?: number;
+    }
+  >();
 
   for (const [tableName, tableData] of Object.entries(input.tables)) {
-    const fields = new Map<string, { name: string; dataType: string; length?: number; decimals?: number; description?: string }>();
+    const fields = new Map<
+      string,
+      { name: string; dataType: string; length?: number; decimals?: number; description?: string }
+    >();
     for (const [fieldName, fieldData] of Object.entries(tableData.fields)) {
-      fields.set(fieldName, { name: fieldData.name, dataType: fieldData.dataType, ...(fieldData.length !== null && fieldData.length !== undefined ? { length: fieldData.length } : {}), ...(fieldData.decimals !== null && fieldData.decimals !== undefined ? { decimals: fieldData.decimals } : {}), ...(fieldData.description !== null && fieldData.description !== undefined ? { description: fieldData.description } : {}) });
+      fields.set(fieldName, {
+        name: fieldData.name,
+        dataType: fieldData.dataType,
+        ...(fieldData.length !== null && fieldData.length !== undefined
+          ? { length: fieldData.length }
+          : {}),
+        ...(fieldData.decimals !== null && fieldData.decimals !== undefined
+          ? { decimals: fieldData.decimals }
+          : {}),
+        ...(fieldData.description !== null && fieldData.description !== undefined
+          ? { description: fieldData.description }
+          : {}),
+      });
     }
     tables.set(tableName, {
       name: tableData.name,

@@ -6,12 +6,8 @@
  * special character escaping.
  */
 
-import {
-  FindingRenderer,
-} from '../handoff/renderers/finding.js';
-import type {
-  ContradictionFinding,
-} from '../handoff/renderers/finding.js';
+import { FindingRenderer } from '../handoff/renderers/finding.js';
+import type { ContradictionFinding } from '../handoff/renderers/finding.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -83,7 +79,9 @@ describe('FindingRenderer', () => {
     const result = renderer.renderContradiction(finding);
 
     expect(result.markdown).toContain('| Left | SAP | VBAK | SO-100200 | NETWR | 50000 |');
-    expect(result.markdown).toContain('| Right | Salesforce | Opportunity | OPP-300 | Amount | 48000 |');
+    expect(result.markdown).toContain(
+      '| Right | Salesforce | Opportunity | OPP-300 | Amount | 48000 |'
+    );
   });
 
   // 4
@@ -105,18 +103,18 @@ describe('FindingRenderer', () => {
 
     expect(result.evidenceFiles).toHaveLength(3);
 
-    const filenames = result.evidenceFiles.map((f) => f.filename);
+    const filenames = result.evidenceFiles.map(f => f.filename);
     expect(filenames).toContain('F-f001-left.csv');
     expect(filenames).toContain('F-f001-right.csv');
     expect(filenames).toContain('F-f001-meta.json');
 
-    const leftCsv = result.evidenceFiles.find((f) => f.filename.endsWith('-left.csv'));
+    const leftCsv = result.evidenceFiles.find(f => f.filename.endsWith('-left.csv'));
     expect(leftCsv?.mimeType).toBe('text/csv');
 
-    const rightCsv = result.evidenceFiles.find((f) => f.filename.endsWith('-right.csv'));
+    const rightCsv = result.evidenceFiles.find(f => f.filename.endsWith('-right.csv'));
     expect(rightCsv?.mimeType).toBe('text/csv');
 
-    const metaJson = result.evidenceFiles.find((f) => f.filename.endsWith('-meta.json'));
+    const metaJson = result.evidenceFiles.find(f => f.filename.endsWith('-meta.json'));
     expect(metaJson?.mimeType).toBe('application/json');
   });
 
@@ -125,7 +123,7 @@ describe('FindingRenderer', () => {
     const finding = makeFinding();
     const result = renderer.renderContradiction(finding);
 
-    const metaFile = result.evidenceFiles.find((f) => f.filename.endsWith('-meta.json'));
+    const metaFile = result.evidenceFiles.find(f => f.filename.endsWith('-meta.json'));
     expect(metaFile).toBeDefined();
 
     const meta = JSON.parse(metaFile!.content);

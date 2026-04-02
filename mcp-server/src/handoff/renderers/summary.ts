@@ -58,8 +58,8 @@ export class SummaryGenerator {
     lines.push('');
     lines.push(
       `This assessment analyzed ${totalExtractions} extraction records across ` +
-      `${systemsCovered.length} systems (${systemsCovered.join(', ')}), ` +
-      `covering ${tablesCovered.length} database tables.`
+        `${systemsCovered.length} systems (${systemsCovered.join(', ')}), ` +
+        `covering ${tablesCovered.length} database tables.`
     );
     lines.push('');
 
@@ -101,7 +101,7 @@ export class SummaryGenerator {
   private getRiskNarrative(
     overallRiskScore: number,
     criticalCount: number,
-    highCount: number,
+    highCount: number
   ): string {
     if (overallRiskScore > 75) {
       return (
@@ -137,7 +137,20 @@ export class SummaryGenerator {
 
   /** Heuristic to match a table name to a system */
   private tableMatchesSystem(table: string, system: string): boolean {
-    const sapTables = ['EKKO', 'EKPO', 'BKPF', 'BSEG', 'VBAK', 'VBAP', 'LIKP', 'LIPS', 'RBKP', 'RSEG', 'CDHDR', 'CDPOS'];
+    const sapTables = [
+      'EKKO',
+      'EKPO',
+      'BKPF',
+      'BSEG',
+      'VBAK',
+      'VBAP',
+      'LIKP',
+      'LIPS',
+      'RBKP',
+      'RSEG',
+      'CDHDR',
+      'CDPOS',
+    ];
     const sfTables = ['Opportunity', 'Account', 'Contact', 'Lead', 'Case', 'Task', 'Event'];
     const nsTables = ['Transaction', 'Journal', 'Customer', 'Vendor', 'Item'];
 

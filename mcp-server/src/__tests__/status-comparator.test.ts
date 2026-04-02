@@ -64,7 +64,7 @@ describe('StatusIncompatibleComparator', () => {
 
     expect(finding).not.toBeNull();
     expect(finding!.severity).toBe('HIGH');
-    expect(finding!.confidence).toBe(0.90);
+    expect(finding!.confidence).toBe(0.9);
   });
 });
 

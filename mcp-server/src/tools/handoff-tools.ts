@@ -94,7 +94,7 @@ export const generateHandoffPacketTool = {
 
 export async function executeGenerateHandoffPacket(
   deps: HandoffToolDeps,
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<unknown> {
   const input = GenerateHandoffPacketSchema.parse(rawInput);
 

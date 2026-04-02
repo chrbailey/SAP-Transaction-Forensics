@@ -9,7 +9,9 @@ import { ManifestGenerator } from '../handoff/manifest.js';
 
 // --- Fixture helpers ---
 
-function makeExtraction(overrides: Partial<Parameters<ManifestGenerator['generateManifest']>[1][0]> = {}) {
+function makeExtraction(
+  overrides: Partial<Parameters<ManifestGenerator['generateManifest']>[1][0]> = {}
+) {
   return {
     extractionPathId: 'sap.o2c.order-header',
     extractionPathVersion: '1.0',
@@ -23,7 +25,9 @@ function makeExtraction(overrides: Partial<Parameters<ManifestGenerator['generat
   };
 }
 
-function makeSfdcExtraction(overrides: Partial<Parameters<ManifestGenerator['generateManifest']>[1][0]> = {}) {
+function makeSfdcExtraction(
+  overrides: Partial<Parameters<ManifestGenerator['generateManifest']>[1][0]> = {}
+) {
   return {
     extractionPathId: 'sfdc.pipeline.opportunity',
     extractionPathVersion: '2.1',
@@ -57,7 +61,11 @@ describe('ManifestGenerator', () => {
 
   // 2. totalExtractions equals entries.length
   test('totalExtractions equals entries.length', () => {
-    const extractions = [makeExtraction(), makeSfdcExtraction(), makeExtraction({ extractionPathId: 'sap.fi.gl-postings' })];
+    const extractions = [
+      makeExtraction(),
+      makeSfdcExtraction(),
+      makeExtraction({ extractionPathId: 'sap.fi.gl-postings' }),
+    ];
     const manifest = gen.generateManifest('ENG-002', extractions);
 
     expect(manifest.totalExtractions).toBe(manifest.entries.length);
@@ -66,10 +74,7 @@ describe('ManifestGenerator', () => {
 
   // 3. totalRows sums all entry rowCounts
   test('totalRows sums all entry rowCounts', () => {
-    const extractions = [
-      makeExtraction({ rowCount: 1000 }),
-      makeSfdcExtraction({ rowCount: 500 }),
-    ];
+    const extractions = [makeExtraction({ rowCount: 1000 }), makeSfdcExtraction({ rowCount: 500 })];
     const manifest = gen.generateManifest('ENG-003', extractions);
 
     expect(manifest.totalRows).toBe(1500);
@@ -167,8 +172,8 @@ describe('ManifestGenerator', () => {
 
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThanOrEqual(2);
-    expect(result.errors.some((e) => e.includes('queryHash'))).toBe(true);
-    expect(result.errors.some((e) => e.includes('replayHash'))).toBe(true);
+    expect(result.errors.some(e => e.includes('queryHash'))).toBe(true);
+    expect(result.errors.some(e => e.includes('replayHash'))).toBe(true);
   });
 
   // 12. generatedAt is ISO 8601 timestamp

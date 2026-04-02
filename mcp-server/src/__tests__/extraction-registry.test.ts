@@ -32,7 +32,12 @@ function makePath(overrides: Partial<ExtractionPath> = {}): ExtractionPath {
       { name: 'date_to', type: 'date', required: true, description: 'End date' },
     ],
     expectedFields: [
-      { name: 'orderNumber', type: 'string', sapFieldName: 'VBELN', description: 'Sales order number' },
+      {
+        name: 'orderNumber',
+        type: 'string',
+        sapFieldName: 'VBELN',
+        description: 'Sales order number',
+      },
       { name: 'createdDate', type: 'date', sapFieldName: 'ERDAT', description: 'Creation date' },
     ],
     ...overrides,
@@ -72,7 +77,12 @@ function makeNetsuitePath(overrides: Partial<ExtractionPath> = {}): ExtractionPa
     query: 'customsearch_sales_orders',
     parameters: [],
     expectedFields: [
-      { name: 'internalId', type: 'string', netsuiteName: 'internalid', description: 'Internal ID' },
+      {
+        name: 'internalId',
+        type: 'string',
+        netsuiteName: 'internalid',
+        description: 'Internal ID',
+      },
     ],
     ...overrides,
   };
@@ -293,25 +303,25 @@ describe('Metadata utilities', () => {
     it('should catch invalid ID', () => {
       const result = validatePath(makePath({ id: 'BAD-ID' }));
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('3 parts'))).toBe(true);
+      expect(result.errors.some(e => e.includes('3 parts'))).toBe(true);
     });
 
     it('should catch invalid version', () => {
       const result = validatePath(makePath({ version: 'nope' }));
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('major.minor'))).toBe(true);
+      expect(result.errors.some(e => e.includes('major.minor'))).toBe(true);
     });
 
     it('should catch empty query', () => {
       const result = validatePath(makePath({ query: '' }));
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('Query'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Query'))).toBe(true);
     });
 
     it('should catch missing expected fields', () => {
       const result = validatePath(makePath({ expectedFields: [] }));
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('at least one expected field'))).toBe(true);
+      expect(result.errors.some(e => e.includes('at least one expected field'))).toBe(true);
     });
 
     it('should catch duplicate parameter names', () => {
@@ -321,10 +331,10 @@ describe('Metadata utilities', () => {
             { name: 'date_from', type: 'date', required: true, description: 'Start' },
             { name: 'date_from', type: 'date', required: true, description: 'Also start' },
           ],
-        }),
+        })
       );
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('Duplicate parameter'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Duplicate parameter'))).toBe(true);
     });
 
     it('should catch duplicate field names', () => {
@@ -334,15 +344,15 @@ describe('Metadata utilities', () => {
             { name: 'orderNumber', type: 'string', description: 'Order num' },
             { name: 'orderNumber', type: 'string', description: 'Dup order num' },
           ],
-        }),
+        })
       );
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('Duplicate field'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Duplicate field'))).toBe(true);
     });
 
     it('should accumulate multiple errors', () => {
       const result = validatePath(
-        makePath({ id: 'BAD', version: 'nope', query: '', expectedFields: [] }),
+        makePath({ id: 'BAD', version: 'nope', query: '', expectedFields: [] })
       );
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(4);

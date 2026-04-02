@@ -48,9 +48,11 @@ function mockExporter() {
         replayHash: 'def456',
       },
     ]),
-    exportMarkdown: jest.fn().mockReturnValue(
-      '# Provenance: F-001\n\n| Role | System | Table | Record | Field | Value | Extracted At | Query Hash |\n|------|--------|-------|--------|-------|-------|--------------|------------|\n| primary | SAP | VBAK | 0000000100 | AUART | OR | 2025-01-01T00:00:00.000Z | abc123... |\n',
-    ),
+    exportMarkdown: jest
+      .fn()
+      .mockReturnValue(
+        '# Provenance: F-001\n\n| Role | System | Table | Record | Field | Value | Extracted At | Query Hash |\n|------|--------|-------|--------|-------|-------|--------------|------------|\n| primary | SAP | VBAK | 0000000100 | AUART | OR | 2025-01-01T00:00:00.000Z | abc123... |\n'
+      ),
   };
 }
 
@@ -66,7 +68,12 @@ function mockRegistry() {
       queryType: 'rfc' as const,
       query: 'SELECT * FROM VBAK WHERE VBELN = :order_number',
       parameters: [
-        { name: 'order_number', type: 'string' as const, required: true, description: 'Order number' },
+        {
+          name: 'order_number',
+          type: 'string' as const,
+          required: true,
+          description: 'Order number',
+        },
       ],
       expectedFields: [
         { name: 'VBELN', type: 'string' as const, description: 'Sales document number' },
@@ -83,7 +90,12 @@ function mockRegistry() {
       queryType: 'rfc' as const,
       query: 'SELECT * FROM BKPF WHERE BUKRS = :company_code',
       parameters: [
-        { name: 'company_code', type: 'string' as const, required: true, description: 'Company code' },
+        {
+          name: 'company_code',
+          type: 'string' as const,
+          required: true,
+          description: 'Company code',
+        },
       ],
       expectedFields: [
         { name: 'BUKRS', type: 'string' as const, description: 'Company code' },
@@ -110,28 +122,26 @@ function mockRegistry() {
   ];
 
   return {
-    get: jest.fn((id: string) => paths.find((p) => p.id === id)),
+    get: jest.fn((id: string) => paths.find(p => p.id === id)),
     list: jest.fn((filter?: { systemType?: string; domain?: string }) => {
       if (!filter) return paths;
-      return paths.filter((p) => {
+      return paths.filter(p => {
         if (filter.systemType && p.systemType !== filter.systemType) return false;
         if (filter.domain && p.domain !== filter.domain) return false;
         return true;
       });
     }),
-    validateParameters: jest.fn(
-      (pathId: string, params: Record<string, string>) => {
-        const path = paths.find((p) => p.id === pathId);
-        if (!path) return { valid: false, errors: [`Unknown path ID: '${pathId}'`] };
-        const errors: string[] = [];
-        for (const paramDef of path.parameters) {
-          if (paramDef.required && !(paramDef.name in params)) {
-            errors.push(`Missing required parameter: ${paramDef.name}`);
-          }
+    validateParameters: jest.fn((pathId: string, params: Record<string, string>) => {
+      const path = paths.find(p => p.id === pathId);
+      if (!path) return { valid: false, errors: [`Unknown path ID: '${pathId}'`] };
+      const errors: string[] = [];
+      for (const paramDef of path.parameters) {
+        if (paramDef.required && !(paramDef.name in params)) {
+          errors.push(`Missing required parameter: ${paramDef.name}`);
         }
-        return { valid: errors.length === 0, errors };
-      },
-    ),
+      }
+      return { valid: errors.length === 0, errors };
+    }),
   };
 }
 
@@ -198,9 +208,9 @@ describe('query_provenance', () => {
   it('returns error when exporter is not configured', async () => {
     const deps: ProvenanceToolDeps = {};
 
-    await expect(
-      executeQueryProvenance(deps, { finding_id: 'F-001' }),
-    ).rejects.toThrow('Provenance exporter not configured');
+    await expect(executeQueryProvenance(deps, { finding_id: 'F-001' })).rejects.toThrow(
+      'Provenance exporter not configured'
+    );
   });
 });
 
@@ -277,14 +287,10 @@ describe('run_extraction', () => {
       parameters: { order_number: '0000000100' },
     });
 
-    expect(registry.validateParameters).toHaveBeenCalledWith(
-      'sap.o2c.order-header',
-      { order_number: '0000000100' },
-    );
-    expect(executor).toHaveBeenCalledWith(
-      'sap.o2c.order-header',
-      { order_number: '0000000100' },
-    );
+    expect(registry.validateParameters).toHaveBeenCalledWith('sap.o2c.order-header', {
+      order_number: '0000000100',
+    });
+    expect(executor).toHaveBeenCalledWith('sap.o2c.order-header', { order_number: '0000000100' });
     expect(result).toHaveProperty('pathId', 'sap.o2c.order-header');
     expect(result).toHaveProperty('replayHash');
   });
@@ -373,12 +379,8 @@ describe('tool schemas', () => {
     expect(result.domain).toBeUndefined();
 
     // Rejects invalid enum values
-    expect(() =>
-      ListExtractionPathsSchema.parse({ system_type: 'Oracle' }),
-    ).toThrow();
-    expect(() =>
-      ListExtractionPathsSchema.parse({ domain: 'hr' }),
-    ).toThrow();
+    expect(() => ListExtractionPathsSchema.parse({ system_type: 'Oracle' })).toThrow();
+    expect(() => ListExtractionPathsSchema.parse({ domain: 'hr' })).toThrow();
   });
 
   it('run_extraction: path_id and parameters are required, dry_run is optional', () => {
@@ -393,14 +395,10 @@ describe('tool schemas', () => {
     expect(result.dry_run).toBe(false);
 
     // Rejects missing path_id
-    expect(() =>
-      RunExtractionSchema.parse({ parameters: {} }),
-    ).toThrow();
+    expect(() => RunExtractionSchema.parse({ parameters: {} })).toThrow();
 
     // Rejects missing parameters
-    expect(() =>
-      RunExtractionSchema.parse({ path_id: 'test' }),
-    ).toThrow();
+    expect(() => RunExtractionSchema.parse({ path_id: 'test' })).toThrow();
   });
 });
 

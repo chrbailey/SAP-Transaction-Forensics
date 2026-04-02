@@ -267,7 +267,9 @@ describe('FindingLifecycleDB', () => {
   it('getStats returns correct breakdowns', () => {
     db.insertFinding(makeFinding({ state: 'DETECTED', source: 'contradiction', severity: 'HIGH' }));
     db.insertFinding(makeFinding({ state: 'DETECTED', source: 'contradiction', severity: 'HIGH' }));
-    db.insertFinding(makeFinding({ state: 'INVESTIGATING', source: 'reality_gap', severity: 'CRITICAL' }));
+    db.insertFinding(
+      makeFinding({ state: 'INVESTIGATING', source: 'reality_gap', severity: 'CRITICAL' })
+    );
     db.insertFinding(makeFinding({ state: 'RESOLVED', source: 'conformance', severity: 'LOW' }));
 
     const stats = db.getStats();

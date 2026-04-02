@@ -15,8 +15,17 @@ import {
   executeValidateSchema,
   createContradictionTools,
 } from '../tools/contradiction-tools.js';
-import type { ContradictionToolDeps, SchemaValidator, CustomizationReport } from '../tools/contradiction-tools.js';
-import type { ContradictionFinding, ComparisonResult, Severity, ContradictionType } from '../contradiction/types.js';
+import type {
+  ContradictionToolDeps,
+  SchemaValidator,
+  CustomizationReport,
+} from '../tools/contradiction-tools.js';
+import type {
+  ContradictionFinding,
+  ComparisonResult,
+  Severity,
+  ContradictionType,
+} from '../contradiction/types.js';
 import type { PathValidation, ClientSchema } from '../schema-validator/types.js';
 
 // ============================================================================
@@ -66,16 +75,18 @@ function mockEngine() {
       comparisonsRun: 10,
       duration: 42,
     }),
-    analyzeWithTypes: jest.fn<(pairs: unknown[], types: ContradictionType[]) => ComparisonResult>().mockReturnValue({
-      contradictions: [findings[1]!],
-      recordsCompared: 2,
-      comparisonsRun: 2,
-      duration: 12,
-    }),
+    analyzeWithTypes: jest
+      .fn<(pairs: unknown[], types: ContradictionType[]) => ComparisonResult>()
+      .mockReturnValue({
+        contradictions: [findings[1]!],
+        recordsCompared: 2,
+        comparisonsRun: 2,
+        duration: 12,
+      }),
     updateConfig: jest.fn(),
-    getRegisteredTypes: jest.fn<() => ContradictionType[]>().mockReturnValue([
-      'AMOUNT_DIVERGENCE', 'DATE_CONFLICT', 'STATUS_INCOMPATIBLE',
-    ]),
+    getRegisteredTypes: jest
+      .fn<() => ContradictionType[]>()
+      .mockReturnValue(['AMOUNT_DIVERGENCE', 'DATE_CONFLICT', 'STATUS_INCOMPATIBLE']),
   };
 }
 
@@ -113,14 +124,17 @@ function mockValidator(): SchemaValidator {
   };
 
   return {
-    validatePath: jest.fn<(pathId: string, schema: ClientSchema) => PathValidation>()
+    validatePath: jest
+      .fn<(pathId: string, schema: ClientSchema) => PathValidation>()
       .mockImplementation((pathId: string) => {
         if (pathId === 'sap.o2c.order-header') return validPath;
         return invalidPath;
       }),
-    validateAllPaths: jest.fn<(schema: ClientSchema) => PathValidation[]>()
+    validateAllPaths: jest
+      .fn<(schema: ClientSchema) => PathValidation[]>()
       .mockReturnValue([validPath, invalidPath]),
-    analyzeCustomizations: jest.fn<(schema: ClientSchema) => CustomizationReport>()
+    analyzeCustomizations: jest
+      .fn<(schema: ClientSchema) => CustomizationReport>()
       .mockReturnValue(customizations),
   };
 }
@@ -174,7 +188,12 @@ const sampleClientSchema = {
         VBELN: { name: 'VBELN', dataType: 'CHAR', length: 10 },
         AUART: { name: 'AUART', dataType: 'CHAR', length: 2 },
         NETWR: { name: 'NETWR', dataType: 'DEC', length: 15, decimals: 2 },
-        ZZPARTNER: { name: 'ZZPARTNER', dataType: 'CHAR', length: 10, description: 'Custom partner field' },
+        ZZPARTNER: {
+          name: 'ZZPARTNER',
+          dataType: 'CHAR',
+          length: 10,
+          description: 'Custom partner field',
+        },
       },
       recordCount: 50000,
     },
@@ -219,13 +238,13 @@ describe('detect_contradictions', () => {
     };
 
     // HIGH should include CRITICAL + HIGH, exclude MEDIUM, LOW, INFO
-    const result = await executeDetectContradictions(deps, {
+    const result = (await executeDetectContradictions(deps, {
       pairs: samplePairs,
       min_severity: 'HIGH',
-    }) as { contradictions: ContradictionFinding[] };
+    })) as { contradictions: ContradictionFinding[] };
 
     expect(result.contradictions).toHaveLength(2);
-    const severities = result.contradictions.map((c) => c.severity);
+    const severities = result.contradictions.map(c => c.severity);
     expect(severities).toContain('CRITICAL');
     expect(severities).toContain('HIGH');
     expect(severities).not.toContain('MEDIUM');
@@ -242,13 +261,13 @@ describe('detect_contradictions', () => {
     await executeDetectContradictions(deps, {
       pairs: samplePairs,
       config: {
-        amountDivergencePercent: 0.10,
+        amountDivergencePercent: 0.1,
         approvalThreshold: 100000,
       },
     });
 
     expect(engine.updateConfig).toHaveBeenCalledWith({
-      amountDivergencePercent: 0.10,
+      amountDivergencePercent: 0.1,
       approvalThreshold: 100000,
     });
   });
@@ -277,10 +296,10 @@ describe('detect_contradictions', () => {
     };
 
     // Use min_severity INFO to include all findings in the summary
-    const result = await executeDetectContradictions(deps, {
+    const result = (await executeDetectContradictions(deps, {
       pairs: samplePairs,
       min_severity: 'INFO',
-    }) as {
+    })) as {
       riskSummary: {
         totalFindings: number;
         bySeverity: Record<Severity, number>;
@@ -304,9 +323,9 @@ describe('detect_contradictions', () => {
   it('throws when engine is not configured', async () => {
     const deps: ContradictionToolDeps = {};
 
-    await expect(
-      executeDetectContradictions(deps, { pairs: samplePairs }),
-    ).rejects.toThrow('Contradiction engine not configured');
+    await expect(executeDetectContradictions(deps, { pairs: samplePairs })).rejects.toThrow(
+      'Contradiction engine not configured'
+    );
   });
 });
 
@@ -321,9 +340,9 @@ describe('validate_schema', () => {
       validator,
     };
 
-    const result = await executeValidateSchema(deps, {
+    const result = (await executeValidateSchema(deps, {
       client_schema: sampleClientSchema,
-    }) as { validations: PathValidation[]; summary: Record<string, number> };
+    })) as { validations: PathValidation[]; summary: Record<string, number> };
 
     expect(validator.validateAllPaths).toHaveBeenCalledTimes(1);
     expect((validator.validatePath as jest.Mock).mock.calls).toHaveLength(0);
@@ -336,10 +355,10 @@ describe('validate_schema', () => {
       validator,
     };
 
-    const result = await executeValidateSchema(deps, {
+    const result = (await executeValidateSchema(deps, {
       client_schema: sampleClientSchema,
       path_ids: ['sap.o2c.order-header'],
-    }) as { validations: PathValidation[] };
+    })) as { validations: PathValidation[] };
 
     expect(validator.validatePath).toHaveBeenCalledTimes(1);
     expect((validator.validatePath as jest.Mock).mock.calls[0]![0]).toBe('sap.o2c.order-header');
@@ -354,10 +373,10 @@ describe('validate_schema', () => {
       validator,
     };
 
-    const result = await executeValidateSchema(deps, {
+    const result = (await executeValidateSchema(deps, {
       client_schema: sampleClientSchema,
       include_customizations: true,
-    }) as { customizations: CustomizationReport };
+    })) as { customizations: CustomizationReport };
 
     expect(validator.analyzeCustomizations).toHaveBeenCalledTimes(1);
     expect(result.customizations).toBeDefined();
@@ -372,9 +391,9 @@ describe('validate_schema', () => {
       validator,
     };
 
-    const result = await executeValidateSchema(deps, {
+    const result = (await executeValidateSchema(deps, {
       client_schema: sampleClientSchema,
-    }) as {
+    })) as {
       summary: {
         totalPaths: number;
         validCount: number;
@@ -395,7 +414,7 @@ describe('validate_schema', () => {
     const deps: ContradictionToolDeps = {};
 
     await expect(
-      executeValidateSchema(deps, { client_schema: sampleClientSchema }),
+      executeValidateSchema(deps, { client_schema: sampleClientSchema })
     ).rejects.toThrow('Schema validator not configured');
   });
 
@@ -405,10 +424,10 @@ describe('validate_schema', () => {
       validator,
     };
 
-    const result = await executeValidateSchema(deps, {
+    const result = (await executeValidateSchema(deps, {
       client_schema: sampleClientSchema,
       include_customizations: false,
-    }) as Record<string, unknown>;
+    })) as Record<string, unknown>;
 
     expect(validator.analyzeCustomizations).not.toHaveBeenCalled();
     expect(result['customizations']).toBeUndefined();
@@ -440,12 +459,12 @@ describe('tool schemas', () => {
 
     // Rejects invalid min_severity
     expect(() =>
-      DetectContradictionsSchema.parse({ pairs: samplePairs, min_severity: 'UNKNOWN' }),
+      DetectContradictionsSchema.parse({ pairs: samplePairs, min_severity: 'UNKNOWN' })
     ).toThrow();
 
     // Rejects invalid contradiction type
     expect(() =>
-      DetectContradictionsSchema.parse({ pairs: samplePairs, types: ['INVALID_TYPE'] }),
+      DetectContradictionsSchema.parse({ pairs: samplePairs, types: ['INVALID_TYPE'] })
     ).toThrow();
   });
 
@@ -463,9 +482,7 @@ describe('tool schemas', () => {
     expect(() => ValidateSchemaSchema.parse({})).toThrow();
 
     // Rejects incomplete client_schema
-    expect(() =>
-      ValidateSchemaSchema.parse({ client_schema: { clientId: 'test' } }),
-    ).toThrow();
+    expect(() => ValidateSchemaSchema.parse({ client_schema: { clientId: 'test' } })).toThrow();
   });
 });
 

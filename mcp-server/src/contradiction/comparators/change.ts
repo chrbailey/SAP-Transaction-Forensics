@@ -13,10 +13,7 @@ import { randomUUID } from 'node:crypto';
 
 export type SystemType = 'SAP' | 'NetSuite' | 'Salesforce';
 
-export type ChangeContradictionType =
-  | 'RETROACTIVE_CHANGE'
-  | 'SOD_VIOLATION'
-  | 'SCHEMA_GHOST';
+export type ChangeContradictionType = 'RETROACTIVE_CHANGE' | 'SOD_VIOLATION' | 'SCHEMA_GHOST';
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
@@ -159,10 +156,7 @@ export function parsePeriod(dateStr: string): { year: number; month: number } | 
  * Compute period gap in months between two { year, month } objects.
  * Positive means `b` is later than `a`.
  */
-function periodGap(
-  a: { year: number; month: number },
-  b: { year: number; month: number },
-): number {
+function periodGap(a: { year: number; month: number }, b: { year: number; month: number }): number {
   return (b.year - a.year) * 12 + (b.month - a.month);
 }
 
@@ -172,7 +166,7 @@ function periodGap(
  */
 function findField(
   fields: Record<string, string>,
-  knownNames: string[],
+  knownNames: string[]
 ): [string, string] | undefined {
   for (const name of knownNames) {
     const val = fields[name];
@@ -185,10 +179,7 @@ function findField(
  * Find the first user-id value from `fields` that matches one of `names`.
  * Returns undefined when no match.
  */
-function findUserId(
-  fields: Record<string, string>,
-  names: string[],
-): string | undefined {
+function findUserId(fields: Record<string, string>, names: string[]): string | undefined {
   for (const name of names) {
     const val = fields[name];
     if (val !== undefined && val.trim() !== '') return val.trim();
@@ -247,7 +238,7 @@ export class RetroactiveChangeComparator {
       id: randomUUID(),
       type: this.type,
       severity,
-      confidence: 0.90,
+      confidence: 0.9,
       description:
         `Retroactive change detected: record modified in period ` +
         `${changePeriod.year}/${String(changePeriod.month).padStart(2, '0')} ` +

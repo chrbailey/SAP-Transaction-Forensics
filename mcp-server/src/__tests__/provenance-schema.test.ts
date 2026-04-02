@@ -117,11 +117,11 @@ describe('ProvenanceDB', () => {
       const results = db.getExtractionsByFinding('finding-A');
       expect(results).toHaveLength(2);
 
-      const primary = results.find((r) => r.role === 'primary');
+      const primary = results.find(r => r.role === 'primary');
       expect(primary).toBeDefined();
       expect(primary!.id).toBe('ext-e1');
 
-      const corroborating = results.find((r) => r.role === 'corroborating');
+      const corroborating = results.find(r => r.role === 'corroborating');
       expect(corroborating).toBeDefined();
       expect(corroborating!.id).toBe('ext-e2');
     });
@@ -143,7 +143,7 @@ describe('ProvenanceDB', () => {
 
       const results = db.getExtractionsByQuery('shared-hash');
       expect(results).toHaveLength(2);
-      expect(results.map((r) => r.id).sort()).toEqual(['ext-q1', 'ext-q2']);
+      expect(results.map(r => r.id).sort()).toEqual(['ext-q1', 'ext-q2']);
     });
 
     it('should return empty array for unknown query hash', () => {
@@ -160,7 +160,7 @@ describe('ProvenanceDB', () => {
       db.insertExtraction(makeRecord({ id: 'ext-t1', systemType: 'SAP', tableName: 'BKPF' }));
       db.insertExtraction(makeRecord({ id: 'ext-t2', systemType: 'SAP', tableName: 'BSEG' }));
       db.insertExtraction(
-        makeRecord({ id: 'ext-t3', systemType: 'Salesforce', tableName: 'BKPF' }),
+        makeRecord({ id: 'ext-t3', systemType: 'Salesforce', tableName: 'BKPF' })
       );
 
       const sapBkpf = db.getExtractionsByTable('SAP', 'BKPF');
@@ -188,20 +188,20 @@ describe('ProvenanceDB', () => {
   describe('getExtractionsByPath', () => {
     beforeEach(() => {
       db.insertExtraction(
-        makeRecord({ id: 'ext-p1', extractionPathId: 'path-A', extractionPathVersion: '1.0' }),
+        makeRecord({ id: 'ext-p1', extractionPathId: 'path-A', extractionPathVersion: '1.0' })
       );
       db.insertExtraction(
-        makeRecord({ id: 'ext-p2', extractionPathId: 'path-A', extractionPathVersion: '2.0' }),
+        makeRecord({ id: 'ext-p2', extractionPathId: 'path-A', extractionPathVersion: '2.0' })
       );
       db.insertExtraction(
-        makeRecord({ id: 'ext-p3', extractionPathId: 'path-B', extractionPathVersion: '1.0' }),
+        makeRecord({ id: 'ext-p3', extractionPathId: 'path-B', extractionPathVersion: '1.0' })
       );
     });
 
     it('should return all versions when no version specified', () => {
       const results = db.getExtractionsByPath('path-A');
       expect(results).toHaveLength(2);
-      expect(results.map((r) => r.id).sort()).toEqual(['ext-p1', 'ext-p2']);
+      expect(results.map(r => r.id).sort()).toEqual(['ext-p1', 'ext-p2']);
     });
 
     it('should filter by version when specified', () => {
@@ -221,9 +221,7 @@ describe('ProvenanceDB', () => {
 
   describe('verifyReplay', () => {
     beforeEach(() => {
-      db.insertExtraction(
-        makeRecord({ queryHash: 'qh-replay', replayHash: 'rh-correct' }),
-      );
+      db.insertExtraction(makeRecord({ queryHash: 'qh-replay', replayHash: 'rh-correct' }));
     });
 
     it('should return true when replay hash matches', () => {

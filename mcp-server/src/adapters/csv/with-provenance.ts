@@ -28,7 +28,7 @@ import type { IDataAdapter } from '../adapter-interface.js';
  */
 export function createCSVAdapterWithProvenance(
   filePaths: string | string[],
-  provenanceDbPath: string,
+  provenanceDbPath: string
 ): { adapter: IDataAdapter; provenanceDb: ProvenanceDB; csvAdapter: CSVAdapter } {
   const csvAdapter = new CSVAdapter(filePaths);
   const provenanceDb = new ProvenanceDB(provenanceDbPath);

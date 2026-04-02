@@ -135,7 +135,7 @@ describe('GapRenderer', () => {
     ];
 
     const result = renderer.renderAllGrouped(gaps);
-    const severities = result.renderedFindings.map((f) => f.severity);
+    const severities = result.renderedFindings.map(f => f.severity);
     expect(severities).toEqual(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']);
   });
 

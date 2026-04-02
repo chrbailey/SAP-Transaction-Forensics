@@ -35,9 +35,7 @@ export function computeQueryHash(
  * Compute a deterministic hash for an extraction result set.
  * Same rows in same order always produces the same hash.
  */
-export function computeReplayHash(
-  rows: Record<string, string>[]
-): string {
+export function computeReplayHash(rows: Record<string, string>[]): string {
   const canonical = rows.map(row => canonicalizeRow(row));
   const serialized = JSON.stringify(canonical);
   return createHash('sha256').update(serialized).digest('hex');

@@ -26,10 +26,7 @@ import { createHash } from 'node:crypto';
 // ---------------------------------------------------------------------------
 
 import { ExtractionRegistry } from '../extraction-registry/index.js';
-import {
-  ALL_EXTRACTION_PATHS,
-  createDefaultRegistry,
-} from '../extraction-registry/registry.js';
+import { ALL_EXTRACTION_PATHS, createDefaultRegistry } from '../extraction-registry/registry.js';
 
 // ---------------------------------------------------------------------------
 // 2. Provenance
@@ -51,13 +48,9 @@ import type {
   ContradictionFinding as EngineFinding,
 } from '../contradiction/engine.js';
 
-import {
-  AmountDivergenceComparator,
-} from '../contradiction/comparators/amount.js';
+import { AmountDivergenceComparator } from '../contradiction/comparators/amount.js';
 
-import {
-  TemporalImpossibilityComparator,
-} from '../contradiction/comparators/temporal.js';
+import { TemporalImpossibilityComparator } from '../contradiction/comparators/temporal.js';
 
 // ---------------------------------------------------------------------------
 // 4. Scoring
@@ -68,9 +61,7 @@ import {
   computeAggregateRisk,
   generateRiskSummary,
 } from '../contradiction/scoring.js';
-import type {
-  ContradictionFinding as ScoringFinding,
-} from '../contradiction/scoring.js';
+import type { ContradictionFinding as ScoringFinding } from '../contradiction/scoring.js';
 
 // ---------------------------------------------------------------------------
 // 5. Schema Validator + IDES Reference
@@ -105,12 +96,12 @@ import type { HandoffConfig } from '../handoff/types.js';
 
 const VBELN = '0000054321';
 const SAP_NETWR = '125000.00';
-const SFDC_AMOUNT = '128750.00';        // 2.9% divergence (borderline)
-const SAP_ERDAT = '20260115';            // Order created 2026-01-15
-const SAP_FKDAT = '20260110';            // Invoice date BEFORE order (impossible!)
-const SAP_WADAT_IST = '20260120';        // Delivery 2026-01-20
-const SFDC_CLOSE_DATE = '2026-01-10';    // SFDC closed 2026-01-10
-const SFDC_CREATED_DATE = '2025-12-01';  // SFDC opp created 2025-12-01
+const SFDC_AMOUNT = '128750.00'; // 2.9% divergence (borderline)
+const SAP_ERDAT = '20260115'; // Order created 2026-01-15
+const SAP_FKDAT = '20260110'; // Invoice date BEFORE order (impossible!)
+const SAP_WADAT_IST = '20260120'; // Delivery 2026-01-20
+const SFDC_CLOSE_DATE = '2026-01-10'; // SFDC closed 2026-01-10
+const SFDC_CREATED_DATE = '2025-12-01'; // SFDC opp created 2025-12-01
 const CLIENT_NAME = 'Meridian Industrial GmbH';
 const ENGAGEMENT_ID = 'ENG-2026-Q1-042';
 
@@ -156,7 +147,9 @@ function createMockAdapter() {
           status: 'posted',
           created_date: '2026-01-10',
           created_time: '161500',
-          items: [{ item_number: '000010', ref_doc: '8000012345', ref_item: '000010', quantity: 100 }],
+          items: [
+            { item_number: '000010', ref_doc: '8000012345', ref_item: '000010', quantity: 100 },
+          ],
         },
       ],
     }),
@@ -172,7 +165,7 @@ function createMockAdapter() {
       ERNAM: 'JMUELLER',
       ERDAT: SAP_ERDAT,
       ERZET: '091500',
-      NETWR: 125000.00,
+      NETWR: 125000.0,
       WAERK: 'EUR',
       BSTNK: 'PO-2026-MER-0815',
     }),
@@ -186,7 +179,7 @@ function createMockAdapter() {
         WERKS: '1000',
         KWMENG: 5,
         VRKME: 'EA',
-        NETWR: 125000.00,
+        NETWR: 125000.0,
         WAERK: 'EUR',
         PSTYV: 'TAN',
       },
@@ -259,14 +252,11 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
     provenanceDb = new ProvenanceDB(':memory:');
     registry = createDefaultRegistry();
     engine = new ContradictionEngine({
-      amountDivergencePercent: 0.02,          // 2% threshold to catch 2.9%
+      amountDivergencePercent: 0.02, // 2% threshold to catch 2.9%
       amountDivergenceMinAbsolute: 100,
       approvalThreshold: 50000,
     });
-    engine.registerAll([
-      new AmountDivergenceComparator(),
-      new TemporalImpossibilityComparator(),
-    ]);
+    engine.registerAll([new AmountDivergenceComparator(), new TemporalImpossibilityComparator()]);
     findingManager = new FindingLifecycleManager();
   });
 
@@ -368,9 +358,11 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       await wrapped2.getSalesDocHeader({ vbeln: VBELN });
 
       // Both runs should produce the same replay hash for the same query
-      const records1 = provenanceDb.getExtractionsByTable('SAP', 'VBAK')
+      const records1 = provenanceDb
+        .getExtractionsByTable('SAP', 'VBAK')
         .filter(r => r.adapterId === 'integration-test-adapter');
-      const records2 = provenanceDb.getExtractionsByTable('SAP', 'VBAK')
+      const records2 = provenanceDb
+        .getExtractionsByTable('SAP', 'VBAK')
         .filter(r => r.adapterId === 'replay-test-adapter');
 
       expect(records1.length).toBeGreaterThan(0);
@@ -498,8 +490,8 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
           table: 'VBRK',
           recordId: '9000067890',
           fields: {
-            FKDAT: SAP_FKDAT,       // Invoice: 2026-01-10
-            ERDAT: SAP_ERDAT,        // Created: 2026-01-15
+            FKDAT: SAP_FKDAT, // Invoice: 2026-01-10
+            ERDAT: SAP_ERDAT, // Created: 2026-01-15
           },
           extractionId: sapExtractionIds[1] ?? 'ext-sap-invoice-001',
         },
@@ -509,7 +501,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
           recordId: '8000012345',
           fields: {
             WADAT_IST: SAP_WADAT_IST, // Delivery: 2026-01-20
-            LFDAT: '20260118',         // Requested: 2026-01-18
+            LFDAT: '20260118', // Requested: 2026-01-18
           },
           extractionId: sapExtractionIds[2] ?? 'ext-sap-delivery-001',
         },
@@ -517,7 +509,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
 
       const result = engine.analyzeAll([temporalPair]);
       const temporalFindings = result.contradictions.filter(
-        f => f.type === 'TEMPORAL_IMPOSSIBILITY',
+        f => f.type === 'TEMPORAL_IMPOSSIBILITY'
       );
 
       expect(temporalFindings.length).toBeGreaterThanOrEqual(1);
@@ -538,9 +530,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
     });
 
     it('aggregate risk summary generated', () => {
-      aggregateRisk = computeAggregateRisk(
-        contradictionFindings as unknown as ScoringFinding[],
-      );
+      aggregateRisk = computeAggregateRisk(contradictionFindings as unknown as ScoringFinding[]);
 
       expect(aggregateRisk.overallScore).toBeGreaterThan(0);
       expect(aggregateRisk.maxScore).toBeGreaterThan(0);
@@ -550,9 +540,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       // byType should have entries
       expect(Object.keys(aggregateRisk.byType).length).toBeGreaterThan(0);
 
-      const summary = generateRiskSummary(
-        contradictionFindings as unknown as ScoringFinding[],
-      );
+      const summary = generateRiskSummary(contradictionFindings as unknown as ScoringFinding[]);
       expect(summary).toContain('Risk Summary');
       expect(summary).toContain('critical');
     });
@@ -699,11 +687,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       const orderHeaderPath = registry.get('sap.o2c.order-header');
       expect(orderHeaderPath).toBeDefined();
 
-      const result = validator.validatePath(
-        orderHeaderPath!.id,
-        orderHeaderPath!,
-        clientSchema,
-      );
+      const result = validator.validatePath(orderHeaderPath!.id, orderHeaderPath!, clientSchema);
 
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -729,11 +713,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       };
 
       const orderHeaderPath = registry.get('sap.o2c.order-header')!;
-      const result = validator.validatePath(
-        orderHeaderPath.id,
-        orderHeaderPath,
-        clientSchema,
-      );
+      const result = validator.validatePath(orderHeaderPath.id, orderHeaderPath, clientSchema);
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -814,7 +794,9 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
           extractionPathVersion: '1.0',
           parameters: { accountId: '001Dn00000MerInd' },
           queryHash: createHash('sha256').update('sfdc:Opportunity:query').digest('hex'),
-          replayHash: createHash('sha256').update(SFDC_AMOUNT + SFDC_CLOSE_DATE).digest('hex'),
+          replayHash: createHash('sha256')
+            .update(SFDC_AMOUNT + SFDC_CLOSE_DATE)
+            .digest('hex'),
           extractedAt: new Date().toISOString(),
           rowCount: 1,
           systemType: 'Salesforce',
@@ -823,11 +805,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
 
       // Generate checklist
       const checklistGen = new ChecklistGenerator();
-      checklist = checklistGen.generateChecklist(
-        ENGAGEMENT_ID,
-        contradictionFindings.length,
-        2,
-      );
+      checklist = checklistGen.generateChecklist(ENGAGEMENT_ID, contradictionFindings.length, 2);
     });
 
     it('packet contains executive summary', () => {
@@ -922,22 +900,14 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
 
   describe('Step 7: Independent Verification', () => {
     it('replay hash verification succeeds for unchanged data', () => {
-      const verified = provenanceDb.verifyReplay(
-        queryHash_salesHeader,
-        replayHash_salesHeader,
-      );
+      const verified = provenanceDb.verifyReplay(queryHash_salesHeader, replayHash_salesHeader);
       expect(verified).toBe(true);
     });
 
     it('replay hash verification fails for modified data', () => {
-      const tamperedHash = createHash('sha256')
-        .update('TAMPERED DATA')
-        .digest('hex');
+      const tamperedHash = createHash('sha256').update('TAMPERED DATA').digest('hex');
 
-      const verified = provenanceDb.verifyReplay(
-        queryHash_salesHeader,
-        tamperedHash,
-      );
+      const verified = provenanceDb.verifyReplay(queryHash_salesHeader, tamperedHash);
       expect(verified).toBe(false);
     });
 
@@ -958,9 +928,7 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
 
     it('finding lifecycle tracks full state progression', () => {
       // Create a unified finding from the temporal impossibility
-      const temporalFinding = contradictionFindings.find(
-        f => f.type === 'TEMPORAL_IMPOSSIBILITY',
-      );
+      const temporalFinding = contradictionFindings.find(f => f.type === 'TEMPORAL_IMPOSSIBILITY');
 
       if (temporalFinding) {
         const unified = findingManager.createFinding({
@@ -1002,8 +970,10 @@ describe('Full Pipeline Integration: Extract → Detect → Package', () => {
       expect(dbStats.systemCounts['Salesforce']).toBeGreaterThan(0);
 
       // Total extractions should be the sum
-      const totalFromSystems = Object.values(dbStats.systemCounts)
-        .reduce((sum, count) => sum + count, 0);
+      const totalFromSystems = Object.values(dbStats.systemCounts).reduce(
+        (sum, count) => sum + count,
+        0
+      );
       expect(dbStats.totalExtractions).toBe(totalFromSystems);
 
       // We linked evidence to at least one finding

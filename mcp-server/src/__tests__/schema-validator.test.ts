@@ -71,22 +71,36 @@ function buildReferenceSchema(): Map<string, ReferenceTable> {
 /** A complete client schema with both tables present and matching */
 function buildFullClientSchema(): ClientSchema {
   const tables = new Map<string, ClientTable>();
-  tables.set('VBAK', ct('VBAK', [
-    cf('VBELN', 'CHAR', 10),
-    cf('ERDAT', 'DATS', 8),
-    cf('ERNAM', 'CHAR', 12),
-    cf('AUART', 'CHAR', 4),
-    cf('NETWR', 'CURR', 15),
-    cf('WAERK', 'CHAR', 5),
-  ], 50000));
-  tables.set('BKPF', ct('BKPF', [
-    cf('BUKRS', 'CHAR', 4),
-    cf('BELNR', 'CHAR', 10),
-    cf('GJAHR', 'NUMC', 4),
-    cf('BLDAT', 'DATS', 8),
-    cf('BUDAT', 'DATS', 8),
-    cf('DMBTR', 'DEC', 13),
-  ], 120000));
+  tables.set(
+    'VBAK',
+    ct(
+      'VBAK',
+      [
+        cf('VBELN', 'CHAR', 10),
+        cf('ERDAT', 'DATS', 8),
+        cf('ERNAM', 'CHAR', 12),
+        cf('AUART', 'CHAR', 4),
+        cf('NETWR', 'CURR', 15),
+        cf('WAERK', 'CHAR', 5),
+      ],
+      50000
+    )
+  );
+  tables.set(
+    'BKPF',
+    ct(
+      'BKPF',
+      [
+        cf('BUKRS', 'CHAR', 4),
+        cf('BELNR', 'CHAR', 10),
+        cf('GJAHR', 'NUMC', 4),
+        cf('BLDAT', 'DATS', 8),
+        cf('BUDAT', 'DATS', 8),
+        cf('DMBTR', 'DEC', 13),
+      ],
+      120000
+    )
+  );
   return {
     clientId: 'CLIENT-001',
     systemType: 'SAP',
@@ -106,11 +120,14 @@ function buildVbakPath(): ExtractionPath {
     domain: 'o2c',
     queryType: 'sql',
     query: 'SELECT VBELN, ERDAT, ERNAM, AUART, NETWR, WAERK FROM VBAK WHERE ERDAT >= :fromDate',
-    parameters: [
-      { name: 'fromDate', type: 'date', required: true, description: 'Start date' },
-    ],
+    parameters: [{ name: 'fromDate', type: 'date', required: true, description: 'Start date' }],
     expectedFields: [
-      { name: 'salesDoc', type: 'string', sapFieldName: 'VBAK-VBELN', description: 'Sales Document' },
+      {
+        name: 'salesDoc',
+        type: 'string',
+        sapFieldName: 'VBAK-VBELN',
+        description: 'Sales Document',
+      },
       { name: 'createdOn', type: 'date', sapFieldName: 'VBAK-ERDAT', description: 'Created On' },
       { name: 'createdBy', type: 'string', sapFieldName: 'VBAK-ERNAM', description: 'Created By' },
       { name: 'docType', type: 'string', sapFieldName: 'VBAK-AUART', description: 'Doc Type' },
@@ -131,13 +148,26 @@ function buildBkpfPath(): ExtractionPath {
     domain: 'fi-co',
     queryType: 'sql',
     query: 'SELECT BUKRS, BELNR, GJAHR, BLDAT, BUDAT, DMBTR FROM BKPF WHERE BUDAT >= :fromDate',
-    parameters: [
-      { name: 'fromDate', type: 'date', required: true, description: 'Start date' },
-    ],
+    parameters: [{ name: 'fromDate', type: 'date', required: true, description: 'Start date' }],
     expectedFields: [
-      { name: 'companyCode', type: 'string', sapFieldName: 'BKPF-BUKRS', description: 'Company Code' },
-      { name: 'docNumber', type: 'string', sapFieldName: 'BKPF-BELNR', description: 'Document Number' },
-      { name: 'fiscalYear', type: 'number', sapFieldName: 'BKPF-GJAHR', description: 'Fiscal Year' },
+      {
+        name: 'companyCode',
+        type: 'string',
+        sapFieldName: 'BKPF-BUKRS',
+        description: 'Company Code',
+      },
+      {
+        name: 'docNumber',
+        type: 'string',
+        sapFieldName: 'BKPF-BELNR',
+        description: 'Document Number',
+      },
+      {
+        name: 'fiscalYear',
+        type: 'number',
+        sapFieldName: 'BKPF-GJAHR',
+        description: 'Fiscal Year',
+      },
       { name: 'docDate', type: 'date', sapFieldName: 'BKPF-BLDAT', description: 'Document Date' },
       { name: 'postDate', type: 'date', sapFieldName: 'BKPF-BUDAT', description: 'Posting Date' },
       { name: 'amount', type: 'amount', sapFieldName: 'BKPF-DMBTR', description: 'Amount' },
@@ -163,7 +193,7 @@ describe('SchemaValidator', () => {
       const result = validator.validatePath(
         'sap.o2c.order-header',
         buildVbakPath(),
-        buildFullClientSchema(),
+        buildFullClientSchema()
       );
 
       expect(result.valid).toBe(true);
@@ -179,11 +209,7 @@ describe('SchemaValidator', () => {
       const schema = buildFullClientSchema();
       schema.tables.delete('VBAK');
 
-      const result = validator.validatePath(
-        'sap.o2c.order-header',
-        buildVbakPath(),
-        schema,
-      );
+      const result = validator.validatePath('sap.o2c.order-header', buildVbakPath(), schema);
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -196,11 +222,7 @@ describe('SchemaValidator', () => {
       const vbak = schema.tables.get('VBAK')!;
       vbak.fields.delete('NETWR');
 
-      const result = validator.validatePath(
-        'sap.o2c.order-header',
-        buildVbakPath(),
-        schema,
-      );
+      const result = validator.validatePath('sap.o2c.order-header', buildVbakPath(), schema);
 
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('NETWR') && e.includes('not found'))).toBe(true);
@@ -213,15 +235,13 @@ describe('SchemaValidator', () => {
       const vbak = schema.tables.get('VBAK')!;
       vbak.fields.set('NETWR', cf('NETWR', 'CHAR', 15));
 
-      const result = validator.validatePath(
-        'sap.o2c.order-header',
-        buildVbakPath(),
-        schema,
-      );
+      const result = validator.validatePath('sap.o2c.order-header', buildVbakPath(), schema);
 
       // Path is still valid (type mismatch is a warning, not an error)
       expect(result.valid).toBe(true);
-      expect(result.warnings.some(w => w.includes('NETWR') && w.includes('Type mismatch'))).toBe(true);
+      expect(result.warnings.some(w => w.includes('NETWR') && w.includes('Type mismatch'))).toBe(
+        true
+      );
 
       // Field validation should show typeMatch = false
       const vbakTable = result.tableValidations[0]!;
@@ -235,11 +255,7 @@ describe('SchemaValidator', () => {
       const vbak = schema.tables.get('VBAK')!;
       vbak.fields.set('ZZCUSTOM', cf('ZZCUSTOM', 'CHAR', 20));
 
-      const result = validator.validatePath(
-        'sap.o2c.order-header',
-        buildVbakPath(),
-        schema,
-      );
+      const result = validator.validatePath('sap.o2c.order-header', buildVbakPath(), schema);
 
       expect(result.valid).toBe(true);
       expect(result.warnings.some(w => w.includes('extra field'))).toBe(true);
@@ -254,10 +270,7 @@ describe('SchemaValidator', () => {
       const schema = buildFullClientSchema();
       schema.tables.delete('BKPF'); // BKPF path will fail
 
-      const result = validator.validateRegistry(
-        [buildVbakPath(), buildBkpfPath()],
-        schema,
-      );
+      const result = validator.validateRegistry([buildVbakPath(), buildBkpfPath()], schema);
 
       expect(result.validPaths).toHaveLength(1);
       expect(result.invalidPaths).toHaveLength(1);
@@ -269,10 +282,7 @@ describe('SchemaValidator', () => {
       const schema = buildFullClientSchema();
       schema.tables.delete('BKPF');
 
-      const result = validator.validateRegistry(
-        [buildVbakPath(), buildBkpfPath()],
-        schema,
-      );
+      const result = validator.validateRegistry([buildVbakPath(), buildBkpfPath()], schema);
 
       expect(result.summary.total).toBe(2);
       expect(result.summary.valid).toBe(1);
@@ -287,9 +297,7 @@ describe('SchemaValidator', () => {
   describe('detectCustomizations', () => {
     it('finds Z-tables as custom', () => {
       const schema = buildFullClientSchema();
-      schema.tables.set('ZTAB_CUSTOM', ct('ZTAB_CUSTOM', [
-        cf('FIELD1', 'CHAR', 10),
-      ]));
+      schema.tables.set('ZTAB_CUSTOM', ct('ZTAB_CUSTOM', [cf('FIELD1', 'CHAR', 10)]));
 
       const result = validator.detectCustomizations(schema);
 

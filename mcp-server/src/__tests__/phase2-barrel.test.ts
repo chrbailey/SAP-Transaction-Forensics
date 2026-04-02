@@ -111,7 +111,7 @@ describe('Contradiction barrel — createDefaultEngine', () => {
   });
 
   test('accepts partial config override', () => {
-    const engine = createDefaultEngine({ amountDivergencePercent: 0.10 });
+    const engine = createDefaultEngine({ amountDivergencePercent: 0.1 });
     const types = engine.getRegisteredTypes();
     expect(types).toHaveLength(12);
   });
@@ -187,10 +187,18 @@ describe('Contradiction barrel — exports are all importable', () => {
 
   test('TYPE_BASE_WEIGHTS has all 12 types', () => {
     const types: ContradictionType[] = [
-      'AMOUNT_DIVERGENCE', 'DATE_CONFLICT', 'STATUS_INCOMPATIBLE',
-      'ENTITY_MISMATCH', 'QUANTITY_DIVERGENCE', 'APPROVAL_BYPASS',
-      'TEMPORAL_IMPOSSIBILITY', 'DUPLICATE_REFERENCE', 'ORPHAN_RECORD',
-      'RETROACTIVE_CHANGE', 'SOD_VIOLATION', 'SCHEMA_GHOST',
+      'AMOUNT_DIVERGENCE',
+      'DATE_CONFLICT',
+      'STATUS_INCOMPATIBLE',
+      'ENTITY_MISMATCH',
+      'QUANTITY_DIVERGENCE',
+      'APPROVAL_BYPASS',
+      'TEMPORAL_IMPOSSIBILITY',
+      'DUPLICATE_REFERENCE',
+      'ORPHAN_RECORD',
+      'RETROACTIVE_CHANGE',
+      'SOD_VIOLATION',
+      'SCHEMA_GHOST',
     ];
     for (const t of types) {
       expect(typeof TYPE_BASE_WEIGHTS[t]).toBe('number');

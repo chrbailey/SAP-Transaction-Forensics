@@ -139,7 +139,10 @@ describe('generate_handoff_packet', () => {
     const gen = mockGenerator();
     const deps: HandoffToolDeps = { generator: gen };
 
-    const result = (await executeGenerateHandoffPacket(deps, VALID_INPUT)) as Record<string, unknown>;
+    const result = (await executeGenerateHandoffPacket(deps, VALID_INPUT)) as Record<
+      string,
+      unknown
+    >;
 
     expect(result.engagementId).toBe('ENG-2025-001');
     expect(result.clientName).toBe('Acme Corp');
@@ -156,9 +159,9 @@ describe('generate_handoff_packet', () => {
   it('throws when generator is not configured', async () => {
     const deps: HandoffToolDeps = {};
 
-    await expect(
-      executeGenerateHandoffPacket(deps, VALID_INPUT),
-    ).rejects.toThrow('Handoff packet generator not configured');
+    await expect(executeGenerateHandoffPacket(deps, VALID_INPUT)).rejects.toThrow(
+      'Handoff packet generator not configured'
+    );
   });
 
   it('validates required fields — rejects missing engagement_id', () => {
@@ -177,9 +180,7 @@ describe('generate_handoff_packet', () => {
   });
 
   it('validates required fields — rejects empty systems array', () => {
-    expect(() =>
-      GenerateHandoffPacketSchema.parse({ ...VALID_INPUT, systems: [] }),
-    ).toThrow();
+    expect(() => GenerateHandoffPacketSchema.parse({ ...VALID_INPUT, systems: [] })).toThrow();
   });
 
   it('applies default values for optional boolean fields', () => {

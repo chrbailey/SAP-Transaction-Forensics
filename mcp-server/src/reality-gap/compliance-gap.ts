@@ -168,24 +168,19 @@ export class ComplianceGapDetector {
     }
     // Sort each case's events chronologically
     for (const caseEvents of map.values()) {
-      caseEvents.sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
+      caseEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     }
     return map;
   }
 
   /** Check a sequence rule against actual case events */
-  private checkSequenceRule(
-    rule: WorkflowRule,
-    caseEvents: ActualEvent[],
-  ): GapFinding | null {
+  private checkSequenceRule(rule: WorkflowRule, caseEvents: ActualEvent[]): GapFinding | null {
     if (rule.activities.length < 2) return null;
 
     // Find the indices of the first occurrence of each required activity
     const indices: number[] = [];
     for (const activity of rule.activities) {
-      const idx = caseEvents.findIndex((e) => e.activity === activity);
+      const idx = caseEvents.findIndex(e => e.activity === activity);
       if (idx === -1) {
         // Activity not found in this case — cannot assess sequence
         return null;
@@ -217,17 +212,14 @@ export class ComplianceGapDetector {
   }
 
   /** Check a timing SLA rule against actual case events */
-  private checkTimingRule(
-    rule: WorkflowRule,
-    caseEvents: ActualEvent[],
-  ): GapFinding | null {
+  private checkTimingRule(rule: WorkflowRule, caseEvents: ActualEvent[]): GapFinding | null {
     if (rule.activities.length < 2 || rule.maxDays === undefined) return null;
 
     const startActivity = rule.activities[0]!;
     const endActivity = rule.activities[1]!;
 
-    const startEvent = caseEvents.find((e) => e.activity === startActivity);
-    const endEvent = caseEvents.find((e) => e.activity === endActivity);
+    const startEvent = caseEvents.find(e => e.activity === startActivity);
+    const endEvent = caseEvents.find(e => e.activity === endActivity);
 
     if (startEvent === undefined || endEvent === undefined) return null;
 
@@ -254,16 +246,13 @@ export class ComplianceGapDetector {
   }
 
   /** Check an approval threshold rule against actual events */
-  private checkApprovalRule(
-    rule: WorkflowRule,
-    caseEvents: ActualEvent[],
-  ): GapFinding | null {
+  private checkApprovalRule(rule: WorkflowRule, caseEvents: ActualEvent[]): GapFinding | null {
     if (rule.activities.length < 2 || rule.approvalThreshold === undefined) return null;
 
     const triggerActivity = rule.activities[0]!;
     const approvalActivity = rule.activities[1]!;
 
-    const triggerEvent = caseEvents.find((e) => e.activity === triggerActivity);
+    const triggerEvent = caseEvents.find(e => e.activity === triggerActivity);
 
     if (triggerEvent === undefined) return null;
 
@@ -273,7 +262,7 @@ export class ComplianceGapDetector {
     }
 
     // Amount exceeds threshold — check for approval event
-    const hasApproval = caseEvents.some((e) => e.activity === approvalActivity);
+    const hasApproval = caseEvents.some(e => e.activity === approvalActivity);
 
     if (!hasApproval) {
       return {
@@ -304,7 +293,7 @@ export class ComplianceGapDetector {
   private scoreGap(
     frequency: number,
     materiality: number,
-    recency: number,
+    recency: number
   ): { level: GapSeverity; score: number } {
     const frequencyNormalized = Math.min(frequency / 10, 1.0);
     const score = frequencyNormalized * materiality * recency;

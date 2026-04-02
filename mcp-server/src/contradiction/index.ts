@@ -33,20 +33,11 @@ export { ContradictionEngine } from './engine.js';
 // Comparators
 // ---------------------------------------------------------------------------
 
-export {
-  AmountDivergenceComparator,
-  QuantityDivergenceComparator,
-} from './comparators/amount.js';
+export { AmountDivergenceComparator, QuantityDivergenceComparator } from './comparators/amount.js';
 
-export {
-  DateConflictComparator,
-  TemporalImpossibilityComparator,
-} from './comparators/temporal.js';
+export { DateConflictComparator, TemporalImpossibilityComparator } from './comparators/temporal.js';
 
-export {
-  StatusIncompatibleComparator,
-  ApprovalBypassComparator,
-} from './comparators/status.js';
+export { StatusIncompatibleComparator, ApprovalBypassComparator } from './comparators/status.js';
 
 export {
   EntityMismatchComparator,
@@ -83,8 +74,16 @@ import { ContradictionEngine } from './engine.js';
 import { AmountDivergenceComparator, QuantityDivergenceComparator } from './comparators/amount.js';
 import { DateConflictComparator, TemporalImpossibilityComparator } from './comparators/temporal.js';
 import { StatusIncompatibleComparator, ApprovalBypassComparator } from './comparators/status.js';
-import { EntityMismatchComparator, DuplicateReferenceComparator, OrphanRecordComparator } from './comparators/entity.js';
-import { RetroactiveChangeComparator, SoDViolationComparator, SchemaGhostComparator } from './comparators/change.js';
+import {
+  EntityMismatchComparator,
+  DuplicateReferenceComparator,
+  OrphanRecordComparator,
+} from './comparators/entity.js';
+import {
+  RetroactiveChangeComparator,
+  SoDViolationComparator,
+  SchemaGhostComparator,
+} from './comparators/change.js';
 
 /**
  * Create a fully-loaded contradiction engine with all 12 comparators registered.
@@ -106,18 +105,34 @@ export function createDefaultEngine(config?: Partial<ContradictionConfig>): Cont
   engine.registerComparator(new TemporalImpossibilityComparator());
 
   // Status comparators — specialised signatures, registered for type coverage
-  engine.registerComparator(new StatusIncompatibleComparator() as unknown as import('./types.js').Comparator);
-  engine.registerComparator(new ApprovalBypassComparator() as unknown as import('./types.js').Comparator);
+  engine.registerComparator(
+    new StatusIncompatibleComparator() as unknown as import('./types.js').Comparator
+  );
+  engine.registerComparator(
+    new ApprovalBypassComparator() as unknown as import('./types.js').Comparator
+  );
 
   // Entity comparators — specialised signatures
-  engine.registerComparator(new EntityMismatchComparator() as unknown as import('./types.js').Comparator);
-  engine.registerComparator(new DuplicateReferenceComparator() as unknown as import('./types.js').Comparator);
-  engine.registerComparator(new OrphanRecordComparator() as unknown as import('./types.js').Comparator);
+  engine.registerComparator(
+    new EntityMismatchComparator() as unknown as import('./types.js').Comparator
+  );
+  engine.registerComparator(
+    new DuplicateReferenceComparator() as unknown as import('./types.js').Comparator
+  );
+  engine.registerComparator(
+    new OrphanRecordComparator() as unknown as import('./types.js').Comparator
+  );
 
   // Change/compliance comparators — specialised signatures
-  engine.registerComparator(new RetroactiveChangeComparator() as unknown as import('./types.js').Comparator);
-  engine.registerComparator(new SoDViolationComparator() as unknown as import('./types.js').Comparator);
-  engine.registerComparator(new SchemaGhostComparator() as unknown as import('./types.js').Comparator);
+  engine.registerComparator(
+    new RetroactiveChangeComparator() as unknown as import('./types.js').Comparator
+  );
+  engine.registerComparator(
+    new SoDViolationComparator() as unknown as import('./types.js').Comparator
+  );
+  engine.registerComparator(
+    new SchemaGhostComparator() as unknown as import('./types.js').Comparator
+  );
 
   return engine;
 }

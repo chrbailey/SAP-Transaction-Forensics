@@ -20,8 +20,8 @@ export interface FieldValidation {
   expectedType: string;
   actualType: string | null;
   typeMatch: boolean;
-  sampleValues: string[];       // first 5 non-null values
-  validatedAt: string;          // ISO 8601
+  sampleValues: string[]; // first 5 non-null values
+  validatedAt: string; // ISO 8601
 }
 
 /** Validation result for a table */
@@ -31,7 +31,7 @@ export interface TableValidation {
   fieldCount: number;
   expectedFieldCount: number;
   missingFields: string[];
-  extraFields: string[];        // fields in client but not in reference
+  extraFields: string[]; // fields in client but not in reference
   fieldValidations: FieldValidation[];
   validatedAt: string;
 }
@@ -41,9 +41,9 @@ export interface PathValidation {
   pathId: string;
   pathVersion: string;
   systemType: SystemType;
-  valid: boolean;               // all required tables/fields exist
-  errors: string[];             // critical issues (missing tables/fields)
-  warnings: string[];           // non-critical (type mismatches, extra fields)
+  valid: boolean; // all required tables/fields exist
+  errors: string[]; // critical issues (missing tables/fields)
+  warnings: string[]; // non-critical (type mismatches, extra fields)
   tableValidations: TableValidation[];
   validatedAt: string;
 }
@@ -60,13 +60,13 @@ export interface ClientSchema {
 export interface ClientTable {
   name: string;
   fields: Map<string, ClientField>;
-  recordCount?: number;         // approximate row count if available
+  recordCount?: number; // approximate row count if available
 }
 
 /** A field in the client's table */
 export interface ClientField {
   name: string;
-  dataType: string;             // e.g., 'CHAR', 'NUMC', 'DATS', 'DEC', 'VARCHAR2'
+  dataType: string; // e.g., 'CHAR', 'NUMC', 'DATS', 'DEC', 'VARCHAR2'
   length?: number;
   decimals?: number;
   description?: string;

@@ -119,7 +119,7 @@ export function validatePath(path: ExtractionPath): { valid: boolean; errors: st
 
   // No duplicate parameter names
   if (path.parameters) {
-    const paramNames = path.parameters.map((p) => p.name);
+    const paramNames = path.parameters.map(p => p.name);
     const uniqueNames = new Set(paramNames);
     if (uniqueNames.size !== paramNames.length) {
       const dupes = paramNames.filter((n, i) => paramNames.indexOf(n) !== i);
@@ -129,7 +129,7 @@ export function validatePath(path: ExtractionPath): { valid: boolean; errors: st
 
   // No duplicate field names
   if (path.expectedFields) {
-    const fieldNames = path.expectedFields.map((f) => f.name);
+    const fieldNames = path.expectedFields.map(f => f.name);
     const uniqueFields = new Set(fieldNames);
     if (uniqueFields.size !== fieldNames.length) {
       const dupes = fieldNames.filter((n, i) => fieldNames.indexOf(n) !== i);

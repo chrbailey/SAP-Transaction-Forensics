@@ -160,9 +160,7 @@ export class ContradictionEngine {
       } catch (err: unknown) {
         // Log but don't crash — one bad comparator must not kill the run
         const message = err instanceof Error ? err.message : String(err);
-        console.error(
-          `[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`,
-        );
+        console.error(`[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`);
       }
     }
 
@@ -187,9 +185,7 @@ export class ContradictionEngine {
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : String(err);
           errors.push({ comparatorType: comparator.type, error: message });
-          console.error(
-            `[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`,
-          );
+          console.error(`[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`);
         }
       }
     }
@@ -206,15 +202,12 @@ export class ContradictionEngine {
   }
 
   /** Run only the specified comparator types against all pairs. */
-  analyzeWithTypes(
-    pairs: ComparisonPair[],
-    types: ContradictionType[],
-  ): ComparisonResult {
+  analyzeWithTypes(pairs: ComparisonPair[], types: ContradictionType[]): ComparisonResult {
     const start = performance.now();
     const allFindings: ContradictionFinding[] = [];
     const errors: Array<{ comparatorType: ContradictionType; error: string }> = [];
     const typeSet = new Set(types);
-    const filtered = this.comparators.filter((c) => typeSet.has(c.type));
+    const filtered = this.comparators.filter(c => typeSet.has(c.type));
     let comparisonsRun = 0;
 
     for (const pair of pairs) {
@@ -228,9 +221,7 @@ export class ContradictionEngine {
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : String(err);
           errors.push({ comparatorType: comparator.type, error: message });
-          console.error(
-            `[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`,
-          );
+          console.error(`[ContradictionEngine] Comparator ${comparator.type} threw: ${message}`);
         }
       }
     }
@@ -248,7 +239,7 @@ export class ContradictionEngine {
 
   /** Return the ContradictionType of every registered comparator. */
   getRegisteredTypes(): ContradictionType[] {
-    return this.comparators.map((c) => c.type);
+    return this.comparators.map(c => c.type);
   }
 
   /** Merge partial config updates into the current configuration. */

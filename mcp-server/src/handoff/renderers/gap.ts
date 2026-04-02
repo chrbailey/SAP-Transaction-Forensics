@@ -49,15 +49,17 @@ const SEVERITY_ORDER: Record<GapSeverity, number> = {
 const SECTION_HEADERS: Record<GapType, { title: string; blurb: string }> = {
   design: {
     title: 'Design Gaps (Reference vs Documented)',
-    blurb: 'These represent deviations from best practice in the client\'s documented processes.',
+    blurb: "These represent deviations from best practice in the client's documented processes.",
   },
   compliance: {
     title: 'Compliance Gaps (Documented vs Actual)',
-    blurb: 'These represent deviations between the client\'s documented processes and actual execution.',
+    blurb:
+      "These represent deviations between the client's documented processes and actual execution.",
   },
   shadow: {
     title: 'Shadow Gaps (Undocumented Activity)',
-    blurb: 'These represent activity observed in the system that has no corresponding documentation or reference model.',
+    blurb:
+      'These represent activity observed in the system that has no corresponding documentation or reference model.',
   },
 };
 
@@ -139,10 +141,10 @@ export class GapRenderer {
 
       // Sort by severity within each group
       const sorted = [...groupGaps].sort(
-        (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity],
+        (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
       );
 
-      const rendered = sorted.map((g) => this.renderGap(g));
+      const rendered = sorted.map(g => this.renderGap(g));
       allRendered.push(...rendered);
 
       const sectionLines: string[] = [
@@ -150,16 +152,14 @@ export class GapRenderer {
         '',
         `${sorted.length} gaps detected. ${header.blurb}`,
         '',
-        ...rendered.map((r) => r.markdown),
+        ...rendered.map(r => r.markdown),
       ];
 
       sectionMarkdowns[gapType] = sectionLines.join('\n');
     }
 
     // Sort all rendered findings by severity
-    allRendered.sort(
-      (a, b) => severityRank(a.severity) - severityRank(b.severity),
-    );
+    allRendered.sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
 
     return {
       designSection: sectionMarkdowns.design,
@@ -176,7 +176,7 @@ export class GapRenderer {
   private computeRiskScore(gap: GapFinding): number {
     const sevWeight = 1 - SEVERITY_ORDER[gap.severity] / 4; // CRITICAL=1, INFO=0
     return Math.round(
-      (sevWeight * 0.4 + gap.materiality * 0.3 + gap.recency * 0.2 + gap.confidence * 0.1) * 100,
+      (sevWeight * 0.4 + gap.materiality * 0.3 + gap.recency * 0.2 + gap.confidence * 0.1) * 100
     );
   }
 }

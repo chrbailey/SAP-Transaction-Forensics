@@ -14,10 +14,7 @@ import { randomUUID } from 'node:crypto';
 
 export type SystemType = 'SAP' | 'NetSuite' | 'Salesforce';
 
-export type ContradictionType =
-  | 'ENTITY_MISMATCH'
-  | 'DUPLICATE_REFERENCE'
-  | 'ORPHAN_RECORD';
+export type ContradictionType = 'ENTITY_MISMATCH' | 'DUPLICATE_REFERENCE' | 'ORPHAN_RECORD';
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
@@ -150,11 +147,7 @@ function levenshteinDistance(a: string, b: string): number {
     curr[0] = j;
     for (let i = 1; i <= m; i++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      curr[i] = Math.min(
-        (prev[i] ?? 0) + 1,
-        (curr[i - 1] ?? 0) + 1,
-        (prev[i - 1] ?? 0) + cost,
-      );
+      curr[i] = Math.min((prev[i] ?? 0) + 1, (curr[i - 1] ?? 0) + 1, (prev[i - 1] ?? 0) + cost);
     }
     [prev, curr] = [curr, prev];
   }
@@ -220,7 +213,8 @@ export class EntityMismatchComparator {
 
     const reasons: string[] = [];
     if (nameSim < 0.5) reasons.push(`name similarity ${nameSim.toFixed(2)}`);
-    if (currencyMatch === 0) reasons.push(`currency mismatch (${leftCurrency} vs ${rightCurrency})`);
+    if (currencyMatch === 0)
+      reasons.push(`currency mismatch (${leftCurrency} vs ${rightCurrency})`);
 
     return {
       id: randomUUID(),
@@ -312,7 +306,7 @@ export class DuplicateReferenceComparator {
         id: randomUUID(),
         type: this.type,
         severity: 'HIGH',
-        confidence: 0.80,
+        confidence: 0.8,
         description:
           `Duplicate reference: ${group.length} records reference ` +
           `${fieldName}="${refValue}" — possible duplicate bookings or amendments`,
@@ -330,7 +324,7 @@ export class DuplicateReferenceComparator {
         rightExtractionId: second.left.extractionId,
         scoringDetails: {
           duplicateCount: group.length,
-          confidence: 0.80,
+          confidence: 0.8,
         },
         detectedAt: new Date().toISOString(),
         resolutionStatus: 'open',
@@ -383,7 +377,7 @@ export class OrphanRecordComparator {
       id: randomUUID(),
       type: this.type,
       severity,
-      confidence: 0.70,
+      confidence: 0.7,
       description:
         `Orphan record: ${record.system} ${record.recordId} ` +
         (isSfdcClosedWon

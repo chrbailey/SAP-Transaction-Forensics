@@ -11,17 +11,17 @@ import type { ExtractionPath } from '../extraction-registry/types.js';
 // ─── Helpers ─────────────────────────────────────────────────────────────
 
 function getPath(suffix: string): ExtractionPath {
-  const path = SAP_P2P_PATHS.find((p) => p.id === `sap.p2p.${suffix}`);
+  const path = SAP_P2P_PATHS.find(p => p.id === `sap.p2p.${suffix}`);
   if (!path) throw new Error(`Path sap.p2p.${suffix} not found`);
   return path;
 }
 
 function fieldByName(path: ExtractionPath, name: string) {
-  return path.expectedFields.find((f) => f.name === name);
+  return path.expectedFields.find(f => f.name === name);
 }
 
 function paramByName(path: ExtractionPath, name: string) {
-  return path.parameters.find((p) => p.name === name);
+  return path.parameters.find(p => p.name === name);
 }
 
 // ─── Test 1: All paths have IDs starting with 'sap.p2p.' ────────────────
@@ -31,7 +31,7 @@ describe('SAP P2P extraction paths — ID format', () => {
     expect(SAP_P2P_PATHS).toHaveLength(4);
   });
 
-  it.each(SAP_P2P_PATHS.map((p) => [p.id]))('path %s starts with sap.p2p.', (id) => {
+  it.each(SAP_P2P_PATHS.map(p => [p.id]))('path %s starts with sap.p2p.', id => {
     expect(id).toMatch(/^sap\.p2p\./);
   });
 
@@ -106,7 +106,7 @@ describe('SAP P2P extraction paths — required date parameters', () => {
     expect(ebeln).toBeDefined();
     expect(ebeln!.required).toBe(true);
     // goods-receipts is scoped to a single PO, not a date range
-    expect(path.parameters.every((p) => p.required)).toBe(true);
+    expect(path.parameters.every(p => p.required)).toBe(true);
   });
 
   it('invoice-verification has required date_from and date_to', () => {
@@ -242,13 +242,13 @@ describe('SAP P2P extraction paths — structural integrity', () => {
   });
 
   it('no duplicate path IDs', () => {
-    const ids = SAP_P2P_PATHS.map((p) => p.id);
+    const ids = SAP_P2P_PATHS.map(p => p.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('no duplicate field names within any path', () => {
     for (const path of SAP_P2P_PATHS) {
-      const names = path.expectedFields.map((f) => f.name);
+      const names = path.expectedFields.map(f => f.name);
       expect(new Set(names).size).toBe(names.length);
     }
   });

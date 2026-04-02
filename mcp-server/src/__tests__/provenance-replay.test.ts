@@ -179,7 +179,7 @@ describe('Replay Hash Module', () => {
 
       const modifiedRows = [
         { BUKRS: '1000', BELNR: '0100000001' },
-        { BUKRS: '1000', BELNR: '0100000099' },  // changed
+        { BUKRS: '1000', BELNR: '0100000099' }, // changed
       ];
       const result = verifyReplayHash(originalHash, modifiedRows);
       expect(result.match).toBe(false);

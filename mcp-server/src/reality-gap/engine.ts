@@ -50,20 +50,17 @@ class DesignGapDetector implements GapDetector<[ReferenceStep[], WorkflowRule[]]
   detect(referenceSteps: ReferenceStep[], documentedRules: WorkflowRule[]): GapFinding[] {
     const findings: GapFinding[] = [];
     const _ruleActivities = new Set(
-      documentedRules
-        .filter((r) => r.active)
-        .map((r) => r.ruleText.toLowerCase()),
+      documentedRules.filter(r => r.active).map(r => r.ruleText.toLowerCase())
     );
 
     for (const step of referenceSteps) {
       if (!step.required) continue;
 
       const hasRule = documentedRules.some(
-        (r) =>
+        r =>
           r.active &&
           (r.ruleText.toLowerCase().includes(step.activityName.toLowerCase()) ||
-            (step.sapTcode !== undefined &&
-              r.parameters['tcode'] === step.sapTcode)),
+            (step.sapTcode !== undefined && r.parameters['tcode'] === step.sapTcode))
       );
 
       if (!hasRule) {
@@ -96,9 +93,7 @@ class DesignGapDetector implements GapDetector<[ReferenceStep[], WorkflowRule[]]
  * Compliance gap: documented rules that are violated by actual events.
  * Detects where the SOP says one thing but the event log shows another.
  */
-class ComplianceGapDetector
-  implements GapDetector<[WorkflowRule[], ActualEvent[]]>
-{
+class ComplianceGapDetector implements GapDetector<[WorkflowRule[], ActualEvent[]]> {
   detect(documentedRules: WorkflowRule[], actualEvents: ActualEvent[]): GapFinding[] {
     const findings: GapFinding[] = [];
 
@@ -108,10 +103,11 @@ class ComplianceGapDetector
       if (rule.ruleType === 'sequence_requirement') {
         // Check if the required activity appears in the events
         const matchingEvents = actualEvents.filter(
-          (e) =>
-            e.activityName.toLowerCase().includes(
-              rule.ruleText.toLowerCase().split(' ')[0] ?? '',
-            ) || rule.ruleText.toLowerCase().includes(e.activityName.toLowerCase()),
+          e =>
+            e.activityName
+              .toLowerCase()
+              .includes(rule.ruleText.toLowerCase().split(' ')[0] ?? '') ||
+            rule.ruleText.toLowerCase().includes(e.activityName.toLowerCase())
         );
 
         if (matchingEvents.length === 0) {
@@ -139,8 +135,8 @@ class ComplianceGapDetector
       if (rule.ruleType === 'approval_threshold') {
         const threshold = Number(rule.parameters['threshold']) || 0;
         // Check for events that might bypass approval thresholds
-        const relatedEvents = actualEvents.filter((e) =>
-          e.activityName.toLowerCase().includes('approv'),
+        const relatedEvents = actualEvents.filter(e =>
+          e.activityName.toLowerCase().includes('approv')
         );
 
         if (threshold > 0 && relatedEvents.length === 0 && actualEvents.length > 0) {
@@ -155,7 +151,7 @@ class ComplianceGapDetector
             expectedRule: rule.id,
             expectedBehavior: `Approval required for amounts > ${threshold}`,
             actualBehavior: 'No approval events found in event log',
-            actualEvents: actualEvents.map((e) => e.recordId),
+            actualEvents: actualEvents.map(e => e.recordId),
             frequency: actualEvents.length,
             materiality: 0.8,
             recency: 0.9,
@@ -175,28 +171,24 @@ class ComplianceGapDetector
  * nor the documented rules. These are undocumented, unmodeled activities
  * — potential shadow processes.
  */
-class ShadowGapDetector
-  implements GapDetector<[ReferenceStep[], WorkflowRule[], ActualEvent[]]>
-{
+class ShadowGapDetector implements GapDetector<[ReferenceStep[], WorkflowRule[], ActualEvent[]]> {
   detect(
     referenceSteps: ReferenceStep[],
     documentedRules: WorkflowRule[],
-    actualEvents: ActualEvent[],
+    actualEvents: ActualEvent[]
   ): GapFinding[] {
     const findings: GapFinding[] = [];
 
     // Build sets of known activities
-    const referenceActivities = new Set(
-      referenceSteps.map((s) => s.activityName.toLowerCase()),
-    );
+    const referenceActivities = new Set(referenceSteps.map(s => s.activityName.toLowerCase()));
     const ruleActivities = new Set(
       documentedRules
-        .filter((r) => r.active)
-        .flatMap((r) => {
+        .filter(r => r.active)
+        .flatMap(r => {
           // Extract activity-like tokens from rule text
           const words = r.ruleText.toLowerCase().split(/\s+/);
           return words;
-        }),
+        })
     );
 
     // Group events by activity to find unknown activities
@@ -211,11 +203,11 @@ class ShadowGapDetector
     for (const [activity, events] of activityGroups) {
       const inReference = referenceActivities.has(activity);
       const inRules = [...ruleActivities].some(
-        (token) => token.includes(activity) || activity.includes(token),
+        token => token.includes(activity) || activity.includes(token)
       );
 
       if (!inReference && !inRules) {
-        const caseIds = [...new Set(events.map((e) => e.caseId))];
+        const caseIds = [...new Set(events.map(e => e.caseId))];
         findings.push({
           id: randomUUID(),
           gapType: 'shadow',
@@ -259,7 +251,7 @@ export class RealityGapEngine {
   analyze(
     referenceSteps: ReferenceStep[],
     documentedRules: WorkflowRule[],
-    actualEvents: ActualEvent[],
+    actualEvents: ActualEvent[]
   ): GapDetectionResult {
     const start = performance.now();
 
@@ -273,11 +265,11 @@ export class RealityGapEngine {
 
     const shadowGaps = this.config.includeShadowGaps
       ? this.filterFindings(
-          this.shadowDetector.detect(referenceSteps, documentedRules, actualEvents),
+          this.shadowDetector.detect(referenceSteps, documentedRules, actualEvents)
         )
       : [];
 
-    const uniqueCaseIds = new Set(actualEvents.map((e) => e.caseId));
+    const uniqueCaseIds = new Set(actualEvents.map(e => e.caseId));
 
     const duration = performance.now() - start;
 
@@ -294,20 +286,20 @@ export class RealityGapEngine {
   /** Run only design gap detection (reference vs documented). */
   analyzeDesignGaps(
     referenceSteps: ReferenceStep[],
-    documentedRules: WorkflowRule[],
+    documentedRules: WorkflowRule[]
   ): GapFinding[] {
     return this.sortFindings(
-      this.filterFindings(this.designDetector.detect(referenceSteps, documentedRules)),
+      this.filterFindings(this.designDetector.detect(referenceSteps, documentedRules))
     );
   }
 
   /** Run only compliance gap detection (documented vs actual). */
   analyzeComplianceGaps(
     documentedRules: WorkflowRule[],
-    actualEvents: ActualEvent[],
+    actualEvents: ActualEvent[]
   ): GapFinding[] {
     return this.sortFindings(
-      this.filterFindings(this.complianceDetector.detect(documentedRules, actualEvents)),
+      this.filterFindings(this.complianceDetector.detect(documentedRules, actualEvents))
     );
   }
 
@@ -315,12 +307,10 @@ export class RealityGapEngine {
   analyzeShadowGaps(
     referenceSteps: ReferenceStep[],
     documentedRules: WorkflowRule[],
-    actualEvents: ActualEvent[],
+    actualEvents: ActualEvent[]
   ): GapFinding[] {
     return this.sortFindings(
-      this.filterFindings(
-        this.shadowDetector.detect(referenceSteps, documentedRules, actualEvents),
-      ),
+      this.filterFindings(this.shadowDetector.detect(referenceSteps, documentedRules, actualEvents))
     );
   }
 
@@ -336,19 +326,15 @@ export class RealityGapEngine {
   /** Filter findings by config thresholds (minFrequency, minMateriality). */
   private filterFindings(findings: GapFinding[]): GapFinding[] {
     return findings.filter(
-      (f) =>
-        f.frequency >= this.config.minFrequency &&
-        f.materiality >= this.config.minMateriality,
+      f => f.frequency >= this.config.minFrequency && f.materiality >= this.config.minMateriality
     );
   }
 
   /** Sort findings by composite score (severity × materiality × frequency) descending. */
   private sortFindings(findings: GapFinding[]): GapFinding[] {
     return [...findings].sort((a, b) => {
-      const scoreA =
-        SEVERITY_WEIGHT[a.severity] * a.materiality * Math.log2(a.frequency + 1);
-      const scoreB =
-        SEVERITY_WEIGHT[b.severity] * b.materiality * Math.log2(b.frequency + 1);
+      const scoreA = SEVERITY_WEIGHT[a.severity] * a.materiality * Math.log2(a.frequency + 1);
+      const scoreB = SEVERITY_WEIGHT[b.severity] * b.materiality * Math.log2(b.frequency + 1);
       return scoreB - scoreA;
     });
   }

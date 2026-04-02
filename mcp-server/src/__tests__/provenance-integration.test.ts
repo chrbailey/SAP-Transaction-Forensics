@@ -20,10 +20,7 @@ import {
   computeFieldHash,
   verifyReplayHash,
 } from '../provenance/replay.js';
-import {
-  ExtractionRegistry,
-  validatePath,
-} from '../extraction-registry/index.js';
+import { ExtractionRegistry, validatePath } from '../extraction-registry/index.js';
 import { SAP_O2C_PATHS } from '../extraction-registry/sap/o2c.js';
 import { SAP_FICO_PATHS } from '../extraction-registry/sap/fi-co.js';
 import { SAP_P2P_PATHS } from '../extraction-registry/sap/p2p.js';
@@ -123,9 +120,7 @@ const mockDocFlow: DocFlowResult = {
       doc_category: 'J',
       created_date: '20260320',
       created_time: '140000',
-      items: [
-        { item_number: '000010', ref_doc: MOCK_VBELN, ref_item: '000010', quantity: 50 },
-      ],
+      items: [{ item_number: '000010', ref_doc: MOCK_VBELN, ref_item: '000010', quantity: 50 }],
     },
   ],
 };
@@ -231,7 +226,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
     });
 
     it('all paths have unique IDs', () => {
-      const ids = ALL_BUILTIN_PATHS.map((p) => p.id);
+      const ids = ALL_BUILTIN_PATHS.map(p => p.id);
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
@@ -283,7 +278,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
       expect(stats.totalExtractions).toBeGreaterThan(0);
 
       const vbakRecords = db.getExtractionsByTable('SAP', 'VBAK');
-      headerRecordIds = vbakRecords.map((r) => r.id);
+      headerRecordIds = vbakRecords.map(r => r.id);
     });
 
     it('ProvenanceLogger wraps an adapter and logs extractions', () => {
@@ -298,7 +293,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
 
     it('extraction records have field-level granularity', () => {
       const vbakRecords = db.getExtractionsByTable('SAP', 'VBAK');
-      const fieldNames = vbakRecords.map((r) => r.fieldName);
+      const fieldNames = vbakRecords.map(r => r.fieldName);
 
       // The mock header has these concrete fields
       expect(fieldNames).toContain('VBELN');
@@ -309,16 +304,16 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
       expect(fieldNames).toContain('BSTNK');
 
       // Verify raw values match the mock data
-      const vbelnRec = vbakRecords.find((r) => r.fieldName === 'VBELN');
+      const vbelnRec = vbakRecords.find(r => r.fieldName === 'VBELN');
       expect(vbelnRec!.rawValue).toBe(MOCK_VBELN);
 
-      const netwrRec = vbakRecords.find((r) => r.fieldName === 'NETWR');
+      const netwrRec = vbakRecords.find(r => r.fieldName === 'NETWR');
       expect(netwrRec!.rawValue).toBe('125000');
     });
 
     it('query hash is deterministic for same inputs', () => {
       const vbakRecords = db.getExtractionsByTable('SAP', 'VBAK');
-      const queryHashes = new Set(vbakRecords.map((r) => r.queryHash));
+      const queryHashes = new Set(vbakRecords.map(r => r.queryHash));
       // All records from one call share one query hash
       expect(queryHashes.size).toBe(1);
 
@@ -328,7 +323,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
 
     it('replay hash is deterministic for same results', () => {
       const vbakRecords = db.getExtractionsByTable('SAP', 'VBAK');
-      const replayHashes = new Set(vbakRecords.map((r) => r.replayHash));
+      const replayHashes = new Set(vbakRecords.map(r => r.replayHash));
       // All records from one call share one replay hash
       expect(replayHashes.size).toBe(1);
 
@@ -342,7 +337,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
       expect(vbapRecords.length).toBeGreaterThan(0);
 
       // Two items, each with multiple fields
-      const fieldNames = vbapRecords.map((r) => r.fieldName);
+      const fieldNames = vbapRecords.map(r => r.fieldName);
       expect(fieldNames).toContain('POSNR');
       expect(fieldNames).toContain('MATNR');
       expect(fieldNames).toContain('KWMENG');
@@ -354,7 +349,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
       expect(vbfaRecords.length).toBeGreaterThan(0);
 
       // Should have dotted field names for nested data
-      const fieldNames = vbfaRecords.map((r) => r.fieldName);
+      const fieldNames = vbfaRecords.map(r => r.fieldName);
       expect(fieldNames).toContain('root_document');
       expect(fieldNames).toContain('flow.0.doc_type');
       expect(fieldNames).toContain('flow.0.doc_number');
@@ -373,11 +368,11 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
     beforeAll(async () => {
       // Use existing VBAK records as primary evidence
       const vbakRecords = db.getExtractionsByTable('SAP', 'VBAK');
-      primaryIds = vbakRecords.slice(0, 3).map((r) => r.id);
+      primaryIds = vbakRecords.slice(0, 3).map(r => r.id);
 
       // Use VBAP records as corroborating evidence
       const vbapRecords = db.getExtractionsByTable('SAP', 'VBAP');
-      corroboratingIds = vbapRecords.slice(0, 2).map((r) => r.id);
+      corroboratingIds = vbapRecords.slice(0, 2).map(r => r.id);
 
       // Link primary evidence
       for (const id of primaryIds) {
@@ -391,7 +386,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
 
     it('can link extractions to a finding as primary evidence', () => {
       const results = db.getExtractionsByFinding(findingId);
-      const primaries = results.filter((r) => r.role === 'primary');
+      const primaries = results.filter(r => r.role === 'primary');
       expect(primaries).toHaveLength(primaryIds.length);
       for (const p of primaries) {
         expect(primaryIds).toContain(p.id);
@@ -400,7 +395,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
 
     it('can link extractions to a finding as corroborating evidence', () => {
       const results = db.getExtractionsByFinding(findingId);
-      const corroborating = results.filter((r) => r.role === 'corroborating');
+      const corroborating = results.filter(r => r.role === 'corroborating');
       expect(corroborating).toHaveLength(corroboratingIds.length);
       for (const c of corroborating) {
         expect(corroboratingIds).toContain(c.id);
@@ -459,9 +454,7 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
       }
 
       // Should have VBAK entries (primary evidence)
-      const vbakEntry = coverage.find(
-        (c) => c.systemType === 'SAP' && c.tableName === 'VBAK',
-      );
+      const vbakEntry = coverage.find(c => c.systemType === 'SAP' && c.tableName === 'VBAK');
       expect(vbakEntry).toBeDefined();
     });
 
@@ -663,10 +656,9 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
         expect(orderHeaderPath!.expectedFields.length).toBeGreaterThanOrEqual(16);
 
         // Validate the parameters we are about to use
-        const paramValidation = registry.validateParameters(
-          'sap.o2c.order-header',
-          { vbeln: MOCK_VBELN },
-        );
+        const paramValidation = registry.validateParameters('sap.o2c.order-header', {
+          vbeln: MOCK_VBELN,
+        });
         expect(paramValidation.valid).toBe(true);
 
         // ---------------------------------------------------------------
@@ -709,16 +701,16 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
         expect(vbfaRecords.length).toBeGreaterThan(0);
 
         // Verify field-level detail is correct
-        const vbelnField = vbakRecords.find((r) => r.fieldName === 'VBELN');
+        const vbelnField = vbakRecords.find(r => r.fieldName === 'VBELN');
         expect(vbelnField).toBeDefined();
         expect(vbelnField!.rawValue).toBe(MOCK_VBELN);
 
-        const netwrField = vbakRecords.find((r) => r.fieldName === 'NETWR');
+        const netwrField = vbakRecords.find(r => r.fieldName === 'NETWR');
         expect(netwrField).toBeDefined();
         expect(netwrField!.rawValue).toBe('125000');
         expect(netwrField!.normalizedValue).toBe('125000');
 
-        const auartField = vbakRecords.find((r) => r.fieldName === 'AUART');
+        const auartField = vbakRecords.find(r => r.fieldName === 'AUART');
         expect(auartField).toBeDefined();
         expect(auartField!.rawValue).toBe('OR');
 
@@ -758,10 +750,10 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
         // Table coverage
         const coverage = query.getTableCoverage(findingId);
         expect(coverage).toHaveLength(2); // VBAK and VBAP
-        const vbakCoverage = coverage.find((c) => c.tableName === 'VBAK');
+        const vbakCoverage = coverage.find(c => c.tableName === 'VBAK');
         expect(vbakCoverage).toBeDefined();
         expect(vbakCoverage!.recordCount).toBe(vbakRecords.length);
-        const vbapCoverage = coverage.find((c) => c.tableName === 'VBAP');
+        const vbapCoverage = coverage.find(c => c.tableName === 'VBAP');
         expect(vbapCoverage).toBeDefined();
         expect(vbapCoverage!.recordCount).toBe(vbapRecords.length);
 
@@ -779,13 +771,13 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
         expect(root.children.length).toBe(2); // primary + corroborating
 
         const primaryNode = root.children.find(
-          (n) => (n.data as Record<string, unknown>)['role'] === 'primary',
+          n => (n.data as Record<string, unknown>)['role'] === 'primary'
         );
         expect(primaryNode).toBeDefined();
         expect(primaryNode!.children).toHaveLength(vbakRecords.length);
 
         const corrobNode = root.children.find(
-          (n) => (n.data as Record<string, unknown>)['role'] === 'corroborating',
+          n => (n.data as Record<string, unknown>)['role'] === 'corroborating'
         );
         expect(corrobNode).toBeDefined();
         expect(corrobNode!.children).toHaveLength(vbapRecords.length);
@@ -815,11 +807,11 @@ describe('Phase 1 Integration: Provenance + Extraction Registry', () => {
         // ---------------------------------------------------------------
         // All VBAK records from the same getSalesDocHeader call share one
         // query hash and one replay hash
-        const queryHashes = new Set(vbakRecords.map((r) => r.queryHash));
+        const queryHashes = new Set(vbakRecords.map(r => r.queryHash));
         expect(queryHashes.size).toBe(1);
         const qh = [...queryHashes][0]!;
 
-        const replayHashes = new Set(vbakRecords.map((r) => r.replayHash));
+        const replayHashes = new Set(vbakRecords.map(r => r.replayHash));
         expect(replayHashes.size).toBe(1);
         const rh = [...replayHashes][0]!;
 

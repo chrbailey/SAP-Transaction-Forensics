@@ -126,14 +126,11 @@ export class ContradictionDB {
       riskScore,
       finding.detectedAt,
       finding.resolutionStatus,
-      finding.reviewerNotes,
+      finding.reviewerNotes
     );
   }
 
-  insertBatch(
-    findings: ContradictionFinding[],
-    riskScores: Map<string, number>,
-  ): void {
+  insertBatch(findings: ContradictionFinding[], riskScores: Map<string, number>): void {
     const stmt = this.db.prepare(`
       INSERT INTO contradiction_findings
         (id, type, severity, confidence, description,
@@ -149,44 +146,42 @@ export class ContradictionDB {
          ?, ?, ?)
     `);
 
-    const insertAll = this.db.transaction(
-      (rows: ContradictionFinding[]) => {
-        for (const f of rows) {
-          stmt.run(
-            f.id,
-            f.type,
-            f.severity,
-            f.confidence,
-            f.description,
-            f.leftSystem,
-            f.leftTable,
-            f.leftRecordId,
-            f.leftField,
-            f.leftValue,
-            f.leftExtractionId,
-            f.rightSystem,
-            f.rightTable,
-            f.rightRecordId,
-            f.rightField,
-            f.rightValue,
-            f.rightExtractionId,
-            JSON.stringify(f.scoringDetails),
-            riskScores.get(f.id) ?? 0,
-            f.detectedAt,
-            f.resolutionStatus,
-            f.reviewerNotes,
-          );
-        }
-      },
-    );
+    const insertAll = this.db.transaction((rows: ContradictionFinding[]) => {
+      for (const f of rows) {
+        stmt.run(
+          f.id,
+          f.type,
+          f.severity,
+          f.confidence,
+          f.description,
+          f.leftSystem,
+          f.leftTable,
+          f.leftRecordId,
+          f.leftField,
+          f.leftValue,
+          f.leftExtractionId,
+          f.rightSystem,
+          f.rightTable,
+          f.rightRecordId,
+          f.rightField,
+          f.rightValue,
+          f.rightExtractionId,
+          JSON.stringify(f.scoringDetails),
+          riskScores.get(f.id) ?? 0,
+          f.detectedAt,
+          f.resolutionStatus,
+          f.reviewerNotes
+        );
+      }
+    });
 
     insertAll(findings);
   }
 
   getFinding(id: string): ContradictionFinding | null {
-    const row = this.db.prepare(
-      'SELECT * FROM contradiction_findings WHERE id = ?',
-    ).get(id) as Record<string, unknown> | undefined;
+    const row = this.db.prepare('SELECT * FROM contradiction_findings WHERE id = ?').get(id) as
+      | Record<string, unknown>
+      | undefined;
 
     if (!row) return null;
     return this.rowToFinding(row);
@@ -232,15 +227,13 @@ export class ContradictionDB {
       params.push(filter.minRiskScore);
     }
 
-    const where = clauses.length > 0
-      ? ' WHERE ' + clauses.join(' AND ')
-      : '';
+    const where = clauses.length > 0 ? ' WHERE ' + clauses.join(' AND ') : '';
 
-    const rows = this.db.prepare(
-      `SELECT * FROM contradiction_findings${where} ORDER BY risk_score DESC`,
-    ).all(...params) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare(`SELECT * FROM contradiction_findings${where} ORDER BY risk_score DESC`)
+      .all(...params) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => this.rowToFinding(row));
+    return rows.map(row => this.rowToFinding(row));
   }
 
   // -------------------------------------------------------------------------
@@ -251,16 +244,20 @@ export class ContradictionDB {
     id: string,
     status: 'confirmed' | 'explained' | 'false_positive',
     resolvedBy: string,
-    notes: string,
+    notes: string
   ): void {
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       UPDATE contradiction_findings
       SET resolution_status = ?,
           resolved_at = ?,
           resolved_by = ?,
           reviewer_notes = ?
       WHERE id = ?
-    `).run(status, new Date().toISOString(), resolvedBy, notes, id);
+    `
+      )
+      .run(status, new Date().toISOString(), resolvedBy, notes, id);
   }
 
   // -------------------------------------------------------------------------
@@ -268,7 +265,9 @@ export class ContradictionDB {
   // -------------------------------------------------------------------------
 
   isDuplicate(finding: ContradictionFinding): boolean {
-    const row = this.db.prepare(`
+    const row = this.db
+      .prepare(
+        `
       SELECT 1 FROM contradiction_findings
       WHERE type = ?
         AND left_system = ?
@@ -278,15 +277,17 @@ export class ContradictionDB {
         AND right_table = ?
         AND right_record_id = ?
       LIMIT 1
-    `).get(
-      finding.type,
-      finding.leftSystem,
-      finding.leftTable,
-      finding.leftRecordId,
-      finding.rightSystem,
-      finding.rightTable,
-      finding.rightRecordId,
-    );
+    `
+      )
+      .get(
+        finding.type,
+        finding.leftSystem,
+        finding.leftTable,
+        finding.leftRecordId,
+        finding.rightSystem,
+        finding.rightTable,
+        finding.rightRecordId
+      );
 
     return row !== undefined;
   }
@@ -310,27 +311,29 @@ export class ContradictionDB {
       }
     ).cnt;
 
-    const statusRows = this.db.prepare(
-      'SELECT resolution_status, COUNT(*) AS cnt FROM contradiction_findings GROUP BY resolution_status',
-    ).all() as Array<{ resolution_status: string; cnt: number }>;
+    const statusRows = this.db
+      .prepare(
+        'SELECT resolution_status, COUNT(*) AS cnt FROM contradiction_findings GROUP BY resolution_status'
+      )
+      .all() as Array<{ resolution_status: string; cnt: number }>;
 
     const statusMap: Record<string, number> = {};
     for (const row of statusRows) {
       statusMap[row.resolution_status] = row.cnt;
     }
 
-    const severityRows = this.db.prepare(
-      'SELECT severity, COUNT(*) AS cnt FROM contradiction_findings GROUP BY severity',
-    ).all() as Array<{ severity: string; cnt: number }>;
+    const severityRows = this.db
+      .prepare('SELECT severity, COUNT(*) AS cnt FROM contradiction_findings GROUP BY severity')
+      .all() as Array<{ severity: string; cnt: number }>;
 
     const bySeverity: Record<string, number> = {};
     for (const row of severityRows) {
       bySeverity[row.severity] = row.cnt;
     }
 
-    const typeRows = this.db.prepare(
-      'SELECT type, COUNT(*) AS cnt FROM contradiction_findings GROUP BY type',
-    ).all() as Array<{ type: string; cnt: number }>;
+    const typeRows = this.db
+      .prepare('SELECT type, COUNT(*) AS cnt FROM contradiction_findings GROUP BY type')
+      .all() as Array<{ type: string; cnt: number }>;
 
     const byType: Record<string, number> = {};
     for (const row of typeRows) {
@@ -357,35 +360,39 @@ export class ContradictionDB {
     pathId: string,
     valid: boolean,
     errors: string[],
-    warnings: string[],
+    warnings: string[]
   ): void {
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       INSERT INTO schema_validations (client_id, path_id, valid, errors, warnings, validated_at)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      clientId,
-      pathId,
-      valid ? 1 : 0,
-      JSON.stringify(errors),
-      JSON.stringify(warnings),
-      new Date().toISOString(),
-    );
+    `
+      )
+      .run(
+        clientId,
+        pathId,
+        valid ? 1 : 0,
+        JSON.stringify(errors),
+        JSON.stringify(warnings),
+        new Date().toISOString()
+      );
   }
 
-  getSchemaValidations(
-    clientId: string,
-  ): Array<{
+  getSchemaValidations(clientId: string): Array<{
     pathId: string;
     valid: boolean;
     errors: string[];
     warnings: string[];
     validatedAt: string;
   }> {
-    const rows = this.db.prepare(
-      'SELECT path_id, valid, errors, warnings, validated_at FROM schema_validations WHERE client_id = ? ORDER BY validated_at DESC',
-    ).all(clientId) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare(
+        'SELECT path_id, valid, errors, warnings, validated_at FROM schema_validations WHERE client_id = ? ORDER BY validated_at DESC'
+      )
+      .all(clientId) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => ({
+    return rows.map(row => ({
       pathId: row['path_id'] as string,
       valid: (row['valid'] as number) === 1,
       errors: JSON.parse(row['errors'] as string) as string[],

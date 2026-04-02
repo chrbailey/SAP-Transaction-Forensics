@@ -30,24 +30,51 @@ const journalEntries: ExtractionPath = {
   parameters: [
     { name: 'bukrs', type: 'string', required: true, description: 'Company code (4 chars)' },
     { name: 'gjahr', type: 'string', required: true, description: 'Fiscal year (4 chars)' },
-    { name: 'period_from', type: 'string', required: false, description: 'Starting posting period', defaultValue: '01' },
-    { name: 'period_to', type: 'string', required: false, description: 'Ending posting period', defaultValue: '12' },
+    {
+      name: 'period_from',
+      type: 'string',
+      required: false,
+      description: 'Starting posting period',
+      defaultValue: '01',
+    },
+    {
+      name: 'period_to',
+      type: 'string',
+      required: false,
+      description: 'Ending posting period',
+      defaultValue: '12',
+    },
   ],
   expectedFields: [
     { name: 'BUKRS', type: 'string', sapFieldName: 'BUKRS', description: 'Company Code' },
-    { name: 'BELNR', type: 'string', sapFieldName: 'BELNR', description: 'Accounting Document Number' },
+    {
+      name: 'BELNR',
+      type: 'string',
+      sapFieldName: 'BELNR',
+      description: 'Accounting Document Number',
+    },
     { name: 'GJAHR', type: 'string', sapFieldName: 'GJAHR', description: 'Fiscal Year' },
     { name: 'BLART', type: 'string', sapFieldName: 'BLART', description: 'Document Type' },
     { name: 'BLDAT', type: 'date', sapFieldName: 'BLDAT', description: 'Document Date' },
     { name: 'BUDAT', type: 'date', sapFieldName: 'BUDAT', description: 'Posting Date' },
     { name: 'MONAT', type: 'string', sapFieldName: 'MONAT', description: 'Posting Period' },
-    { name: 'CPUDT', type: 'date', sapFieldName: 'CPUDT', description: 'Entry Date / Creation Date' },
+    {
+      name: 'CPUDT',
+      type: 'date',
+      sapFieldName: 'CPUDT',
+      description: 'Entry Date / Creation Date',
+    },
     { name: 'CPUTM', type: 'string', sapFieldName: 'CPUTM', description: 'Entry Time (HHMMSS)' },
     { name: 'USNAM', type: 'string', sapFieldName: 'USNAM', description: 'User Name (creator)' },
     { name: 'TCODE', type: 'string', sapFieldName: 'TCODE', description: 'Transaction Code' },
     { name: 'BKTXT', type: 'string', sapFieldName: 'BKTXT', description: 'Document Header Text' },
     { name: 'WAERS', type: 'string', sapFieldName: 'WAERS', description: 'Currency Key' },
-    { name: 'STBLG', type: 'string', sapFieldName: 'STBLG', description: 'Reversal Document Number' },
+    {
+      name: 'STBLG',
+      type: 'string',
+      sapFieldName: 'STBLG',
+      description: 'Reversal Document Number',
+    },
     { name: 'STJAH', type: 'string', sapFieldName: 'STJAH', description: 'Reversal Fiscal Year' },
   ],
   testData: {
@@ -74,20 +101,50 @@ const lineItems: ExtractionPath = {
     'SELECT BUKRS, BELNR, GJAHR, BUZEI, BSCHL, KOART, HKONT, SHKZG, DMBTR, WRBTR, WAERS, KOSTL, AUFNR, SGTXT, ZUONR FROM BSEG WHERE BUKRS = :bukrs AND BELNR = :belnr AND GJAHR = :gjahr',
   parameters: [
     { name: 'bukrs', type: 'string', required: true, description: 'Company code (4 chars)' },
-    { name: 'belnr', type: 'string', required: true, description: 'Accounting document number (10 chars)' },
+    {
+      name: 'belnr',
+      type: 'string',
+      required: true,
+      description: 'Accounting document number (10 chars)',
+    },
     { name: 'gjahr', type: 'string', required: true, description: 'Fiscal year (4 chars)' },
   ],
   expectedFields: [
     { name: 'BUKRS', type: 'string', sapFieldName: 'BUKRS', description: 'Company Code' },
-    { name: 'BELNR', type: 'string', sapFieldName: 'BELNR', description: 'Accounting Document Number' },
+    {
+      name: 'BELNR',
+      type: 'string',
+      sapFieldName: 'BELNR',
+      description: 'Accounting Document Number',
+    },
     { name: 'GJAHR', type: 'string', sapFieldName: 'GJAHR', description: 'Fiscal Year' },
     { name: 'BUZEI', type: 'string', sapFieldName: 'BUZEI', description: 'Line Item Number' },
     { name: 'BSCHL', type: 'string', sapFieldName: 'BSCHL', description: 'Posting Key' },
-    { name: 'KOART', type: 'string', sapFieldName: 'KOART', description: 'Account Type (S/D/K/A/M)' },
+    {
+      name: 'KOART',
+      type: 'string',
+      sapFieldName: 'KOART',
+      description: 'Account Type (S/D/K/A/M)',
+    },
     { name: 'HKONT', type: 'string', sapFieldName: 'HKONT', description: 'GL Account Number' },
-    { name: 'SHKZG', type: 'string', sapFieldName: 'SHKZG', description: 'Debit/Credit Indicator (S=Debit, H=Credit)' },
-    { name: 'DMBTR', type: 'amount', sapFieldName: 'DMBTR', description: 'Amount in Local Currency' },
-    { name: 'WRBTR', type: 'amount', sapFieldName: 'WRBTR', description: 'Amount in Document Currency' },
+    {
+      name: 'SHKZG',
+      type: 'string',
+      sapFieldName: 'SHKZG',
+      description: 'Debit/Credit Indicator (S=Debit, H=Credit)',
+    },
+    {
+      name: 'DMBTR',
+      type: 'amount',
+      sapFieldName: 'DMBTR',
+      description: 'Amount in Local Currency',
+    },
+    {
+      name: 'WRBTR',
+      type: 'amount',
+      sapFieldName: 'WRBTR',
+      description: 'Amount in Document Currency',
+    },
     { name: 'WAERS', type: 'string', sapFieldName: 'WAERS', description: 'Currency Key' },
     { name: 'KOSTL', type: 'string', sapFieldName: 'KOSTL', description: 'Cost Center' },
     { name: 'AUFNR', type: 'string', sapFieldName: 'AUFNR', description: 'Internal Order Number' },
@@ -121,12 +178,37 @@ const sodUsers: ExtractionPath = {
     { name: 'gjahr', type: 'string', required: true, description: 'Fiscal year (4 chars)' },
   ],
   expectedFields: [
-    { name: 'USER_A', type: 'string', sapFieldName: 'USNAM', description: 'User performing first action' },
-    { name: 'TCODE_A', type: 'string', sapFieldName: 'TCODE', description: 'Transaction code of first action' },
-    { name: 'USER_B', type: 'string', sapFieldName: 'USNAM', description: 'User performing second action (same user)' },
-    { name: 'TCODE_B', type: 'string', sapFieldName: 'TCODE', description: 'Transaction code of second action' },
+    {
+      name: 'USER_A',
+      type: 'string',
+      sapFieldName: 'USNAM',
+      description: 'User performing first action',
+    },
+    {
+      name: 'TCODE_A',
+      type: 'string',
+      sapFieldName: 'TCODE',
+      description: 'Transaction code of first action',
+    },
+    {
+      name: 'USER_B',
+      type: 'string',
+      sapFieldName: 'USNAM',
+      description: 'User performing second action (same user)',
+    },
+    {
+      name: 'TCODE_B',
+      type: 'string',
+      sapFieldName: 'TCODE',
+      description: 'Transaction code of second action',
+    },
     { name: 'BUKRS', type: 'string', sapFieldName: 'BUKRS', description: 'Company Code' },
-    { name: 'BELNR', type: 'string', sapFieldName: 'BELNR', description: 'Accounting Document Number' },
+    {
+      name: 'BELNR',
+      type: 'string',
+      sapFieldName: 'BELNR',
+      description: 'Accounting Document Number',
+    },
     { name: 'GJAHR', type: 'string', sapFieldName: 'GJAHR', description: 'Fiscal Year' },
   ],
   testData: {
@@ -173,9 +255,4 @@ const glBalances: ExtractionPath = {
 // Export
 // ============================================================================
 
-export const SAP_FICO_PATHS: ExtractionPath[] = [
-  journalEntries,
-  lineItems,
-  sodUsers,
-  glBalances,
-];
+export const SAP_FICO_PATHS: ExtractionPath[] = [journalEntries, lineItems, sodUsers, glBalances];

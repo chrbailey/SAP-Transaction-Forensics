@@ -116,8 +116,8 @@ export class FindingRenderer {
     lines.push('');
     lines.push(
       `**Severity:** ${esc(finding.severity)} | ` +
-      `**Risk Score:** ${finding.riskScore}/100 | ` +
-      `**Type:** ${esc(finding.type)}`
+        `**Risk Score:** ${finding.riskScore}/100 | ` +
+        `**Type:** ${esc(finding.type)}`
     );
     lines.push('');
 
@@ -128,11 +128,11 @@ export class FindingRenderer {
     lines.push('|------|--------|-------|--------|-------|-------|');
     lines.push(
       `| Left | ${esc(finding.leftSystem)} | ${esc(finding.leftTable)} | ` +
-      `${esc(finding.leftRecordId)} | ${esc(finding.leftField)} | ${esc(finding.leftValue)} |`
+        `${esc(finding.leftRecordId)} | ${esc(finding.leftField)} | ${esc(finding.leftValue)} |`
     );
     lines.push(
       `| Right | ${esc(finding.rightSystem)} | ${esc(finding.rightTable)} | ` +
-      `${esc(finding.rightRecordId)} | ${esc(finding.rightField)} | ${esc(finding.rightValue)} |`
+        `${esc(finding.rightRecordId)} | ${esc(finding.rightField)} | ${esc(finding.rightValue)} |`
     );
     lines.push('');
 
@@ -194,8 +194,8 @@ export class FindingRenderer {
     lines.push('');
     lines.push(
       `**Severity:** ${esc(anomaly.severity)} | ` +
-      `**Risk Score:** ${anomaly.riskScore}/100 | ` +
-      `**Type:** FI/CO ${esc(anomaly.type)}`
+        `**Risk Score:** ${anomaly.riskScore}/100 | ` +
+        `**Type:** FI/CO ${esc(anomaly.type)}`
     );
     lines.push('');
 
@@ -231,7 +231,7 @@ export class FindingRenderer {
    */
   renderAll(findings: ContradictionFinding[]): RenderedFinding[] {
     const sorted = [...findings].sort((a, b) => b.riskScore - a.riskScore);
-    return sorted.map((f) => this.renderContradiction(f));
+    return sorted.map(f => this.renderContradiction(f));
   }
 
   // -------------------------------------------------------------------------

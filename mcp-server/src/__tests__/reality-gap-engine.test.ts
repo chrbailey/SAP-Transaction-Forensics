@@ -176,9 +176,7 @@ describe('RealityGapEngine', () => {
     expect(result.designGaps).toHaveLength(0);
 
     // Shadow gap for "Manual Override" has frequency=3, should survive
-    const shadowManual = result.shadowGaps.filter((g) =>
-      g.title.includes('Manual Override'),
-    );
+    const shadowManual = result.shadowGaps.filter(g => g.title.includes('Manual Override'));
     expect(shadowManual.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -188,11 +186,7 @@ describe('RealityGapEngine', () => {
     const result = engine.analyze(fixtureRefSteps(), fixtureRules(), fixtureEvents());
 
     // All findings with materiality < 0.75 should be gone
-    const allFindings = [
-      ...result.designGaps,
-      ...result.complianceGaps,
-      ...result.shadowGaps,
-    ];
+    const allFindings = [...result.designGaps, ...result.complianceGaps, ...result.shadowGaps];
     for (const f of allFindings) {
       expect(f.materiality).toBeGreaterThanOrEqual(0.75);
     }
@@ -245,11 +239,7 @@ describe('RealityGapEngine', () => {
 
   // 11. analyzeShadowGaps runs only shadow detector
   test('analyzeShadowGaps returns only shadow-type findings', () => {
-    const findings = engine.analyzeShadowGaps(
-      fixtureRefSteps(),
-      fixtureRules(),
-      fixtureEvents(),
-    );
+    const findings = engine.analyzeShadowGaps(fixtureRefSteps(), fixtureRules(), fixtureEvents());
 
     expect(findings.length).toBeGreaterThan(0);
     for (const f of findings) {

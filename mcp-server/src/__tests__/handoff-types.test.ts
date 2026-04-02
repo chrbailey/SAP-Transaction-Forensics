@@ -21,9 +21,18 @@ import type { SystemType } from '../provenance/types.js';
 // --- Runtime validation helpers ---
 
 const VALID_SYSTEM_TYPES: readonly string[] = ['SAP', 'NetSuite', 'Salesforce'];
-const VALID_MIME_TYPES: readonly string[] = ['text/csv', 'application/json', 'text/plain', 'text/markdown'];
+const VALID_MIME_TYPES: readonly string[] = [
+  'text/csv',
+  'application/json',
+  'text/plain',
+  'text/markdown',
+];
 const VALID_CHECKLIST_CATEGORIES: readonly string[] = [
-  'data_quality', 'completeness', 'methodology', 'findings', 'remediation',
+  'data_quality',
+  'completeness',
+  'methodology',
+  'findings',
+  'remediation',
 ];
 
 function isValidSystemType(value: string): value is SystemType {
@@ -120,7 +129,10 @@ describe('Handoff types', () => {
   describe('EvidenceFile', () => {
     it('should accept all 4 valid mime types', () => {
       const mimeTypes: EvidenceFile['mimeType'][] = [
-        'text/csv', 'application/json', 'text/plain', 'text/markdown',
+        'text/csv',
+        'application/json',
+        'text/plain',
+        'text/markdown',
       ];
       for (const mime of mimeTypes) {
         const file: EvidenceFile = {
@@ -230,7 +242,11 @@ describe('Handoff types', () => {
   describe('ChecklistItem', () => {
     it('should support all 5 categories', () => {
       const categories: ChecklistItem['category'][] = [
-        'data_quality', 'completeness', 'methodology', 'findings', 'remediation',
+        'data_quality',
+        'completeness',
+        'methodology',
+        'findings',
+        'remediation',
       ];
       for (const cat of categories) {
         expect(isValidChecklistCategory(cat)).toBe(true);
@@ -262,9 +278,30 @@ describe('Handoff types', () => {
       reviewerName: '',
       generatedAt: '2026-03-31T12:00:00.000Z',
       items: [
-        { id: 'CHK-001', category: 'data_quality', text: 'Verify hashes', required: true, checked: true, notes: 'All passed' },
-        { id: 'CHK-002', category: 'completeness', text: 'All systems covered', required: true, checked: false, notes: '' },
-        { id: 'CHK-003', category: 'methodology', text: 'Review conformance model', required: false, checked: false, notes: '' },
+        {
+          id: 'CHK-001',
+          category: 'data_quality',
+          text: 'Verify hashes',
+          required: true,
+          checked: true,
+          notes: 'All passed',
+        },
+        {
+          id: 'CHK-002',
+          category: 'completeness',
+          text: 'All systems covered',
+          required: true,
+          checked: false,
+          notes: '',
+        },
+        {
+          id: 'CHK-003',
+          category: 'methodology',
+          text: 'Review conformance model',
+          required: false,
+          checked: false,
+          notes: '',
+        },
       ],
       completedCount: 1,
       totalCount: 3,

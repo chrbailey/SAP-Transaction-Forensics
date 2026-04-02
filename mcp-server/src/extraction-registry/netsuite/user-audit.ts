@@ -29,7 +29,7 @@ const netsuiteUserActivity: ExtractionPath = {
   queryType: 'sql',
   query:
     'SELECT ' +
-    "e.id AS employee_id, " +
+    'e.id AS employee_id, ' +
     "e.firstname || ' ' || e.lastname AS full_name, " +
     'e.email, ' +
     'e.isinactive AS is_inactive, ' +
@@ -65,18 +65,78 @@ const netsuiteUserActivity: ExtractionPath = {
     },
   ],
   expectedFields: [
-    { name: 'employee_id', type: 'string', netsuiteName: 'e.id', description: 'Employee internal ID' },
-    { name: 'full_name', type: 'string', netsuiteName: 'firstname || lastname', description: 'Employee full name' },
-    { name: 'email', type: 'string', netsuiteName: 'e.email', description: 'Employee email address' },
-    { name: 'is_inactive', type: 'boolean', netsuiteName: 'e.isinactive', description: 'Whether the employee record is inactive' },
-    { name: 'has_access', type: 'boolean', netsuiteName: 'e.giveaccess', description: 'Whether the employee has system login access' },
-    { name: 'supervisor', type: 'string', netsuiteName: 'e.supervisor', description: 'Supervisor internal ID' },
-    { name: 'role_name', type: 'string', netsuiteName: 'r.name', description: 'Assigned role name' },
-    { name: 'subsidiary', type: 'string', netsuiteName: 'e.subsidiary', description: 'Subsidiary assignment' },
-    { name: 'department', type: 'string', netsuiteName: 'e.department', description: 'Department assignment' },
-    { name: 'last_login_date', type: 'date', netsuiteName: 'la.date', description: 'Most recent login timestamp' },
-    { name: 'last_login_formatted', type: 'string', netsuiteName: 'BUILTIN.DF(la.date)', description: 'Last login date formatted via BUILTIN.DF' },
-    { name: 'login_status', type: 'string', netsuiteName: 'CASE expression', description: 'Computed login status: ACTIVE, DORMANT, or NEVER' },
+    {
+      name: 'employee_id',
+      type: 'string',
+      netsuiteName: 'e.id',
+      description: 'Employee internal ID',
+    },
+    {
+      name: 'full_name',
+      type: 'string',
+      netsuiteName: 'firstname || lastname',
+      description: 'Employee full name',
+    },
+    {
+      name: 'email',
+      type: 'string',
+      netsuiteName: 'e.email',
+      description: 'Employee email address',
+    },
+    {
+      name: 'is_inactive',
+      type: 'boolean',
+      netsuiteName: 'e.isinactive',
+      description: 'Whether the employee record is inactive',
+    },
+    {
+      name: 'has_access',
+      type: 'boolean',
+      netsuiteName: 'e.giveaccess',
+      description: 'Whether the employee has system login access',
+    },
+    {
+      name: 'supervisor',
+      type: 'string',
+      netsuiteName: 'e.supervisor',
+      description: 'Supervisor internal ID',
+    },
+    {
+      name: 'role_name',
+      type: 'string',
+      netsuiteName: 'r.name',
+      description: 'Assigned role name',
+    },
+    {
+      name: 'subsidiary',
+      type: 'string',
+      netsuiteName: 'e.subsidiary',
+      description: 'Subsidiary assignment',
+    },
+    {
+      name: 'department',
+      type: 'string',
+      netsuiteName: 'e.department',
+      description: 'Department assignment',
+    },
+    {
+      name: 'last_login_date',
+      type: 'date',
+      netsuiteName: 'la.date',
+      description: 'Most recent login timestamp',
+    },
+    {
+      name: 'last_login_formatted',
+      type: 'string',
+      netsuiteName: 'BUILTIN.DF(la.date)',
+      description: 'Last login date formatted via BUILTIN.DF',
+    },
+    {
+      name: 'login_status',
+      type: 'string',
+      netsuiteName: 'CASE expression',
+      description: 'Computed login status: ACTIVE, DORMANT, or NEVER',
+    },
   ],
   testData: {
     inputParams: { dormant_days: '90' },
@@ -122,14 +182,54 @@ const netsuiteTransactionSummary: ExtractionPath = {
     },
   ],
   expectedFields: [
-    { name: 'user_id', type: 'string', netsuiteName: 't.createdby', description: 'User who created the transaction' },
-    { name: 'user_name', type: 'string', netsuiteName: 'firstname || lastname', description: 'User full name' },
-    { name: 'record_type', type: 'string', netsuiteName: 't.type', description: 'Transaction type internal ID' },
-    { name: 'record_type_name', type: 'string', netsuiteName: 'BUILTIN.DF(t.type)', description: 'Transaction type display name' },
-    { name: 'transaction_count', type: 'number', netsuiteName: 'COUNT(*)', description: 'Number of transactions of this type by this user' },
-    { name: 'first_transaction', type: 'date', netsuiteName: 'MIN(t.trandate)', description: 'Earliest transaction date in the period' },
-    { name: 'last_transaction', type: 'date', netsuiteName: 'MAX(t.trandate)', description: 'Most recent transaction date in the period' },
-    { name: 'distinct_types', type: 'number', netsuiteName: 'COUNT(DISTINCT t.type)', description: 'Number of distinct transaction types by this user' },
+    {
+      name: 'user_id',
+      type: 'string',
+      netsuiteName: 't.createdby',
+      description: 'User who created the transaction',
+    },
+    {
+      name: 'user_name',
+      type: 'string',
+      netsuiteName: 'firstname || lastname',
+      description: 'User full name',
+    },
+    {
+      name: 'record_type',
+      type: 'string',
+      netsuiteName: 't.type',
+      description: 'Transaction type internal ID',
+    },
+    {
+      name: 'record_type_name',
+      type: 'string',
+      netsuiteName: 'BUILTIN.DF(t.type)',
+      description: 'Transaction type display name',
+    },
+    {
+      name: 'transaction_count',
+      type: 'number',
+      netsuiteName: 'COUNT(*)',
+      description: 'Number of transactions of this type by this user',
+    },
+    {
+      name: 'first_transaction',
+      type: 'date',
+      netsuiteName: 'MIN(t.trandate)',
+      description: 'Earliest transaction date in the period',
+    },
+    {
+      name: 'last_transaction',
+      type: 'date',
+      netsuiteName: 'MAX(t.trandate)',
+      description: 'Most recent transaction date in the period',
+    },
+    {
+      name: 'distinct_types',
+      type: 'number',
+      netsuiteName: 'COUNT(DISTINCT t.type)',
+      description: 'Number of distinct transaction types by this user',
+    },
   ],
   testData: {
     inputParams: { lookback_days: '365' },
@@ -174,14 +274,49 @@ const netsuiteLoginHistory: ExtractionPath = {
     },
   ],
   expectedFields: [
-    { name: 'user_id', type: 'string', netsuiteName: 'la.user_id', description: 'Employee internal ID' },
-    { name: 'user_name', type: 'string', netsuiteName: 'firstname || lastname', description: 'Employee full name' },
+    {
+      name: 'user_id',
+      type: 'string',
+      netsuiteName: 'la.user_id',
+      description: 'Employee internal ID',
+    },
+    {
+      name: 'user_name',
+      type: 'string',
+      netsuiteName: 'firstname || lastname',
+      description: 'Employee full name',
+    },
     { name: 'login_date', type: 'date', netsuiteName: 'la.date', description: 'Login timestamp' },
-    { name: 'login_role', type: 'string', netsuiteName: 'la.role', description: 'Role used for this login session' },
-    { name: 'login_status', type: 'string', netsuiteName: 'la.status', description: 'Login outcome status (success/failure)' },
-    { name: 'total_logins', type: 'number', netsuiteName: 'COUNT(*) OVER', description: 'Total logins for this user in the period' },
-    { name: 'first_login', type: 'date', netsuiteName: 'MIN(la.date) OVER', description: 'Earliest login for this user in the period' },
-    { name: 'last_login', type: 'date', netsuiteName: 'MAX(la.date) OVER', description: 'Most recent login for this user in the period' },
+    {
+      name: 'login_role',
+      type: 'string',
+      netsuiteName: 'la.role',
+      description: 'Role used for this login session',
+    },
+    {
+      name: 'login_status',
+      type: 'string',
+      netsuiteName: 'la.status',
+      description: 'Login outcome status (success/failure)',
+    },
+    {
+      name: 'total_logins',
+      type: 'number',
+      netsuiteName: 'COUNT(*) OVER',
+      description: 'Total logins for this user in the period',
+    },
+    {
+      name: 'first_login',
+      type: 'date',
+      netsuiteName: 'MIN(la.date) OVER',
+      description: 'Earliest login for this user in the period',
+    },
+    {
+      name: 'last_login',
+      type: 'date',
+      netsuiteName: 'MAX(la.date) OVER',
+      description: 'Most recent login for this user in the period',
+    },
   ],
   testData: {
     inputParams: { lookback_days: '90' },

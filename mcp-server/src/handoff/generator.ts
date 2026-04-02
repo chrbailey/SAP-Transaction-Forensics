@@ -210,7 +210,7 @@ export class HandoffPacketGenerator {
     const checklist = this.generateChecklist(
       config.engagementId,
       renderedContradictions.length + renderedGaps.length,
-      config.systemsAccessed.length,
+      config.systemsAccessed.length
     );
 
     // 5. Compute severity counts for summary
@@ -297,13 +297,10 @@ export class HandoffPacketGenerator {
     // reproduction/ — only if includeReproduction
     if (packet.config.includeReproduction) {
       files.set('reproduction/README.md', this.renderReproductionReadme(packet));
-      files.set(
-        'reproduction/extraction-manifest.json',
-        JSON.stringify(packet.manifest, null, 2),
-      );
+      files.set('reproduction/extraction-manifest.json', JSON.stringify(packet.manifest, null, 2));
       files.set(
         'reproduction/verify-extractions.sh',
-        this.renderVerificationScript(packet.manifest),
+        this.renderVerificationScript(packet.manifest)
       );
     }
 
@@ -324,21 +321,15 @@ export class HandoffPacketGenerator {
           gapCount: packet.realityGaps.length,
         },
         null,
-        2,
-      ),
+        2
+      )
     );
 
-    files.set(
-      'metadata/provenance-graph.json',
-      packet.provenanceGraph,
-    );
+    files.set('metadata/provenance-graph.json', packet.provenanceGraph);
 
     // metadata/reviewer-checklist.md — only if includeChecklist
     if (packet.config.includeChecklist) {
-      files.set(
-        'metadata/reviewer-checklist.md',
-        this.renderChecklist(packet.checklist),
-      );
+      files.set('metadata/reviewer-checklist.md', this.renderChecklist(packet.checklist));
     }
 
     return files;
@@ -428,7 +419,7 @@ export class HandoffPacketGenerator {
     lines.push('');
     lines.push(
       `This assessment analyzed ${totalExtractions} extraction records across ` +
-      `${config.systemsAccessed.length} systems (${config.systemsAccessed.join(', ')}).`,
+        `${config.systemsAccessed.length} systems (${config.systemsAccessed.join(', ')}).`
     );
     lines.push('');
 
@@ -455,7 +446,7 @@ export class HandoffPacketGenerator {
   private getRiskNarrative(
     overallRiskScore: number,
     criticalCount: number,
-    highCount: number,
+    highCount: number
   ): string {
     if (overallRiskScore > 75) {
       return (
@@ -502,8 +493,8 @@ export class HandoffPacketGenerator {
     lines.push('');
     lines.push(
       `**Severity:** ${finding.severity} | ` +
-      `**Risk Score:** ${finding.riskScore}/100 | ` +
-      `**Type:** ${finding.type}`,
+        `**Risk Score:** ${finding.riskScore}/100 | ` +
+        `**Type:** ${finding.type}`
     );
     lines.push('');
     lines.push(`${finding.description}`);
@@ -515,11 +506,11 @@ export class HandoffPacketGenerator {
     lines.push('|------|--------|-------|--------|-------|-------|');
     lines.push(
       `| Left | ${finding.leftSystem} | ${finding.leftTable} | ` +
-      `${finding.leftRecordId} | ${finding.leftField} | ${finding.leftValue} |`,
+        `${finding.leftRecordId} | ${finding.leftField} | ${finding.leftValue} |`
     );
     lines.push(
       `| Right | ${finding.rightSystem} | ${finding.rightTable} | ` +
-      `${finding.rightRecordId} | ${finding.rightField} | ${finding.rightValue} |`,
+        `${finding.rightRecordId} | ${finding.rightField} | ${finding.rightValue} |`
     );
     lines.push('');
 
@@ -552,13 +543,17 @@ export class HandoffPacketGenerator {
       },
       {
         filename: `extraction-${finding.leftExtractionId}.meta.json`,
-        content: JSON.stringify({
-          findingId: finding.id,
-          side: 'left',
-          extractionId: finding.leftExtractionId,
-          system: finding.leftSystem,
-          table: finding.leftTable,
-        }, null, 2),
+        content: JSON.stringify(
+          {
+            findingId: finding.id,
+            side: 'left',
+            extractionId: finding.leftExtractionId,
+            system: finding.leftSystem,
+            table: finding.leftTable,
+          },
+          null,
+          2
+        ),
         mimeType: 'application/json',
       },
     ];
@@ -579,7 +574,7 @@ export class HandoffPacketGenerator {
 
   private renderGaps(gaps: GapFinding[]): RenderedFinding[] {
     const sorted = [...gaps].sort(
-      (a, b) => (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4),
+      (a, b) => (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4)
     );
     return sorted.map(g => this.renderSingleGap(g));
   }
@@ -619,7 +614,7 @@ export class HandoffPacketGenerator {
   private computeGapRiskScore(gap: GapFinding): number {
     const sevWeight = 1 - (SEVERITY_ORDER[gap.severity] ?? 4) / 4;
     return Math.round(
-      (sevWeight * 0.4 + gap.materiality * 0.3 + gap.recency * 0.2 + gap.confidence * 0.1) * 100,
+      (sevWeight * 0.4 + gap.materiality * 0.3 + gap.recency * 0.2 + gap.confidence * 0.1) * 100
     );
   }
 
@@ -627,10 +622,7 @@ export class HandoffPacketGenerator {
   // Private: Manifest generation (inline)
   // -------------------------------------------------------------------------
 
-  private buildManifest(
-    config: HandoffConfig,
-    extractions: ExtractionInfo[],
-  ): ExtractionManifest {
+  private buildManifest(config: HandoffConfig, extractions: ExtractionInfo[]): ExtractionManifest {
     const entries: ManifestEntry[] = extractions.map(e => ({
       extractionPathId: e.extractionPathId,
       extractionPathVersion: e.extractionPathVersion,
@@ -661,7 +653,7 @@ export class HandoffPacketGenerator {
   private generateChecklist(
     engagementId: string,
     _findingCount: number,
-    _systemCount: number,
+    _systemCount: number
   ): ReviewerChecklist {
     const items: ChecklistItem[] = [];
     let itemIndex = 0;
@@ -706,12 +698,14 @@ export class HandoffPacketGenerator {
     lines.push('');
     lines.push(
       'This directory contains the extraction manifest and verification script ' +
-      'needed to independently reproduce the data extractions used in this assessment.',
+        'needed to independently reproduce the data extractions used in this assessment.'
     );
     lines.push('');
     lines.push('## Files');
     lines.push('');
-    lines.push('- `extraction-manifest.json` — Complete manifest of all extractions with query hashes');
+    lines.push(
+      '- `extraction-manifest.json` — Complete manifest of all extractions with query hashes'
+    );
     lines.push('- `verify-extractions.sh` — Script to verify extraction replay hashes');
     lines.push('');
     lines.push('## Steps');
@@ -744,7 +738,9 @@ export class HandoffPacketGenerator {
 
     for (const entry of manifest.entries) {
       lines.push(`# ${entry.extractionPathId} v${entry.extractionPathVersion}`);
-      lines.push(`echo "Checking ${entry.extractionPathId}... expected replay hash: ${entry.replayHash}"`);
+      lines.push(
+        `echo "Checking ${entry.extractionPathId}... expected replay hash: ${entry.replayHash}"`
+      );
     }
 
     lines.push('');
@@ -764,7 +760,10 @@ export class HandoffPacketGenerator {
   }
 
   private slugify(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 
   private stripExt(filename: string): string {

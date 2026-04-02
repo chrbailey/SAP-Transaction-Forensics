@@ -7,16 +7,9 @@
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 
-import {
-  ShadowGapDetector,
-  _resetGapIdCounter,
-} from '../reality-gap/shadow-gap.js';
+import { ShadowGapDetector, _resetGapIdCounter } from '../reality-gap/shadow-gap.js';
 
-import type {
-  ReferenceStep,
-  WorkflowRule,
-  ActualEvent,
-} from '../reality-gap/types.js';
+import type { ReferenceStep, WorkflowRule, ActualEvent } from '../reality-gap/types.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -84,7 +77,7 @@ describe('ShadowGapDetector', () => {
     const findings = detector.detectGaps(steps, rules, events);
 
     expect(findings.length).toBeGreaterThanOrEqual(1);
-    expect(findings.some((f) => f.title.includes('Manual Override'))).toBe(true);
+    expect(findings.some(f => f.title.includes('Manual Override'))).toBe(true);
   });
 
   // 2. Returns empty when all activities are known
@@ -127,7 +120,7 @@ describe('ShadowGapDetector', () => {
     const findings = detector.detectGaps(steps, rules, events);
 
     expect(findings.length).toBeGreaterThanOrEqual(1);
-    const highPriv = findings.find((f) => f.title.includes('High-privilege'));
+    const highPriv = findings.find(f => f.title.includes('High-privilege'));
     expect(highPriv).toBeDefined();
     expect(highPriv!.severity).toBe('HIGH');
   });
@@ -147,7 +140,7 @@ describe('ShadowGapDetector', () => {
     const findings = detector.detectGaps(steps, rules, events);
 
     expect(findings.length).toBeGreaterThanOrEqual(1);
-    const afterHrs = findings.find((f) => f.title.includes('After-hours'));
+    const afterHrs = findings.find(f => f.title.includes('After-hours'));
     expect(afterHrs).toBeDefined();
     expect(afterHrs!.severity).toBe('HIGH');
   });
@@ -162,12 +155,12 @@ describe('ShadowGapDetector', () => {
         caseId: `case-${i}`,
         timestamp: '2025-06-15T10:00:00Z',
         userId: 'USER01',
-      }),
+      })
     );
 
     const findings = detector.detectGaps(steps, rules, events);
 
-    const bulkFinding = findings.find((f) => f.title.includes('Bulk Upload'));
+    const bulkFinding = findings.find(f => f.title.includes('Bulk Upload'));
     expect(bulkFinding).toBeDefined();
     expect(bulkFinding!.severity).toBe('MEDIUM');
     expect(bulkFinding!.frequency).toBe(15);
@@ -187,7 +180,7 @@ describe('ShadowGapDetector', () => {
 
     const findings = detector.detectGaps(steps, rules, events);
 
-    const oneTime = findings.find((f) => f.title.includes('One Time Fix'));
+    const oneTime = findings.find(f => f.title.includes('One Time Fix'));
     expect(oneTime).toBeDefined();
     expect(oneTime!.severity).toBe('INFO');
   });
@@ -221,10 +214,10 @@ describe('ShadowGapDetector', () => {
 
     const findings = detector.detectGaps(steps, rules, events);
 
-    const titles = findings.map((f) => f.title);
-    expect(titles.some((t) => t.includes('Shadow Alpha'))).toBe(true);
-    expect(titles.some((t) => t.includes('Shadow Beta'))).toBe(true);
-    expect(titles.some((t) => t.includes('Shadow Gamma'))).toBe(true);
+    const titles = findings.map(f => f.title);
+    expect(titles.some(t => t.includes('Shadow Alpha'))).toBe(true);
+    expect(titles.some(t => t.includes('Shadow Beta'))).toBe(true);
+    expect(titles.some(t => t.includes('Shadow Gamma'))).toBe(true);
   });
 
   // 10. Activities matching reference steps are NOT flagged

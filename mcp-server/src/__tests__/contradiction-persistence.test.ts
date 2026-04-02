@@ -152,7 +152,12 @@ describe('ContradictionDB', () => {
     const finding = makeFinding();
     db.insertFinding(finding, 67.5);
 
-    db.resolveFinding(finding.id, 'explained', 'auditor@example.com', 'Currency conversion difference');
+    db.resolveFinding(
+      finding.id,
+      'explained',
+      'auditor@example.com',
+      'Currency conversion difference'
+    );
 
     const resolved = db.getFinding(finding.id);
     expect(resolved).not.toBeNull();
@@ -225,32 +230,26 @@ describe('ContradictionDB', () => {
 
   // 11. Schema validation insert + query round-trip
   it('schema validation insert + query round-trip', () => {
-    db.insertSchemaValidation(
-      'client-abc',
-      'path-o2c',
-      true,
-      [],
-      ['Field BSTNK is optional'],
-    );
+    db.insertSchemaValidation('client-abc', 'path-o2c', true, [], ['Field BSTNK is optional']);
     db.insertSchemaValidation(
       'client-abc',
       'path-p2p',
       false,
       ['Missing required field EBELN'],
-      [],
+      []
     );
 
     const validations = db.getSchemaValidations('client-abc');
     expect(validations).toHaveLength(2);
 
     // Ordered by validated_at DESC — p2p inserted second, so first
-    const p2p = validations.find((v) => v.pathId === 'path-p2p');
+    const p2p = validations.find(v => v.pathId === 'path-p2p');
     expect(p2p).toBeDefined();
     expect(p2p!.valid).toBe(false);
     expect(p2p!.errors).toEqual(['Missing required field EBELN']);
     expect(p2p!.warnings).toEqual([]);
 
-    const o2c = validations.find((v) => v.pathId === 'path-o2c');
+    const o2c = validations.find(v => v.pathId === 'path-o2c');
     expect(o2c).toBeDefined();
     expect(o2c!.valid).toBe(true);
     expect(o2c!.errors).toEqual([]);

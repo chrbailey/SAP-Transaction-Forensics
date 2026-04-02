@@ -111,12 +111,10 @@ class MockReader implements ProvenanceReader {
     this.evidenceLinks.push({ findingId, extraction: ext, role });
   }
 
-  getExtractionsByFinding(
-    findingId: string,
-  ): Array<ExtractionRecord & { role: EvidenceRole }> {
+  getExtractionsByFinding(findingId: string): Array<ExtractionRecord & { role: EvidenceRole }> {
     return this.evidenceLinks
-      .filter((link) => link.findingId === findingId)
-      .map((link) => ({ ...link.extraction, role: link.role }));
+      .filter(link => link.findingId === findingId)
+      .map(link => ({ ...link.extraction, role: link.role }));
   }
 
   getExtraction(id: string): ExtractionRecord | null {
@@ -124,15 +122,11 @@ class MockReader implements ProvenanceReader {
   }
 
   getExtractionsByQuery(queryHash: string): ExtractionRecord[] {
-    return [...this.extractions.values()].filter(
-      (ext) => ext.queryHash === queryHash,
-    );
+    return [...this.extractions.values()].filter(ext => ext.queryHash === queryHash);
   }
 
   verifyReplay(queryHash: string, currentReplayHash: string): boolean {
-    const ext = [...this.extractions.values()].find(
-      (e) => e.queryHash === queryHash,
-    );
+    const ext = [...this.extractions.values()].find(e => e.queryHash === queryHash);
     if (!ext) return false;
     return ext.replayHash === currentReplayHash;
   }
@@ -176,7 +170,7 @@ describe('ProvenanceQuery', () => {
     expect(chain.corroborating).toHaveLength(1);
     expect(chain.contradicting).toHaveLength(1);
 
-    expect(chain.primary.map((e) => e.id)).toEqual(['ext-sap-1', 'ext-sap-2']);
+    expect(chain.primary.map(e => e.id)).toEqual(['ext-sap-1', 'ext-sap-2']);
     expect(chain.corroborating[0]!.id).toBe('ext-ns-1');
     expect(chain.contradicting[0]!.id).toBe('ext-sf-1');
   });
@@ -238,9 +232,9 @@ describe('ProvenanceQuery', () => {
   // Test 7
   it('verifyFindingReplayability returns staleExtractions when hashes differ', () => {
     const currentHashes = new Map<string, string>([
-      ['qh-001', 'rh-001'],       // matches
-      ['qh-002', 'rh-CHANGED'],   // differs
-      ['qh-003', 'rh-003'],       // matches
+      ['qh-001', 'rh-001'], // matches
+      ['qh-002', 'rh-CHANGED'], // differs
+      ['qh-003', 'rh-003'], // matches
       ['qh-004', 'rh-DIFFERENT'], // differs
     ]);
 
@@ -262,7 +256,7 @@ describe('ProvenanceQuery', () => {
           expected: 'rh-004',
           actual: 'rh-DIFFERENT',
         },
-      ]),
+      ])
     );
   });
 });
@@ -299,7 +293,7 @@ describe('ProvenanceExporter', () => {
     expect(primary!.type).toBe('evidence');
     expect(primary!.data['role']).toBe('primary');
     expect(primary!.children).toHaveLength(2);
-    expect(primary!.children.every((c) => c.type === 'extraction')).toBe(true);
+    expect(primary!.children.every(c => c.type === 'extraction')).toBe(true);
 
     expect(corroborating!.type).toBe('evidence');
     expect(corroborating!.data['role']).toBe('corroborating');
@@ -349,13 +343,19 @@ describe('ProvenanceExporter', () => {
     expect(md).toContain(`# Provenance: ${FINDING_ID}`);
 
     // Has a table header and separator
-    expect(md).toContain('| Role | System | Table | Record | Field | Value | Extracted At | Query Hash |');
-    expect(md).toContain('|------|--------|-------|--------|-------|-------|--------------|------------|');
+    expect(md).toContain(
+      '| Role | System | Table | Record | Field | Value | Extracted At | Query Hash |'
+    );
+    expect(md).toContain(
+      '|------|--------|-------|--------|-------|-------|--------------|------------|'
+    );
 
     // Has data rows (4 extractions)
     const dataLines = md
       .split('\n')
-      .filter((line) => line.startsWith('| ') && !line.startsWith('| Role') && !line.startsWith('|--'));
+      .filter(
+        line => line.startsWith('| ') && !line.startsWith('| Role') && !line.startsWith('|--')
+      );
     expect(dataLines).toHaveLength(4);
 
     // Verify content appears in rows

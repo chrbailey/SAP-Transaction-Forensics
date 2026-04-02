@@ -33,7 +33,13 @@ const VALID_SYSTEM_TYPES: readonly string[] = ['SAP', 'NetSuite', 'Salesforce'];
 const VALID_EVIDENCE_ROLES: readonly string[] = ['primary', 'corroborating', 'contradicting'];
 const VALID_QUERY_TYPES: readonly string[] = ['sql', 'saved-search', 'soql', 'rfc', 'odata'];
 const VALID_FIELD_TYPES: readonly string[] = ['string', 'number', 'date', 'amount', 'boolean'];
-const VALID_EXTRACTION_DOMAINS: readonly string[] = ['o2c', 'fi-co', 'p2p', 'user-audit', 'pipeline'];
+const VALID_EXTRACTION_DOMAINS: readonly string[] = [
+  'o2c',
+  'fi-co',
+  'p2p',
+  'user-audit',
+  'pipeline',
+];
 const VALID_NODE_TYPES: readonly string[] = ['finding', 'evidence', 'extraction'];
 
 function isValidSystemType(value: string): value is SystemType {
@@ -311,7 +317,12 @@ describe('Extraction Registry types', () => {
         { name: 'date_to', type: 'date', required: true, description: 'End date' },
       ],
       expectedFields: [
-        { name: 'orderNumber', type: 'string', sapFieldName: 'VBELN', description: 'Sales order number' },
+        {
+          name: 'orderNumber',
+          type: 'string',
+          sapFieldName: 'VBELN',
+          description: 'Sales order number',
+        },
         { name: 'createdDate', type: 'date', sapFieldName: 'ERDAT', description: 'Creation date' },
         { name: 'orderType', type: 'string', sapFieldName: 'AUART', description: 'Order type' },
       ],

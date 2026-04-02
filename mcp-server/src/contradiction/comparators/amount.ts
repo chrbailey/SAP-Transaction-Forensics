@@ -117,7 +117,7 @@ export function parseNumericValue(raw: string): number {
 function detectField(
   fields: Record<string, string>,
   knownNames: string[],
-  pattern?: RegExp,
+  pattern?: RegExp
 ): [string, string] | undefined {
   // Exact match first
   for (const name of knownNames) {
