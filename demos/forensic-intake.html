@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Forensic Intake | SAP Transaction Forensics</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2234;
+    --border: #1e2d45;
+    --border-active: #3b82f6;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #475569;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --critical: #ef4444;
+    --high: #f97316;
+    --medium: #eab308;
+    --low: #22c55e;
+    --info: #64748b;
+    --font: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; font-size: 14px;
+  }
+  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .header-sub { font-size: 12px; color: var(--text-muted); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge {
+    padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    font-family: var(--font); letter-spacing: 0.05em;
+  }
+  .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-amber { background: rgba(234,179,8,0.15); color: #facc15; }
+
+  .settings-bar {
+    padding: 8px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; font-size: 12px;
+  }
+  .settings-bar label { color: var(--text-muted); white-space: nowrap; }
+  .settings-bar input[type="password"], .settings-bar input[type="text"] {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); padding: 4px 8px; font-size: 12px; font-family: var(--font);
+    flex: 1; max-width: 320px;
+  }
+  .settings-bar input:focus { outline: none; border-color: var(--accent); }
+  .toggle-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;
+  }
+  .toggle-btn:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .main { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 100px); }
+
+  .intake-panel { padding: 24px; overflow-y: auto; }
+  .intake-label {
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .intake-textarea {
+    width: 100%; min-height: 120px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 16px; font-size: 14px; font-family: var(--font-sans);
+    line-height: 1.6; resize: vertical;
+  }
+  .intake-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .intake-textarea::placeholder { color: var(--text-dim); }
+
+  .examples-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .example-chip {
+    padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .example-chip:hover { border-color: var(--accent); color: var(--text); background: var(--accent-glow); }
+
+  .submit-row { margin-top: 16px; display: flex; gap: 12px; align-items: center; }
+  .submit-btn {
+    padding: 10px 24px; background: var(--accent); color: white; border: none;
+    border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .submit-btn:hover { background: #2563eb; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .submit-status { font-size: 12px; color: var(--text-muted); }
+
+  .results { margin-top: 24px; }
+  .result-section { margin-bottom: 24px; }
+  .section-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-count {
+    background: var(--surface2); padding: 1px 6px; border-radius: 4px;
+    font-size: 11px; color: var(--text-muted); font-family: var(--font);
+  }
+
+  .risk-meter { margin-bottom: 24px; }
+  .risk-bar-track {
+    height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-top: 8px;
+  }
+  .risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.3s; }
+  .risk-label { display: flex; justify-content: space-between; margin-top: 4px; }
+  .risk-label span { font-size: 11px; color: var(--text-muted); font-family: var(--font); }
+
+  .path-grid { display: grid; gap: 8px; }
+  .path-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 14px; transition: border-color 0.15s;
+  }
+  .path-card.matched { border-left: 3px solid var(--accent); }
+  .path-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .path-id { font-family: var(--font); font-size: 12px; color: var(--accent); font-weight: 600; }
+  .path-system {
+    font-size: 10px; padding: 2px 6px; border-radius: 3px;
+    font-family: var(--font); font-weight: 600;
+  }
+  .sys-sap { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .sys-sfdc { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .sys-netsuite { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .path-name { font-size: 13px; margin-top: 4px; }
+  .path-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .path-tables { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-family: var(--font); }
+
+  .contradiction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .contra-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; position: relative; overflow: hidden;
+  }
+  .contra-card.flagged { border-color: var(--high); }
+  .contra-card.flagged::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--high);
+  }
+  .contra-type { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text); }
+  .contra-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .contra-severity {
+    display: inline-block; margin-top: 4px; font-size: 10px; font-weight: 700;
+    font-family: var(--font); padding: 1px 5px; border-radius: 3px;
+  }
+  .sev-critical { background: rgba(239,68,68,0.15); color: var(--critical); }
+  .sev-high { background: rgba(249,115,22,0.15); color: var(--high); }
+  .sev-medium { background: rgba(234,179,8,0.15); color: var(--medium); }
+  .sev-low { background: rgba(34,197,94,0.15); color: var(--low); }
+
+  .lifecycle {
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    padding: 16px; background: var(--surface); border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .lc-state {
+    padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    font-family: var(--font); background: var(--surface2); color: var(--text-dim);
+    border: 1px solid var(--border); transition: all 0.3s;
+  }
+  .lc-state.active { background: var(--accent-glow); color: var(--accent); border-color: var(--accent); }
+  .lc-state.passed { background: rgba(34,197,94,0.1); color: #4ade80; border-color: rgba(34,197,94,0.3); }
+  .lc-state.terminal { background: rgba(234,179,8,0.1); color: #facc15; border-color: rgba(234,179,8,0.3); }
+  .lc-arrow { color: var(--text-dim); font-size: 12px; }
+  .lc-escape { margin-left: 8px; border-style: dashed !important; }
+
+  .ref-panel {
+    border-left: 1px solid var(--border); background: var(--surface);
+    padding: 20px; overflow-y: auto; font-size: 13px;
+  }
+  .ref-title {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;
+  }
+  .ref-stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .ref-stat-label { color: var(--text-muted); }
+  .ref-stat-value { font-family: var(--font); font-weight: 600; }
+  .ref-section { margin-top: 20px; }
+  .ref-item {
+    padding: 8px 10px; margin-bottom: 4px; background: var(--surface2);
+    border-radius: 4px; font-size: 12px;
+  }
+  .ref-item-title { font-weight: 600; font-family: var(--font); }
+  .ref-item-desc { color: var(--text-muted); margin-top: 2px; font-size: 11px; }
+
+  .summary-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; margin-bottom: 24px; line-height: 1.7;
+  }
+
+  .powered-by {
+    font-size: 11px; color: var(--text-dim); text-align: center; padding: 8px;
+  }
+  .powered-by a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .ref-panel { border-left: none; border-top: 1px solid var(--border); }
+    .contradiction-grid { grid-template-columns: 1fr; }
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">TF</div>
+    <div>
+      <h1>ERP Forensic Intake</h1>
+      <div class="header-sub">SAP Transaction Forensics &mdash; Describe symptoms, get a diagnostic</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge badge-blue">19 EXTRACTION PATHS</span>
+    <span class="badge badge-amber">12 CONTRADICTION TYPES</span>
+    <span class="badge badge-green">1,639 TESTS</span>
+  </div>
+</div>
+
+<div class="settings-bar">
+  <label>API Key:</label>
+  <input type="password" id="apiKey" placeholder="sk-ant-... (optional, enables AI analysis)">
+  <button class="toggle-btn" id="toggleKeyBtn">show</button>
+  <span style="color: var(--text-dim); font-size: 11px; margin-left: 8px;">
+    Works without key using built-in diagnostic engine
+  </span>
+</div>
+
+<div class="main">
+  <div class="intake-panel">
+    <div class="intake-label">Describe your ERP symptoms</div>
+    <textarea class="intake-textarea" id="symptoms" placeholder="Example: We're seeing invoices posted on weekends by a single user, and the amounts on 30% of POs don't match the corresponding goods receipts. Our SAP and Salesforce opportunity amounts are diverging by 10-15% on deals over $50K..."></textarea>
+
+    <div class="examples-row" id="examplesRow"></div>
+
+    <div class="submit-row">
+      <button class="submit-btn" id="submitBtn">Run Diagnostic</button>
+      <span class="submit-status" id="submitStatus"></span>
+    </div>
+
+    <div id="results" class="results"></div>
+  </div>
+
+  <div class="ref-panel">
+    <div class="ref-title">System Reference</div>
+    <div class="ref-stat"><span class="ref-stat-label">Extraction Paths</span><span class="ref-stat-value">19</span></div>
+    <div class="ref-stat"><span class="ref-stat-label">Contradiction Types</span><span class="ref-stat-value">12</span></div>
+    <div class="ref-stat"><span class="ref-stat-label">Finding States</span><span class="ref-stat-value">8</span></div>
+    <div class="ref-stat"><span class="ref-stat-label">Comparators</span><span class="ref-stat-value">10</span></div>
+    <div class="ref-stat"><span class="ref-stat-label">Test Suite</span><span class="ref-stat-value">1,639 tests / 70 suites</span></div>
+    <div class="ref-stat"><span class="ref-stat-label">Avg Latency</span><span class="ref-stat-value">0.164ms</span></div>
+
+    <div class="ref-section">
+      <div class="ref-title">Covered Systems</div>
+      <div class="ref-item">
+        <div class="ref-item-title">SAP ERP (13 paths)</div>
+        <div class="ref-item-desc">O2C: VBAK/VBAP/VBFA/LIKP/VBRK &bull; FI/CO: BKPF/BSEG/SKA1 &bull; P2P: EKKO/EKPO/EBAN/EKBE/RBKP</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-item-title">Salesforce CRM (3 paths)</div>
+        <div class="ref-item-desc">Pipeline: Opportunities, Stage History, Activities (SOQL)</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-item-title">NetSuite (3 paths)</div>
+        <div class="ref-item-desc">User Audit: Activity, Transactions, Login History (SuiteQL)</div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Finding Lifecycle</div>
+      <div class="lifecycle" style="padding: 12px;" id="refLifecycle"></div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Severity Weights</div>
+      <div class="ref-stat"><span class="ref-stat-label" style="color:var(--critical)">CRITICAL</span><span class="ref-stat-value">1.00</span></div>
+      <div class="ref-stat"><span class="ref-stat-label" style="color:var(--high)">HIGH</span><span class="ref-stat-value">0.75</span></div>
+      <div class="ref-stat"><span class="ref-stat-label" style="color:var(--medium)">MEDIUM</span><span class="ref-stat-value">0.50</span></div>
+      <div class="ref-stat"><span class="ref-stat-label" style="color:var(--low)">LOW</span><span class="ref-stat-value">0.25</span></div>
+      <div class="ref-stat"><span class="ref-stat-label" style="color:var(--info)">INFO</span><span class="ref-stat-value">0.10</span></div>
+    </div>
+
+    <div class="powered-by" style="margin-top: 20px;">
+      Powered by <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">SAP-Transaction-Forensics</a>
+      <br>+ <a href="https://github.com/chrbailey/promptspeak-mcp-server" target="_blank">PromptSpeak Governance</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// HTML Sanitization — all dynamic content goes through this
+// ═══════════════════════════════════════════════════════════════════════════
+
+function esc(str) {
+  if (typeof str !== 'string') return '';
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function createEl(tag, attrs, children) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') el.className = v;
+      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if (k.startsWith('data')) el.setAttribute(k.replace(/([A-Z])/g, '-$1').toLowerCase(), v);
+      else el.setAttribute(k, v);
+    }
+  }
+  if (typeof children === 'string') el.textContent = children;
+  else if (Array.isArray(children)) children.forEach(c => { if (c) el.appendChild(c); });
+  else if (children instanceof Node) el.appendChild(children);
+  return el;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Domain Knowledge — extracted directly from the codebase
+// ═══════════════════════════════════════════════════════════════════════════
+
+const EXTRACTION_PATHS = [
+  { id: 'sap.o2c.order-header', name: 'Sales Order Header', system: 'SAP', domain: 'O2C', tables: 'VBAK', desc: 'Order type, org data, customer, net value, block indicators' },
+  { id: 'sap.o2c.order-items', name: 'Sales Order Items', system: 'SAP', domain: 'O2C', tables: 'VBAP', desc: 'Line items, materials, quantities, pricing, rejection reasons' },
+  { id: 'sap.o2c.doc-flow', name: 'Document Flow', system: 'SAP', domain: 'O2C', tables: 'VBFA', desc: 'Full document chain: order to delivery to invoice' },
+  { id: 'sap.o2c.delivery-timing', name: 'Delivery Timing', system: 'SAP', domain: 'O2C', tables: 'LIKP/LIPS', desc: 'Delivery dates, quantities, goods movement timing' },
+  { id: 'sap.o2c.invoice-timing', name: 'Invoice Timing', system: 'SAP', domain: 'O2C', tables: 'VBRK/VBRP', desc: 'Billing dates, amounts, currency, cancellation status' },
+  { id: 'sap.fi-co.journal-entries', name: 'Journal Entry Headers', system: 'SAP', domain: 'FI/CO', tables: 'BKPF', desc: 'Weekend/holiday posting, backdating, reversal patterns, period-end spikes' },
+  { id: 'sap.fi-co.line-items', name: 'Journal Line Items', system: 'SAP', domain: 'FI/CO', tables: 'BSEG', desc: 'Round amounts, split-below-threshold, unusual posting keys' },
+  { id: 'sap.fi-co.sod', name: 'Segregation of Duties', system: 'SAP', domain: 'FI/CO', tables: 'BKPF/BSEG', desc: 'Same-user conflicting transactions on same document' },
+  { id: 'sap.fi-co.gl-balances', name: 'GL Balances', system: 'SAP', domain: 'FI/CO', tables: 'BSEG/SKA1', desc: 'Trial balance, suspense account detection' },
+  { id: 'sap.p2p.purchase-orders', name: 'Purchase Orders', system: 'SAP', domain: 'P2P', tables: 'EKKO/EKPO', desc: 'Maverick buying, vendor concentration, split PO detection' },
+  { id: 'sap.p2p.purchase-requisitions', name: 'Purchase Requisitions', system: 'SAP', domain: 'P2P', tables: 'EBAN', desc: 'Requisition-to-PO matching, approval workflow gaps' },
+  { id: 'sap.p2p.goods-receipts', name: 'Goods Receipts', system: 'SAP', domain: 'P2P', tables: 'EKBE', desc: 'GR/IR matching, quantity variances, timing gaps' },
+  { id: 'sap.p2p.invoice-verification', name: 'Invoice Verification', system: 'SAP', domain: 'P2P', tables: 'RBKP/RSEG', desc: '3-way match failures, duplicate invoice detection' },
+  { id: 'sfdc.pipeline.opportunities', name: 'Opportunity Pipeline', system: 'Salesforce', domain: 'Pipeline', tables: 'Opportunity (SOQL)', desc: 'Ghost pipeline, stage skip, quarter-end compression, amount inflation' },
+  { id: 'sfdc.pipeline.stage-history', name: 'Stage History', system: 'Salesforce', domain: 'Pipeline', tables: 'OpportunityHistory (SOQL)', desc: 'Stage velocity, regression patterns, probability manipulation' },
+  { id: 'sfdc.pipeline.activities', name: 'Activities', system: 'Salesforce', domain: 'Pipeline', tables: 'Task/Event (SOQL)', desc: 'Engagement frequency, last-touch recency, ghost deal indicators' },
+  { id: 'netsuite.user-audit.user-activity', name: 'User Activity', system: 'NetSuite', domain: 'User Audit', tables: 'employee/loginaudit (SuiteQL)', desc: 'Dormant user detection, license optimization' },
+  { id: 'netsuite.user-audit.transaction-summary', name: 'Transaction Summary', system: 'NetSuite', domain: 'User Audit', tables: 'transaction (SuiteQL)', desc: 'Per-user transaction volumes, role classification' },
+  { id: 'netsuite.user-audit.login-history', name: 'Login History', system: 'NetSuite', domain: 'User Audit', tables: 'loginaudit (SuiteQL)', desc: 'Access pattern analysis, shared account detection' },
+];
+
+const CONTRADICTION_TYPES = [
+  { type: 'AMOUNT_DIVERGENCE', desc: 'Cross-system amounts differ beyond threshold (default >5%)', severity: 'HIGH', keywords: ['amount', 'value', 'price', 'cost', 'diverge', 'mismatch', 'differ', 'reconcil'] },
+  { type: 'DATE_CONFLICT', desc: 'Dates logically inconsistent across systems', severity: 'MEDIUM', keywords: ['date', 'timing', 'when', 'period', 'late', 'early', 'backdat'] },
+  { type: 'STATUS_INCOMPATIBLE', desc: 'Statuses that cannot both be true simultaneously', severity: 'HIGH', keywords: ['status', 'state', 'open', 'closed', 'active', 'inactive', 'stage'] },
+  { type: 'ENTITY_MISMATCH', desc: 'Matched entities differ on key fields', severity: 'MEDIUM', keywords: ['customer', 'vendor', 'entity', 'name', 'address', 'master data'] },
+  { type: 'QUANTITY_DIVERGENCE', desc: 'Ordered != delivered != invoiced quantities', severity: 'HIGH', keywords: ['quantity', 'amount', 'ordered', 'delivered', 'invoiced', 'received', 'short'] },
+  { type: 'APPROVAL_BYPASS', desc: 'Transaction exceeds threshold without required approval', severity: 'CRITICAL', keywords: ['approval', 'authorize', 'threshold', 'bypass', 'override', 'limit'] },
+  { type: 'TEMPORAL_IMPOSSIBILITY', desc: 'Event B happened before prerequisite event A', severity: 'CRITICAL', keywords: ['before', 'impossible', 'sequence', 'order', 'timing', 'retroactive', 'backdated'] },
+  { type: 'DUPLICATE_REFERENCE', desc: 'Two records reference same external ID', severity: 'MEDIUM', keywords: ['duplicate', 'double', 'same', 'reference', 'id', 'number'] },
+  { type: 'ORPHAN_RECORD', desc: 'Record in system A has no counterpart in system B', severity: 'MEDIUM', keywords: ['missing', 'orphan', 'no match', 'unmatched', 'reconcil', 'gap'] },
+  { type: 'RETROACTIVE_CHANGE', desc: 'Change made to record in a closed period', severity: 'HIGH', keywords: ['retroactive', 'closed period', 'backdat', 'changed after', 'modified', 'weekend', 'holiday'] },
+  { type: 'SOD_VIOLATION', desc: 'Same user performed conflicting actions', severity: 'CRITICAL', keywords: ['same user', 'segregation', 'sod', 'conflict', 'single user', 'one person', 'both'] },
+  { type: 'SCHEMA_GHOST', desc: 'Referenced field or table does not exist in client schema', severity: 'LOW', keywords: ['field', 'table', 'schema', 'missing', 'custom', 'z-table', 'ghost'] },
+];
+
+const FINDING_STATES = ['DETECTED', 'TRIAGED', 'INVESTIGATING', 'CONFIRMED', 'REMEDIATION', 'RESOLVED'];
+const ESCAPE_STATES = ['FALSE_POSITIVE', 'ACCEPTED_RISK'];
+
+const EXAMPLES = [
+  { label: 'Weekend journal entries', text: "We're seeing journal entries posted on weekends and holidays by a single user account. The amounts are all round numbers just under $50,000. This has been happening for the past 3 fiscal periods in company code 1000." },
+  { label: 'PO/GR amount mismatch', text: "Purchase order amounts don't match the corresponding goods receipt quantities in about 30% of cases. Some POs appear to be split across multiple documents right at the approval threshold. Vendor ACME Corp has 60% of all POs." },
+  { label: 'Ghost pipeline in Salesforce', text: "Our Salesforce pipeline shows $12M in opportunities but only $4M has any activity in the last 90 days. Deals are skipping stages \u2014 going from Qualification straight to Negotiation. Quarter-end sees 40% of deal amounts increase in the final week." },
+  { label: 'SAP-NetSuite reconciliation', text: "We need to reconcile our SAP financial postings against NetSuite. Journal entries in SAP don't have matching transactions in NetSuite for about 15% of records. User access in NetSuite shows 40 dormant accounts still with active licenses." },
+  { label: 'SoD violations in approvals', text: "A single user is creating purchase requisitions, approving them as POs, and posting the goods receipts. The approval workflow in SAP shows this user has authorization for all three transaction codes. This affects about 200 transactions in the current fiscal year." },
+  { label: 'Full due diligence scope', text: "Full due diligence on a mid-market SaaS acquisition target. They run SAP for finance, Salesforce for pipeline, and NetSuite for billing. We need revenue recognition accuracy, pipeline integrity, user access controls, and cross-system reconciliation. The deal is $85M and closes in 6 weeks." },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Claude API System Prompt
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SYSTEM_PROMPT = `You are an ERP forensic diagnostic engine built on the SAP Transaction Forensics platform.
+
+You have access to 19 deterministic extraction paths across 3 systems (SAP, Salesforce, NetSuite), a 12-type contradiction taxonomy, and an 8-state finding lifecycle.
+
+EXTRACTION PATHS:
+${EXTRACTION_PATHS.map(p => `- ${p.id}: ${p.name} (${p.tables}) \u2014 ${p.desc}`).join('\n')}
+
+CONTRADICTION TAXONOMY:
+${CONTRADICTION_TYPES.map(c => `- ${c.type} [${c.severity}]: ${c.desc}`).join('\n')}
+
+FINDING LIFECYCLE: DETECTED \u2192 TRIAGED \u2192 INVESTIGATING \u2192 CONFIRMED \u2192 REMEDIATION \u2192 RESOLVED
+Escape hatches: FALSE_POSITIVE, ACCEPTED_RISK
+Sources: contradiction, reality_gap, conformance, fi_co_anomaly
+
+When given a description of ERP symptoms, respond with a JSON object (no markdown fences):
+{
+  "summary": "2-3 sentence plain-English diagnostic",
+  "riskScore": <0-100>,
+  "riskLevel": "CRITICAL|HIGH|MEDIUM|LOW",
+  "matchedPaths": ["path.id.here", ...],
+  "flaggedContradictions": [{"type": "TYPE_NAME", "severity": "CRITICAL|HIGH|MEDIUM|LOW", "rationale": "why this is relevant"}],
+  "recommendedActions": ["action 1", "action 2", ...],
+  "estimatedFindings": <number>,
+  "lifecycleStartState": "DETECTED|TRIAGED",
+  "systemsCovered": ["SAP", "Salesforce", "NetSuite"]
+}
+
+Be specific. Reference actual SAP table names, transaction codes, and field names. Your diagnostic should demonstrate deep ERP domain expertise.`;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Built-in diagnostic engine (no API key needed)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runLocalDiagnostic(symptoms) {
+  const lower = symptoms.toLowerCase();
+  const words = lower.split(/\s+/);
+
+  const matchedPaths = EXTRACTION_PATHS.filter(p => {
+    const pathText = (p.name + ' ' + p.desc + ' ' + p.tables + ' ' + p.domain).toLowerCase();
+    return words.some(w => w.length > 3 && pathText.includes(w));
+  }).map(p => p.id);
+
+  const flaggedContradictions = CONTRADICTION_TYPES.filter(c => {
+    return c.keywords.some(kw => lower.includes(kw));
+  }).map(c => ({
+    type: c.type,
+    severity: c.severity,
+    rationale: 'Symptom description contains indicators matching ' + c.type.replace(/_/g, ' ').toLowerCase() + ' pattern'
+  }));
+
+  const criticalCount = flaggedContradictions.filter(c => c.severity === 'CRITICAL').length;
+  const highCount = flaggedContradictions.filter(c => c.severity === 'HIGH').length;
+  const mediumCount = flaggedContradictions.filter(c => c.severity === 'MEDIUM').length;
+  const pathCoverage = matchedPaths.length / EXTRACTION_PATHS.length;
+  const riskScore = Math.min(95, Math.round(
+    criticalCount * 25 + highCount * 15 + mediumCount * 8 + pathCoverage * 20 + 10
+  ));
+
+  const riskLevel = riskScore >= 75 ? 'CRITICAL' : riskScore >= 50 ? 'HIGH' : riskScore >= 25 ? 'MEDIUM' : 'LOW';
+
+  const systemsCovered = [...new Set(matchedPaths.map(id => {
+    if (id.startsWith('sap.')) return 'SAP';
+    if (id.startsWith('sfdc.')) return 'Salesforce';
+    if (id.startsWith('netsuite.')) return 'NetSuite';
+    return 'Unknown';
+  }))];
+
+  const actions = [];
+  if (matchedPaths.some(p => p.includes('fi-co'))) actions.push('Extract journal entries (BKPF/BSEG) for the flagged periods and run weekend/holiday posting analysis');
+  if (matchedPaths.some(p => p.includes('p2p'))) actions.push('Run 3-way match analysis across PO/GR/IR documents and check for split-below-threshold patterns');
+  if (matchedPaths.some(p => p.includes('o2c'))) actions.push('Trace full document flow (VBFA) for flagged sales orders and check delivery/invoice timing gaps');
+  if (matchedPaths.some(p => p.includes('pipeline'))) actions.push('Analyze opportunity stage history for skip patterns and quarter-end compression');
+  if (matchedPaths.some(p => p.includes('netsuite'))) actions.push('Run NetSuite user audit to identify dormant accounts and access control gaps');
+  if (flaggedContradictions.some(c => c.type === 'SOD_VIOLATION')) actions.push('Map user authorization profiles against transaction history for SoD conflict detection');
+  if (flaggedContradictions.some(c => c.type === 'APPROVAL_BYPASS')) actions.push('Review approval threshold configuration and identify transactions that bypassed controls');
+  if (actions.length === 0) actions.push('Run baseline extraction across all matched paths to establish forensic foundation');
+
+  return {
+    summary: 'Diagnostic identified ' + flaggedContradictions.length + ' potential contradiction types across ' + systemsCovered.join(', ') + ' with ' + matchedPaths.length + ' relevant extraction paths. ' + (riskLevel === 'CRITICAL' ? 'Critical-severity patterns detected \u2014 immediate investigation recommended.' : riskLevel === 'HIGH' ? 'High-severity patterns suggest material risk requiring structured analysis.' : 'Moderate indicators warrant targeted extraction and analysis.'),
+    riskScore: riskScore,
+    riskLevel: riskLevel,
+    matchedPaths: matchedPaths,
+    flaggedContradictions: flaggedContradictions,
+    recommendedActions: actions,
+    estimatedFindings: Math.max(3, Math.round(flaggedContradictions.length * 4 + matchedPaths.length * 1.5)),
+    lifecycleStartState: riskScore >= 50 ? 'DETECTED' : 'TRIAGED',
+    systemsCovered: systemsCovered
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Claude API integration
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function callClaudeAPI(symptoms) {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) return null;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: symptoms }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error('API Error ' + response.status + ': ' + err.slice(0, 100));
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text;
+  const cleaned = text.replace(/```json?\n?/g, '').replace(/```\n?/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UI Rendering — all DOM construction uses safe methods
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildExampleChips() {
+  const row = document.getElementById('examplesRow');
+  EXAMPLES.forEach(function(ex, idx) {
+    const chip = createEl('div', { className: 'example-chip' }, ex.label);
+    chip.addEventListener('click', function() {
+      document.getElementById('symptoms').value = ex.text;
+      document.getElementById('symptoms').focus();
+    });
+    row.appendChild(chip);
+  });
+}
+
+function buildRefLifecycle() {
+  const container = document.getElementById('refLifecycle');
+  FINDING_STATES.forEach(function(state, i) {
+    container.appendChild(createEl('span', { className: 'lc-state' }, state));
+    if (i < FINDING_STATES.length - 1) {
+      const arrow = createEl('span', { className: 'lc-arrow' });
+      arrow.innerHTML = '&rarr;';
+      container.appendChild(arrow);
+    }
+  });
+  ESCAPE_STATES.forEach(function(state) {
+    container.appendChild(createEl('span', { className: 'lc-state lc-escape' }, state));
+  });
+}
+
+function renderResults(d) {
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.textContent = '';
+
+  const riskColor = d.riskScore >= 75 ? 'var(--critical)' : d.riskScore >= 50 ? 'var(--high)' : d.riskScore >= 25 ? 'var(--medium)' : 'var(--low)';
+  const systems = Array.isArray(d.systemsCovered) ? d.systemsCovered.join(', ') : 'multiple systems';
+
+  // --- Risk Meter ---
+  const riskSection = createEl('div', { className: 'risk-meter' });
+  riskSection.appendChild(createEl('div', { className: 'section-title' }, 'Risk Assessment'));
+
+  const riskRow = createEl('div', { style: { display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '8px' } });
+  const scoreEl = createEl('span', { style: { fontSize: '36px', fontWeight: '700', fontFamily: 'var(--font)', color: riskColor } }, String(d.riskScore));
+  const levelEl = createEl('span', { style: { fontSize: '14px', fontWeight: '600', color: riskColor } }, d.riskLevel);
+  const detailEl = createEl('span', { style: { fontSize: '12px', color: 'var(--text-muted)' } }, '~' + d.estimatedFindings + ' estimated findings across ' + systems);
+  riskRow.append(scoreEl, levelEl, detailEl);
+  riskSection.appendChild(riskRow);
+
+  const track = createEl('div', { className: 'risk-bar-track' });
+  const fill = createEl('div', { className: 'risk-bar-fill' });
+  fill.style.width = d.riskScore + '%';
+  fill.style.background = riskColor;
+  track.appendChild(fill);
+  riskSection.appendChild(track);
+
+  const labels = createEl('div', { className: 'risk-label' });
+  ['0 \u2014 Low', '25', '50', '75', '100 \u2014 Critical'].forEach(function(t) {
+    labels.appendChild(createEl('span', {}, t));
+  });
+  riskSection.appendChild(labels);
+  resultsDiv.appendChild(riskSection);
+
+  // --- Summary ---
+  const summarySection = createEl('div', { className: 'result-section' });
+  summarySection.appendChild(createEl('div', { className: 'section-title' }, 'Diagnostic Summary'));
+  summarySection.appendChild(createEl('div', { className: 'summary-box' }, d.summary));
+  resultsDiv.appendChild(summarySection);
+
+  // --- Matched Extraction Paths ---
+  if (d.matchedPaths && d.matchedPaths.length > 0) {
+    const pathSection = createEl('div', { className: 'result-section' });
+    const pathTitle = createEl('div', { className: 'section-title' });
+    pathTitle.appendChild(document.createTextNode('Matched Extraction Paths '));
+    pathTitle.appendChild(createEl('span', { className: 'section-count' }, d.matchedPaths.length + ' / 19'));
+    pathSection.appendChild(pathTitle);
+
+    const grid = createEl('div', { className: 'path-grid' });
+    d.matchedPaths.forEach(function(pathId) {
+      const path = EXTRACTION_PATHS.find(function(p) { return p.id === pathId; });
+      if (!path) return;
+      var sysClass = path.system === 'SAP' ? 'sys-sap' : path.system === 'Salesforce' ? 'sys-sfdc' : 'sys-netsuite';
+
+      var card = createEl('div', { className: 'path-card matched' });
+      var header = createEl('div', { className: 'path-card-header' });
+      header.appendChild(createEl('span', { className: 'path-id' }, path.id));
+      header.appendChild(createEl('span', { className: 'path-system ' + sysClass }, path.system));
+      card.appendChild(header);
+      card.appendChild(createEl('div', { className: 'path-name' }, path.name));
+      card.appendChild(createEl('div', { className: 'path-desc' }, path.desc));
+      card.appendChild(createEl('div', { className: 'path-tables' }, path.tables));
+      grid.appendChild(card);
+    });
+    pathSection.appendChild(grid);
+    resultsDiv.appendChild(pathSection);
+  }
+
+  // --- Flagged Contradictions ---
+  if (d.flaggedContradictions && d.flaggedContradictions.length > 0) {
+    const contraSection = createEl('div', { className: 'result-section' });
+    const contraTitle = createEl('div', { className: 'section-title' });
+    contraTitle.appendChild(document.createTextNode('Flagged Contradiction Types '));
+    contraTitle.appendChild(createEl('span', { className: 'section-count' }, d.flaggedContradictions.length + ' / 12'));
+    contraSection.appendChild(contraTitle);
+
+    const contraGrid = createEl('div', { className: 'contradiction-grid' });
+    d.flaggedContradictions.forEach(function(c) {
+      var sevClass = c.severity === 'CRITICAL' ? 'sev-critical' : c.severity === 'HIGH' ? 'sev-high' : c.severity === 'MEDIUM' ? 'sev-medium' : 'sev-low';
+      var isFlagged = c.severity === 'CRITICAL' || c.severity === 'HIGH';
+      var fallbackDesc = CONTRADICTION_TYPES.find(function(ct) { return ct.type === c.type; });
+
+      var card = createEl('div', { className: 'contra-card' + (isFlagged ? ' flagged' : '') });
+      card.appendChild(createEl('div', { className: 'contra-type' }, c.type));
+      card.appendChild(createEl('div', { className: 'contra-desc' }, c.rationale || (fallbackDesc ? fallbackDesc.desc : '')));
+      card.appendChild(createEl('span', { className: 'contra-severity ' + sevClass }, c.severity));
+      contraGrid.appendChild(card);
+    });
+    contraSection.appendChild(contraGrid);
+    resultsDiv.appendChild(contraSection);
+  }
+
+  // --- Finding Lifecycle ---
+  const lcSection = createEl('div', { className: 'result-section' });
+  lcSection.appendChild(createEl('div', { className: 'section-title' }, 'Finding Lifecycle \u2014 Entry Point'));
+  const lcContainer = createEl('div', { className: 'lifecycle' });
+  var startIdx = FINDING_STATES.indexOf(d.lifecycleStartState || 'DETECTED');
+  FINDING_STATES.forEach(function(state, i) {
+    var cls = 'lc-state';
+    if (i === startIdx) cls += ' active';
+    else if (i < startIdx) cls += ' passed';
+    lcContainer.appendChild(createEl('span', { className: cls }, state));
+    if (i < FINDING_STATES.length - 1) {
+      var arrow = createEl('span', { className: 'lc-arrow' });
+      arrow.innerHTML = '&rarr;';
+      lcContainer.appendChild(arrow);
+    }
+  });
+  lcContainer.appendChild(createEl('span', { className: 'lc-state lc-escape terminal' }, 'FALSE_POSITIVE'));
+  lcContainer.appendChild(createEl('span', { className: 'lc-state lc-escape terminal' }, 'ACCEPTED_RISK'));
+  lcSection.appendChild(lcContainer);
+  resultsDiv.appendChild(lcSection);
+
+  // --- Recommended Actions ---
+  if (d.recommendedActions && d.recommendedActions.length > 0) {
+    const actSection = createEl('div', { className: 'result-section' });
+    const actTitle = createEl('div', { className: 'section-title' });
+    actTitle.appendChild(document.createTextNode('Recommended Actions '));
+    actTitle.appendChild(createEl('span', { className: 'section-count' }, String(d.recommendedActions.length)));
+    actSection.appendChild(actTitle);
+
+    const actGrid = createEl('div', { className: 'path-grid' });
+    d.recommendedActions.forEach(function(action, i) {
+      var card = createEl('div', { className: 'path-card' });
+      var row = createEl('div', { style: { display: 'flex', gap: '8px', alignItems: 'flex-start' } });
+      row.appendChild(createEl('span', { style: { fontFamily: 'var(--font)', fontSize: '12px', color: 'var(--accent)', fontWeight: '700', minWidth: '20px' } }, (i + 1) + '.'));
+      row.appendChild(createEl('span', { style: { fontSize: '13px' } }, action));
+      card.appendChild(row);
+      actGrid.appendChild(card);
+    });
+    actSection.appendChild(actGrid);
+    resultsDiv.appendChild(actSection);
+  }
+}
+
+async function runDiagnostic() {
+  var symptoms = document.getElementById('symptoms').value.trim();
+  if (!symptoms) return;
+
+  var btn = document.getElementById('submitBtn');
+  var status = document.getElementById('submitStatus');
+  var resultsDiv = document.getElementById('results');
+
+  btn.disabled = true;
+  var hasKey = !!document.getElementById('apiKey').value.trim();
+  status.textContent = hasKey ? 'Calling Claude API...' : 'Running local diagnostic...';
+  resultsDiv.textContent = '';
+
+  var diagnostic;
+  var startTime = performance.now();
+
+  try {
+    if (hasKey) {
+      diagnostic = await callClaudeAPI(symptoms);
+    }
+    if (!diagnostic) {
+      diagnostic = runLocalDiagnostic(symptoms);
+    }
+  } catch (err) {
+    console.error(err);
+    status.textContent = 'API failed, using local engine: ' + (err.message || '').slice(0, 60);
+    diagnostic = runLocalDiagnostic(symptoms);
+  }
+
+  var elapsed = Math.round(performance.now() - startTime);
+  status.textContent = 'Completed in ' + elapsed + 'ms' + (hasKey ? ' (Claude API)' : ' (local engine)');
+  btn.disabled = false;
+
+  renderResults(diagnostic);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.getElementById('submitBtn').addEventListener('click', runDiagnostic);
+document.getElementById('toggleKeyBtn').addEventListener('click', function() {
+  var input = document.getElementById('apiKey');
+  var btn = document.getElementById('toggleKeyBtn');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'hide'; }
+  else { input.type = 'password'; btn.textContent = 'show'; }
+});
+document.getElementById('symptoms').addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') runDiagnostic();
+});
+
+buildExampleChips();
+buildRefLifecycle();
+</script>
+</body>
+</html>

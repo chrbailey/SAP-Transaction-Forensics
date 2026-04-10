@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Access — 30-Day Play Card</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --paper: #fffef5;
+    --ink: #1a1a1a;
+    --ink-light: #555;
+    --red: #c0392b;
+    --blue: #2563eb;
+    --green: #16a34a;
+    --amber: #d97706;
+    --purple: #7c3aed;
+    --grid: #e8e4d4;
+    --highlight: #fff3b0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #d4cfc0;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+    min-height: 100vh;
+  }
+
+  .page-label {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    color: #888;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .card {
+    width: 850px;
+    min-height: 1100px;
+    background: var(--paper);
+    border: 2px solid #bbb;
+    border-radius: 4px;
+    padding: 32px 36px;
+    position: relative;
+    box-shadow: 2px 3px 12px rgba(0,0,0,0.15), inset 0 0 60px rgba(0,0,0,0.02);
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--grid) 27px, var(--grid) 28px);
+  }
+
+  /* Hole punches */
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: var(--paper);
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    left: 14px;
+  }
+  .card::before { top: 80px; }
+  .card::after { top: 540px; }
+
+  .header {
+    text-align: center;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .header .sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-light);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Handwritten annotations */
+  .hand {
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+  }
+
+  .week-block {
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .week-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+  }
+  .w1 { background: var(--blue); }
+  .w2 { background: var(--green); }
+  .w3 { background: var(--amber); }
+  .w4 { background: var(--purple); }
+
+  .week-title {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .week-dates {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-left: auto;
+    font-weight: 500;
+  }
+
+  .play {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 4px 10px;
+    padding: 5px 0 5px 38px;
+    align-items: start;
+    border-bottom: 1px dashed var(--grid);
+  }
+  .play:last-child { border-bottom: none; }
+
+  .play-check {
+    width: 18px; height: 18px;
+    border: 2px solid #bbb;
+    border-radius: 3px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .play-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .play-text strong { font-weight: 600; }
+  .play-text .detail { color: var(--ink-light); font-size: 12px; }
+
+  .play-who {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--red);
+    white-space: nowrap;
+  }
+
+  .rule-box {
+    background: var(--highlight);
+    border-left: 4px solid var(--amber);
+    padding: 10px 14px;
+    margin: 12px 0 12px 38px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .rule-box .hand { color: var(--red); font-size: 18px; }
+
+  .divider {
+    border: none;
+    border-top: 2px solid var(--ink);
+    margin: 16px 0;
+  }
+
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0 0 0;
+  }
+  .score-cell {
+    text-align: center;
+    border: 2px solid var(--grid);
+    border-radius: 6px;
+    padding: 10px 6px;
+  }
+  .score-cell .num {
+    font-family: 'Caveat', cursive;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .score-cell .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-light);
+    margin-top: 2px;
+  }
+
+  /* BACK SIDE */
+  .ref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .ref-box {
+    border: 1.5px solid var(--grid);
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .ref-box h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px solid var(--grid);
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+  .ref-box ul {
+    list-style: none;
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  .ref-box li::before {
+    content: '>';
+    font-family: 'Caveat', cursive;
+    color: var(--red);
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  .client-cloud {
+    font-size: 11px;
+    line-height: 2;
+    color: var(--ink-light);
+    margin-top: 8px;
+  }
+  .client-cloud span {
+    display: inline-block;
+    background: #f0ede0;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin: 1px 2px;
+    font-weight: 500;
+  }
+  .client-cloud span.big {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #e8e4d4;
+  }
+
+  .bottom-strip {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-light);
+  }
+  .bottom-strip .hand { color: var(--red); font-size: 16px; }
+
+  .fullwidth { grid-column: 1 / -1; }
+
+  .arrow-note {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--red);
+    transform: rotate(-2deg);
+    display: inline-block;
+    margin-left: 6px;
+  }
+
+  .metric-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .metric {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .metric .val {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .card { box-shadow: none; border: 1px solid #ddd; page-break-after: always; }
+    .page-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ FRONT SIDE ═══════════ -->
+<div class="page-label">Front Side — The Plays</div>
+<div class="card">
+  <div class="header">
+    <h1>ERP Access — 30-Day Play Card</h1>
+    <div class="sub">April 10 – May 10, 2026 &nbsp;&bull;&nbsp; Christopher Bailey &nbsp;&bull;&nbsp; SDVOSB</div>
+  </div>
+
+  <div class="rule-box">
+    <span class="hand">THE RULE:</span> Every task = one session. Jarvis drafts, you approve. Nothing requires leaving the house. Bad day? Skip it. Good day? Do two.
+  </div>
+
+  <!-- WEEK 1 -->
+  <div class="week-block">
+    <div class="week-header">
+      <span class="week-badge w1">1</span>
+      <span class="week-title">Capability Statement</span>
+      <span class="week-dates">Apr 10-16</span>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Confirm UEI number + NAICS codes</strong><br><span class="detail">Log into SAM.gov, screenshot your registration. 5 minutes.</span></div>
+      <div class="play-who">You</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Approve client list for publication</strong><br><span class="detail">Which of the 30+ names can go on paper? Circle yes/no. 10 minutes.</span></div>
+      <div class="play-who">You</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Draft capability statement PDF</strong><br><span class="detail">One page. Standard federal format. Your 29 years + AI forensics + client names.</span></div>
+      <div class="play-who">Jarvis</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Call regional PTAC</strong><br><span class="detail">Free gov contracting counselor. One call. They come to you. <span class="arrow-note">← they find YOU contracts</span></span></div>
+      <div class="play-who">You</div>
+    </div>
+  </div>
+
+  <!-- WEEK 2 -->
+  <div class="week-block">
+    <div class="week-header">
+      <span class="week-badge w2">2</span>
+      <span class="week-title">Two Articles</span>
+      <span class="week-dates">Apr 17-23</span>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Article 1: "What Weekend Journal Entries Tell You About SAP Fraud Risk"</strong><br><span class="detail">For CFOs + audit directors. Uses your contradiction taxonomy. Links to demo.</span></div>
+      <div class="play-who">Jarvis drafts</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>You edit voice + publish to LinkedIn</strong><br><span class="detail">Read the draft. Fix anything that doesn't sound like you. Hit publish.</span></div>
+      <div class="play-who">You</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Article 2: "19 Extraction Paths for ERP Due Diligence"</strong><br><span class="detail">For PE diligence teams. Your extraction registry as a checklist. Bookmarkable.</span></div>
+      <div class="play-who">Jarvis drafts</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Publish both to LinkedIn + Dev.to</strong><br><span class="detail">Cross-post. Two audiences: enterprise buyers + AI developers.</span></div>
+      <div class="play-who">You</div>
+    </div>
+  </div>
+
+  <!-- WEEK 3 -->
+  <div class="week-block">
+    <div class="week-header">
+      <span class="week-badge w3">3</span>
+      <span class="week-title">Deploy Demo + Lead Capture</span>
+      <span class="week-dates">Apr 24-30</span>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Wire IDES data into forensic intake demo</strong><br><span class="detail">Sanitized BKPF records so "Weekend journal entries" shows real data.</span></div>
+      <div class="play-who">Jarvis</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Add "Request Full Analysis" lead form</strong><br><span class="detail">Name, email, company, ERP system → SQLite on Mac Mini. That's your funnel.</span></div>
+      <div class="play-who">Jarvis</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Deploy to forensics.erp-access.com</strong><br><span class="detail">Cloudflare Tunnel already running. Point a subdomain. Done.</span></div>
+      <div class="play-who">Jarvis</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Update article links to point to live demo</strong><br><span class="detail">Edit both LinkedIn posts. Add the URL. 2 minutes each.</span></div>
+      <div class="play-who">You</div>
+    </div>
+  </div>
+
+  <!-- WEEK 4 -->
+  <div class="week-block">
+    <div class="week-header">
+      <span class="week-badge w4">4</span>
+      <span class="week-title">Clean Portfolio + Open Gov Channel</span>
+      <span class="week-dates">May 1-10</span>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Archive GitHub repos → 6 visible max</strong><br><span class="detail">SAP-Transaction-Forensics, promptspeak-mcp-server, knowledge-store, transaction-forensics, fitness-repair, dossier. Everything else → archive.</span></div>
+      <div class="play-who">Jarvis</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Register on SBA SubNet</strong><br><span class="detail">Where primes post SDVOSB subcontracting needs. You show up in search results.</span></div>
+      <div class="play-who">You (15 min)</div>
+    </div>
+    <div class="play">
+      <div class="play-check"></div>
+      <div class="play-text"><strong>Confirm DSBS profile is current</strong><br><span class="detail">Dynamic Small Business Search. Primes use this daily. Verify your listing.</span></div>
+      <div class="play-who">You (10 min)</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="scoreboard">
+    <div class="score-cell">
+      <div class="num" style="color:var(--blue)">1</div>
+      <div class="label">Cap Statement</div>
+    </div>
+    <div class="score-cell">
+      <div class="num" style="color:var(--green)">2</div>
+      <div class="label">Articles</div>
+    </div>
+    <div class="score-cell">
+      <div class="num" style="color:var(--amber)">1</div>
+      <div class="label">Live Demo</div>
+    </div>
+    <div class="score-cell">
+      <div class="num" style="color:var(--purple)">3</div>
+      <div class="label">Registrations</div>
+    </div>
+  </div>
+
+  <div class="bottom-strip">
+    <span>ERP Access, Inc. — Est. 1997 — SDVOSB</span>
+    <span class="hand">Nothing new gets built. Ship what exists.</span>
+    <span>v1 — April 2026</span>
+  </div>
+</div>
+
+<!-- ═══════════ BACK SIDE ═══════════ -->
+<div class="page-label">Back Side — Reference Card</div>
+<div class="card">
+  <div class="header">
+    <h1>Reference Card — What You're Selling</h1>
+    <div class="sub">Keep this side face down. Flip when you need facts.</div>
+  </div>
+
+  <div class="ref-grid">
+
+    <div class="ref-box">
+      <h3>The Pitch (30 seconds)</h3>
+      <ul style="font-size:13px; line-height: 1.8;">
+        <li>ERP Access, 29 years, SDVOSB</li>
+        <li>SAP + NetSuite + Salesforce forensics</li>
+        <li>AI-augmented: 10x faster than manual extraction</li>
+        <li>1,639 tests, 19 extraction paths, 12 contradiction types</li>
+        <li>Fixed-fee engagements, remote delivery</li>
+        <li style="color:var(--red); font-weight:600;">You don't sell AI. You sell ERP expertise with AI delivery speed.</li>
+      </ul>
+    </div>
+
+    <div class="ref-box">
+      <h3>SDVOSB Math</h3>
+      <ul>
+        <li>Primes MUST subcontract % to small biz</li>
+        <li>SDVOSB = bonus credit for primes</li>
+        <li>They search SAM.gov for YOU</li>
+        <li>No cold calls. No networking. No conferences.</li>
+        <li>Floor: $175/hr × 20hrs/wk = $14K/mo</li>
+        <li>Ceiling: Fixed-fee forensics @ 10x rate</li>
+        <li style="font-weight:600;">Your disability status is an asset, not a limitation</li>
+      </ul>
+    </div>
+
+    <div class="ref-box">
+      <h3>What the Tech Does</h3>
+      <ul>
+        <li><strong>19 paths</strong> — SAP O2C (5), FI/CO (4), P2P (4), SFDC (3), NetSuite (3)</li>
+        <li><strong>12 contradictions</strong> — AMOUNT_DIVERGENCE, SOD_VIOLATION, TEMPORAL_IMPOSSIBILITY, APPROVAL_BYPASS...</li>
+        <li><strong>8 finding states</strong> — DETECTED → TRIAGED → INVESTIGATING → CONFIRMED → REMEDIATION → RESOLVED</li>
+        <li><strong>Demo</strong> — forensics.erp-access.com</li>
+        <li><strong>Tests</strong> — 1,639 passing, 70 suites</li>
+        <li><strong>Latency</strong> — 0.164ms average</li>
+      </ul>
+    </div>
+
+    <div class="ref-box">
+      <h3>When Brain Fog Hits</h3>
+      <ul>
+        <li>Skip the day. Plan doesn't collapse.</li>
+        <li>If you can do ONE thing: check email for PTAC/SubNet leads</li>
+        <li>Don't start anything new</li>
+        <li>Don't reorganize repos</li>
+        <li>Don't plan. Don't research. Don't build.</li>
+        <li>Rest = investment, not failure</li>
+        <li style="color: var(--blue); font-weight: 600;">Jarvis holds your state. Come back when ready.</li>
+      </ul>
+    </div>
+
+    <div class="ref-box fullwidth">
+      <h3>Client History (29 Years)</h3>
+      <div class="client-cloud">
+        <span class="big">Nvidia</span>
+        <span class="big">Microsoft</span>
+        <span class="big">Hewlett-Packard</span>
+        <span class="big">Home Depot</span>
+        <span class="big">Nike</span>
+        <span class="big">Pratt & Whitney</span>
+        <span>Fitbit (Director of Business Systems)</span>
+        <span>Hunt Wesson</span>
+        <span>Computer Associates</span>
+        <span>Dolby</span>
+        <span>Converse</span>
+        <span>Care Fusion</span>
+        <span>Arch Chemicals</span>
+        <span>Able/Stik</span>
+        <span>Foss</span>
+        <span>Goodyear</span>
+        <span>Mac Tools & Equipment</span>
+        <span>Juniper Networks</span>
+        <span>Magma</span>
+        <span class="big">McKesson</span>
+        <span>Rubbermaid</span>
+        <span>Kaigen</span>
+        <span>Virco</span>
+        <span>Whirlpool</span>
+        <span>Silicon Valley Data Science</span>
+        <span>Mesa Biotech</span>
+        <span>Enjoy Technology</span>
+        <span>Gump's</span>
+        <span>Rapt Therapeutics</span>
+        <span>Medically Home Group</span>
+        <span>Microbiologics</span>
+        <span>Detroit Edison</span>
+        <span>HydroPoint</span>
+        <span>Oracle America</span>
+      </div>
+    </div>
+
+    <div class="ref-box">
+      <h3>Key Links</h3>
+      <ul>
+        <li>SAM.gov → your registration</li>
+        <li>github.com/chrbailey</li>
+        <li>forensics.erp-access.com (after Week 3)</li>
+        <li>npmjs.com/@chrbailey/promptspeak-mcp-server</li>
+        <li>LinkedIn → publish articles here</li>
+        <li>PTAC → your free contracting coach</li>
+      </ul>
+    </div>
+
+    <div class="ref-box">
+      <h3>NAICS Codes (confirm on SAM.gov)</h3>
+      <ul>
+        <li>541511 — Custom Computer Programming</li>
+        <li>541512 — Computer Systems Design</li>
+        <li>541519 — Other Computer Related Services</li>
+        <li>541611 — Admin Management Consulting</li>
+        <li>541618 — Other Management Consulting</li>
+        <li>518210 — Data Processing & Hosting</li>
+        <li style="color:var(--ink-light); font-style: italic;">Verify these match your actual registration</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="rule-box" style="margin: 20px 0 0 0; text-align: center;">
+    <span class="hand" style="font-size: 22px;">The tech is built. The credentials are real. The only job left is connecting them.</span>
+  </div>
+
+  <div class="bottom-strip">
+    <span>29 years &bull; 30+ Fortune 500 clients &bull; SDVOSB &bull; AI-augmented</span>
+    <span class="hand">Print this. Put it on the wall.</span>
+    <span>v1 — April 2026</span>
+  </div>
+</div>
+
+</body>
+</html>
