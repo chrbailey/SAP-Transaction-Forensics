@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-03-26
+
+### Added
+
+#### Salesforce CRM Adapter
+- New SFDC adapter mapping Opportunities, Accounts, StageHistory to SAP-normalized schema
+- Field mapping: Opportunity.Id → VBELN, Account.Id → KUNNR, Stage transitions → VBFA
+- Synthetic SFDC data generator with 10 planted anomaly patterns
+- SFDC forensic analysis script (`pattern-engine/scripts/analyze_sfdc.py`)
+
+#### Cross-System Correlation
+- Entity resolver matching SFDC↔SAP records via explicit ID, proximity, and temporal sequence
+- Cross-system anomaly detection: timing gaps, amount discrepancies, sequence violations, missing handoffs
+- Configurable confidence scoring (0.50–0.99) based on match method
+
+#### Evidence Infrastructure (Phases 1–4)
+
+**Phase 1 — Provenance Graph + Extraction Registry**
+- Field-level DAG tracing every finding to system/table/record/field/value/timestamp
+- 19 named, versioned, deterministic extraction paths across SAP, Salesforce, and NetSuite
+- SHA-256 replay hashing for independent re-verification
+
+**Phase 2 — Contradiction Engine + Schema Validator**
+- 12-category typed taxonomy for cross-system contradiction detection
+- Type-specific risk scoring with severity levels (CRITICAL, HIGH, MEDIUM, LOW, INFO)
+- 19-table IDES reference schema (438 fields) with pre-flight validation
+
+**Phase 3 — Reality-Gap Detector**
+- Three-way gap analysis: reference models vs documented business rules vs actual event logs
+- Gap types: design gap, compliance gap, shadow process
+
+**Phase 4 — Finding Lifecycle + Reviewer Handoff**
+- 8-state machine (DETECTED → TRIAGED → INVESTIGATING → CONFIRMED → REMEDIATION → RESOLVED)
+- SQLite persistence with full transition history and deduplication
+- Self-contained reviewer handoff packets with 25-item checklist
+
+#### FI/CO Forensic Tools
+- `analyze_journal_entries` — Journal entry anomaly detection
+- `analyze_sod` — Segregation of duties analysis
+- `analyze_gl_balances` — GL account balance analysis
+- `get_fi_document` — FI document detail retrieval
+- `generate_fi_assessment` — FI/CO risk assessment reports
+
+#### Evidence Infrastructure MCP Tools
+- `query_provenance`, `list_extraction_paths`, `run_extraction`
+- `detect_contradictions`, `validate_schema`, `analyze_reality_gaps`
+- `manage_finding`, `get_finding_summary`, `generate_handoff_packet`
+
+### Changed
+- Rebranded from "SAP Workflow Mining" to "Transaction Forensics" across all files
+- Test count increased from 605 to 1,639 across 70 test suites
+- README updated with evidence infrastructure documentation
+
+### Fixed
+- TypeScript strict mode errors for CI
+- ESLint errors across Phase 1–4 files
+- Node 18 compatibility (explicit `node:crypto` import)
+- Quarter-end math expectations in tests
+
 ## [2.0.0] - 2026-01-02
 
 ### Added
