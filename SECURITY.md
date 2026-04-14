@@ -412,7 +412,7 @@ The RFC user should have:
 If you discover a security vulnerability:
 
 1. **Do NOT** open a public GitHub issue
-2. Email security@your-org.com with:
+2. Report via [GitHub Security Advisories](https://github.com/chrbailey/SAP-Transaction-Forensics/security/advisories), or email the repository owner with:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
