@@ -23,7 +23,7 @@ services:
     build:
       context: ./synthetic-data
       dockerfile: Dockerfile
-    container_name: sap-wm-synthetic-data
+    container_name: tf-synthetic-data
     volumes:
       - ./synthetic-data/sample_output:/app/output
     environment:
@@ -36,7 +36,7 @@ services:
         --seed ${DATA_SEED:-42}
         --output /app/output
     networks:
-      - sap-wm-network
+      - tf-network
 
   # ===========================================================================
   # MCP Server
@@ -45,7 +45,7 @@ services:
     build:
       context: ./mcp-server
       dockerfile: Dockerfile
-    container_name: sap-wm-mcp-server
+    container_name: tf-mcp-server
     ports:
       - "${SERVER_PORT:-3000}:3000"
     volumes:
@@ -67,7 +67,7 @@ services:
       start_period: 10s
     restart: unless-stopped
     networks:
-      - sap-wm-network
+      - tf-network
 
   # ===========================================================================
   # MCP Server with RFC Support (Profile: rfc)
@@ -83,7 +83,7 @@ services:
     build:
       context: ./mcp-server
       dockerfile: Dockerfile.rfc
-    container_name: sap-wm-mcp-server-rfc
+    container_name: tf-mcp-server-rfc
     profiles:
       - rfc
     ports:
@@ -112,7 +112,7 @@ services:
       start_period: 15s
     restart: unless-stopped
     networks:
-      - sap-wm-network
+      - tf-network
 
   # ===========================================================================
   # Pattern Engine
@@ -121,7 +121,7 @@ services:
     build:
       context: ./pattern-engine
       dockerfile: Dockerfile
-    container_name: sap-wm-pattern-engine
+    container_name: tf-pattern-engine
     volumes:
       - ./synthetic-data/sample_output:/app/data:ro
       - ./output:/app/output
@@ -138,7 +138,7 @@ services:
         --output-dir /app/output
         --mode shareable
     networks:
-      - sap-wm-network
+      - tf-network
 
   # ===========================================================================
   # Results Viewer
@@ -147,7 +147,7 @@ services:
     build:
       context: ./viewer
       dockerfile: Dockerfile
-    container_name: sap-wm-viewer
+    container_name: tf-viewer
     ports:
       - "${VIEWER_PORT:-8080}:8080"
     volumes:
@@ -166,13 +166,13 @@ services:
       start_period: 5s
     restart: unless-stopped
     networks:
-      - sap-wm-network
+      - tf-network
 
 # ===========================================================================
 # Networks
 # ===========================================================================
 networks:
-  sap-wm-network:
+  tf-network:
     name: transaction-forensics
     driver: bridge
 
@@ -181,6 +181,6 @@ networks:
 # ===========================================================================
 volumes:
   synthetic-data-output:
-    name: sap-wm-synthetic-data
+    name: tf-synthetic-data
   analysis-output:
-    name: sap-wm-analysis-output
+    name: tf-analysis-output
