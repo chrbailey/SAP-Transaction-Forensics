@@ -25,7 +25,7 @@ set -euo pipefail
 # =============================================================================
 
 INSTALLER_VERSION="1.0.0"
-REPO_URL="https://github.com/your-org/transaction-forensics.git"
+REPO_URL="https://github.com/chrbailey/SAP-Transaction-Forensics.git"
 MIN_DOCKER_VERSION="20.10.0"
 MIN_DOCKER_COMPOSE_VERSION="2.0.0"
 
@@ -893,7 +893,7 @@ show_summary() {
     echo "  ./cli.sh status             # Check status"
     echo "  ./cli.sh --help             # Show CLI help"
     echo ""
-    echo -e "${DIM}Documentation: https://github.com/your-org/transaction-forensics${NC}"
+    echo -e "${DIM}Documentation: https://github.com/chrbailey/SAP-Transaction-Forensics${NC}"
     echo ""
 }
 
