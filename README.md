@@ -87,11 +87,11 @@ python3 src/generate_sfdc.py --count 200 --accounts 50 --output sfdc_output/ --s
 
 # 2. Run the forensic analysis
 cd ../pattern-engine
-python3 scripts/analyze_sfdc.py
+python3 pattern-engine/scripts/analyze_sfdc.py
 
 # Or bring your own SFDC export:
 # Place Opportunity, Account, StageHistory CSVs in ./data/sfdc/
-# python3 scripts/analyze_sfdc.py --data-dir ../data/sfdc
+# python3 pattern-engine/scripts/analyze_sfdc.py --data-dir ../data/sfdc
 ```
 
 ---
@@ -409,7 +409,7 @@ Order 0000012345 - Risk Assessment:
 
 ### Quick Install
 ```bash
-git clone https://github.com/your-org/transaction-forensics.git
+git clone https://github.com/chrbailey/SAP-Transaction-Forensics.git
 cd transaction-forensics
 docker-compose up --build
 ```
@@ -492,7 +492,7 @@ Use real SAP Purchase-to-Pay data from the [BPI Challenge 2019](https://data.4tu
 
 ```bash
 # Download and convert BPI 2019 data
-python scripts/download_bpi_2019.py
+python scripts/convert-bpi-xes.py
 
 # Run demos with real P2P data
 npx tsx demos/visualize_process_bpi_demo.ts 50
@@ -584,7 +584,7 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 
 | Dataset | System | Cases | Events | Key Findings | Report |
 |---------|--------|-------|--------|--------------|--------|
-| **SFDC Synthetic** | Salesforce | 214 | 2,417 | 10 anomaly patterns, 57% QE compression, 2 cross-system gaps | Run: `python3 scripts/analyze_sfdc.py` |
+| **SFDC Synthetic** | Salesforce | 214 | 2,417 | 10 anomaly patterns, 57% QE compression, 2 cross-system gaps | Run: `python3 pattern-engine/scripts/analyze_sfdc.py` |
 | **BPI Challenge 2019** | SAP P2P | 251,734 | 1.6M | 42 activities, 64-day median throughput | [View →](docs/analysis/bpi-challenge-2019.md) |
 | **SAP IDES O2C** | SAP O2C | 646 | 5,708 | 158 variants, bottlenecks identified | [View →](docs/analysis/order-to-cash.md) |
 | **SAP IDES P2P** | SAP P2P | 2,486 | 7,420 | 7 compliance violations detected | [View →](docs/analysis/procure-to-pay.md) |
