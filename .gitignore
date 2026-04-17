@@ -59,3 +59,9 @@ synthetic-data/sfdc_output/*.json
 
 # Firecrawl cache
 .firecrawl/
+
+# Pattern discovery artifacts
+pattern-discovery/patterns.db
+pattern-discovery/.env
+pattern-discovery/__pycache__/
+pattern-discovery/tests/__pycache__/

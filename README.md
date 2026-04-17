@@ -1,19 +1,49 @@
 # SAP Transaction Forensics
 
-> Cross-system process forensics for SAP ERP, Salesforce CRM, and NetSuite
+> Forensic pattern discovery for ERP transaction data. Not a rule engine — a learning system.
 
-**Multi-system** - Analyze SAP, Salesforce, NetSuite, or any combination correlated together
-**Adapter-based** - 7 data adapters (SAP RFC, OData, SALT, BPI, CSV, Synthetic, SFDC)
-**Pattern detection** - Conformance checking, temporal analysis, contradiction detection, cross-system gap analysis
-**Evidence-grade** - Field-level provenance, SHA-256 replay hashing, self-contained reviewer handoff packets
-**Zero risk** - Read-only access, no data modification
+## The Problem
+
+Existing forensic tools ship with hardcoded rules. "Flag invoices over $X." "Alert on vendor master changes." These rules miss new patterns and fire on irrelevant ones. Every ERP is different. Every client's fraud signature is different. A static rule engine cannot keep up.
+
+## The Approach
+
+This project has two layers:
+
+1. **Detection layer** — 23 MCP tools implementing well-known forensic checks (SoD conflicts, conformance deviations, journal anomalies, reality gaps). Deterministic, tested, callable from Claude Code.
+2. **Discovery layer** — a Worker/Critic/Ralph loop that proposes *new* patterns from your data, validates them against evidence, and grows a persistent pattern library. See [pattern-discovery/](pattern-discovery/).
+
+The detection layer finds things you know to look for. The discovery layer finds things you didn't.
+
+## Try It in 60 Seconds
+
+No SAP access required. Synthetic data included.
+
+```bash
+git clone https://github.com/chrbailey/SAP-Transaction-Forensics.git
+cd SAP-Transaction-Forensics
+make demo                              # generates synthetic data + runs analysis
+cd mcp-server && npm install && npm run build && cd ..
+claude                                 # opens Claude Code with 18 forensic tools wired up
+```
+
+Then ask Claude: *"Run a conformance check against the o2c-simple reference model."*
+
+Full walkthrough: **[QUICKSTART.md](QUICKSTART.md)** · Five-question demo: **[scripts/demo-walkthrough.md](scripts/demo-walkthrough.md)** · Pattern discovery: **[pattern-discovery/README.md](pattern-discovery/README.md)**
+
+## What This Is Not
+
+- **Not a governance tool.** For pre-execution approval of AI agent actions, see [PromptSpeak](https://github.com/chrbailey/promptspeak-mcp-server).
+- **Not a self-healing system.** It finds problems. Humans decide what to do.
+- **Not a commercial product.** MIT licensed. Built by an independent consultant (Christopher Bailey, ERP Access Inc, 29 years in ERP — SAP, NetSuite, Oracle, Workday).
+
+---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18%20|%2020%20|%2022-green.svg)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-1639%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
-[![Test Suites](https://img.shields.io/badge/suites-70-blue.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
-[![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![Tests](https://img.shields.io/badge/tests-1663%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
+[![Test Suites](https://img.shields.io/badge/suites-71-blue.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
 
 ---
 
@@ -48,15 +78,13 @@ Finding: AMOUNT_DIVERGENCE on Sales Order 0000045123
 
 ---
 
-## 60-Second Quickstart
+## Alternative Paths (Without Claude Code)
 
-Choose your path:
+If you're not using Claude Code, the underlying tools can still be run directly:
 
-### Option A: Demo Mode (No SAP Required)
+### Option A: Docker Compose (Browser UI)
 ```bash
-# Generate synthetic SAP data, run analysis, view results
 docker-compose up --build
-
 # Open browser to http://localhost:8080
 ```
 
