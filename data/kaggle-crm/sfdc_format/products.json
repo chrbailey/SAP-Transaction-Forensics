@@ -1,0 +1,44 @@
+[
+  {
+    "id": "01tabe8424d0cf28e4",
+    "name": "GTX Basic",
+    "series": "GTX",
+    "unit_price": 550.0
+  },
+  {
+    "id": "01t40737ddb383cfa7",
+    "name": "GTX Pro",
+    "series": "GTX",
+    "unit_price": 4821.0
+  },
+  {
+    "id": "01tf5889e45be25161",
+    "name": "MG Special",
+    "series": "MG",
+    "unit_price": 55.0
+  },
+  {
+    "id": "01td4f78ce228e0369",
+    "name": "MG Advanced",
+    "series": "MG",
+    "unit_price": 3393.0
+  },
+  {
+    "id": "01t59d1cfeb81c4b33",
+    "name": "GTX Plus Pro",
+    "series": "GTX",
+    "unit_price": 5482.0
+  },
+  {
+    "id": "01t879efc7bf7282d7",
+    "name": "GTX Plus Basic",
+    "series": "GTX",
+    "unit_price": 1096.0
+  },
+  {
+    "id": "01t0ac4c40f9f9de5a",
+    "name": "GTK 500",
+    "series": "GTK",
+    "unit_price": 26768.0
+  }
+]

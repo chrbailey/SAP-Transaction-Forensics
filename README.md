@@ -60,7 +60,7 @@ Full evidence lifecycle from extraction through reviewer handoff, with cryptogra
 | **Reality-Gap Detector** | Three-way gap analysis: reference models vs documented business rules vs actual event logs |
 | **Finding Lifecycle** | 8-state machine with SQLite persistence, transition history, and deduplication |
 | **Reviewer Handoff** | Self-contained audit artifacts verifiable without model access |
-| **1,639 Tests** | 70 test suites, zero regressions |
+| **1,663 Tests** | 1,639 TypeScript (70 suites) + 24 Python (pattern-discovery), zero regressions |
 
 ### Sample Evidence Chain
 
@@ -619,7 +619,7 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 
 **Process Diagrams**: [Mermaid flowcharts for O2C and P2P](docs/analysis/process-diagrams.md)
 
-**Test Suite**: 1,639 tests passing across 70 test suites (TypeScript + Python)
+**Test Suite**: 1,663 tests total — 1,639 TypeScript tests across 70 suites (`mcp-server/`) + 24 Python tests (`pattern-discovery/`). Zero regressions.
 
 ---
 

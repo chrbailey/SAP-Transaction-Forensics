@@ -1,0 +1,852 @@
+[
+  {
+    "id": "001655bdb05b2ae9d6",
+    "name": "Acme Corporation",
+    "industry": "technolgy",
+    "annual_revenue": 1100040000.0,
+    "number_of_employees": 2822,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1996
+  },
+  {
+    "id": "001797dbd29f499a24",
+    "name": "Betasoloin",
+    "industry": "medical",
+    "annual_revenue": 251410000.0,
+    "number_of_employees": 495,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1999
+  },
+  {
+    "id": "00199f3b4b64212274",
+    "name": "Betatech",
+    "industry": "medical",
+    "annual_revenue": 647180000.0,
+    "number_of_employees": 1185,
+    "billing_country": "Kenya",
+    "parent_id": null,
+    "year_established": 1986
+  },
+  {
+    "id": "0019141ee5ee1c329e",
+    "name": "Bioholding",
+    "industry": "medical",
+    "annual_revenue": 587340000.0,
+    "number_of_employees": 1356,
+    "billing_country": "Philipines",
+    "parent_id": null,
+    "year_established": 2012
+  },
+  {
+    "id": "001761cc19cf0d9ead",
+    "name": "Bioplex",
+    "industry": "medical",
+    "annual_revenue": 326820000.0,
+    "number_of_employees": 1016,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1991
+  },
+  {
+    "id": "0014d6e82f4af91026",
+    "name": "Blackzim",
+    "industry": "retail",
+    "annual_revenue": 497110000.0,
+    "number_of_employees": 1588,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2009
+  },
+  {
+    "id": "0016fb544b6760221a",
+    "name": "Bluth Company",
+    "industry": "technolgy",
+    "annual_revenue": 1242320000.0,
+    "number_of_employees": 3027,
+    "billing_country": "United States",
+    "parent_id": "001655bdb05b2ae9d6",
+    "year_established": 1993
+  },
+  {
+    "id": "0015f879cb54864b5a",
+    "name": "Bubba Gump",
+    "industry": "software",
+    "annual_revenue": 987390000.0,
+    "number_of_employees": 2253,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2002
+  },
+  {
+    "id": "0015cc47a78dc00a89",
+    "name": "Cancity",
+    "industry": "retail",
+    "annual_revenue": 718620000.0,
+    "number_of_employees": 2448,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2001
+  },
+  {
+    "id": "001a586edb3ff2c4f1",
+    "name": "Cheers",
+    "industry": "entertainment",
+    "annual_revenue": 4269899999.9999995,
+    "number_of_employees": 6472,
+    "billing_country": "United States",
+    "parent_id": "001198aa8be4c2be19",
+    "year_established": 1993
+  },
+  {
+    "id": "00164a26110e152694",
+    "name": "Codehow",
+    "industry": "software",
+    "annual_revenue": 2714900000.0,
+    "number_of_employees": 2641,
+    "billing_country": "United States",
+    "parent_id": "001655bdb05b2ae9d6",
+    "year_established": 1998
+  },
+  {
+    "id": "0012fc3ab2af757108",
+    "name": "Condax",
+    "industry": "medical",
+    "annual_revenue": 4540000.0,
+    "number_of_employees": 9,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2017
+  },
+  {
+    "id": "00154fa46667b259b1",
+    "name": "Conecom",
+    "industry": "technolgy",
+    "annual_revenue": 1520660000.0,
+    "number_of_employees": 1806,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2005
+  },
+  {
+    "id": "00166dc5c619baba45",
+    "name": "Dalttechnology",
+    "industry": "software",
+    "annual_revenue": 98790000.0,
+    "number_of_employees": 96,
+    "billing_country": "United States",
+    "parent_id": "0015f879cb54864b5a",
+    "year_established": 2013
+  },
+  {
+    "id": "0012939a5db1eee4eb",
+    "name": "dambase",
+    "industry": "marketing",
+    "annual_revenue": 2173980000.0,
+    "number_of_employees": 2928,
+    "billing_country": "United States",
+    "parent_id": "001ac3d100965c44c6",
+    "year_established": 1995
+  },
+  {
+    "id": "001c4f99029cad96b2",
+    "name": "Domzoom",
+    "industry": "entertainment",
+    "annual_revenue": 217870000.0,
+    "number_of_employees": 551,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1998
+  },
+  {
+    "id": "001e0ea6b9ed5b5535",
+    "name": "Doncon",
+    "industry": "technolgy",
+    "annual_revenue": 587720000.0,
+    "number_of_employees": 1501,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2010
+  },
+  {
+    "id": "0018eb4e60b0d48344",
+    "name": "Donquadtech",
+    "industry": "technolgy",
+    "annual_revenue": 1712680000.0,
+    "number_of_employees": 3194,
+    "billing_country": "United States",
+    "parent_id": "001655bdb05b2ae9d6",
+    "year_established": 1992
+  },
+  {
+    "id": "001718b7d8f80f7b5f",
+    "name": "Dontechi",
+    "industry": "software",
+    "annual_revenue": 4618000000.0,
+    "number_of_employees": 10083,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1982
+  },
+  {
+    "id": "001c524bc4d4dc973d",
+    "name": "Donware",
+    "industry": "marketing",
+    "annual_revenue": 1197440000.0,
+    "number_of_employees": 2570,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1999
+  },
+  {
+    "id": "001a785eb70cc4f064",
+    "name": "Fasehatice",
+    "industry": "retail",
+    "annual_revenue": 4968910000.0,
+    "number_of_employees": 7523,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1990
+  },
+  {
+    "id": "0017f4c3c68b46b7a4",
+    "name": "Faxquote",
+    "industry": "telecommunications",
+    "annual_revenue": 1825820000.0,
+    "number_of_employees": 5595,
+    "billing_country": "United States",
+    "parent_id": "00191193243189b259",
+    "year_established": 1995
+  },
+  {
+    "id": "001a86c55396624f5d",
+    "name": "Finhigh",
+    "industry": "finance",
+    "annual_revenue": 1102430000.0,
+    "number_of_employees": 1759,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2006
+  },
+  {
+    "id": "001c75a5008c668b35",
+    "name": "Finjob",
+    "industry": "employment",
+    "annual_revenue": 2059900000.0,
+    "number_of_employees": 3644,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1988
+  },
+  {
+    "id": "001ec00507031e110e",
+    "name": "Funholding",
+    "industry": "finance",
+    "annual_revenue": 2819500000.0,
+    "number_of_employees": 7227,
+    "billing_country": "United States",
+    "parent_id": "001d8123facfe80d0a",
+    "year_established": 1991
+  },
+  {
+    "id": "0012daab315887876a",
+    "name": "Ganjaflex",
+    "industry": "retail",
+    "annual_revenue": 5158710000.0,
+    "number_of_employees": 17479,
+    "billing_country": "Japan",
+    "parent_id": null,
+    "year_established": 1995
+  },
+  {
+    "id": "00155b7de3b01a9449",
+    "name": "Gekko & Co",
+    "industry": "retail",
+    "annual_revenue": 2520830000.0,
+    "number_of_employees": 3502,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1990
+  },
+  {
+    "id": "0018bd437d4aaee3f3",
+    "name": "Genco Pura Olive Oil Company",
+    "industry": "retail",
+    "annual_revenue": 894330000.0,
+    "number_of_employees": 1635,
+    "billing_country": "Italy",
+    "parent_id": null,
+    "year_established": 2007
+  },
+  {
+    "id": "001961a6bca1a94eb9",
+    "name": "Globex Corporation",
+    "industry": "technolgy",
+    "annual_revenue": 1223720000.0,
+    "number_of_employees": 2497,
+    "billing_country": "Norway",
+    "parent_id": null,
+    "year_established": 2000
+  },
+  {
+    "id": "0013318428dfd4b87c",
+    "name": "Gogozoom",
+    "industry": "telecommunications",
+    "annual_revenue": 86680000.0,
+    "number_of_employees": 187,
+    "billing_country": "United States",
+    "parent_id": "00191193243189b259",
+    "year_established": 2007
+  },
+  {
+    "id": "001d8123facfe80d0a",
+    "name": "Golddex",
+    "industry": "finance",
+    "annual_revenue": 52500000.0,
+    "number_of_employees": 165,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2008
+  },
+  {
+    "id": "001987b06577feb703",
+    "name": "Goodsilron",
+    "industry": "marketing",
+    "annual_revenue": 2952730000.0,
+    "number_of_employees": 5107,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2000
+  },
+  {
+    "id": "00140760f094ea4b4f",
+    "name": "Green-Plus",
+    "industry": "services",
+    "annual_revenue": 692190000.0,
+    "number_of_employees": 1922,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2003
+  },
+  {
+    "id": "001ef967b8bac81ed1",
+    "name": "Groovestreet",
+    "industry": "retail",
+    "annual_revenue": 223800000.0,
+    "number_of_employees": 299,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2003
+  },
+  {
+    "id": "001a37e3325ddf2f9e",
+    "name": "Hatfan",
+    "industry": "services",
+    "annual_revenue": 792460000.0,
+    "number_of_employees": 1299,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1982
+  },
+  {
+    "id": "00187b32ffea9a5347",
+    "name": "Hottechi",
+    "industry": "technolgy",
+    "annual_revenue": 8170380000.0,
+    "number_of_employees": 16499,
+    "billing_country": "Korea",
+    "parent_id": null,
+    "year_established": 1997
+  },
+  {
+    "id": "001f8e3cba694ab569",
+    "name": "Initech",
+    "industry": "telecommunications",
+    "annual_revenue": 6395050000.0,
+    "number_of_employees": 20275,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1994
+  },
+  {
+    "id": "001ac3d100965c44c6",
+    "name": "Inity",
+    "industry": "marketing",
+    "annual_revenue": 2403580000.0,
+    "number_of_employees": 8801,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1986
+  },
+  {
+    "id": "001760888338a51436",
+    "name": "Isdom",
+    "industry": "medical",
+    "annual_revenue": 3178240000.0,
+    "number_of_employees": 4540,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2002
+  },
+  {
+    "id": "001ec291ab0771ebec",
+    "name": "Iselectrics",
+    "industry": "technolgy",
+    "annual_revenue": 527110000.0,
+    "number_of_employees": 1428,
+    "billing_country": "United States",
+    "parent_id": "001655bdb05b2ae9d6",
+    "year_established": 2011
+  },
+  {
+    "id": "001fc0b19664ac2c5d",
+    "name": "J-Texon",
+    "industry": "retail",
+    "annual_revenue": 1388670000.0,
+    "number_of_employees": 3583,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1989
+  },
+  {
+    "id": "001409234406a8d276",
+    "name": "Kan-code",
+    "industry": "software",
+    "annual_revenue": 11698030000.0,
+    "number_of_employees": 34288,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1982
+  },
+  {
+    "id": "001fad0c69fe9c07a0",
+    "name": "Kinnamplus",
+    "industry": "retail",
+    "annual_revenue": 702720000.0,
+    "number_of_employees": 1831,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2004
+  },
+  {
+    "id": "001b4fdbe068f3019c",
+    "name": "Konex",
+    "industry": "technolgy",
+    "annual_revenue": 7708380000.0,
+    "number_of_employees": 13756,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1980
+  },
+  {
+    "id": "001f540eeb22782942",
+    "name": "Konmatfix",
+    "industry": "marketing",
+    "annual_revenue": 375430000.0,
+    "number_of_employees": 1190,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1985
+  },
+  {
+    "id": "0019ecd0500c7ec96f",
+    "name": "Labdrill",
+    "industry": "medical",
+    "annual_revenue": 2741370000.0,
+    "number_of_employees": 9226,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1985
+  },
+  {
+    "id": "00172e91210fae7e3c",
+    "name": "Lexiqvolax",
+    "industry": "medical",
+    "annual_revenue": 1618890000.0,
+    "number_of_employees": 3889,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2004
+  },
+  {
+    "id": "001198aa8be4c2be19",
+    "name": "Massive Dynamic",
+    "industry": "entertainment",
+    "annual_revenue": 665060000.0,
+    "number_of_employees": 1095,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1989
+  },
+  {
+    "id": "001909abad33775ba2",
+    "name": "Mathtouch",
+    "industry": "marketing",
+    "annual_revenue": 3027460000.0,
+    "number_of_employees": 9516,
+    "billing_country": "Jordan",
+    "parent_id": null,
+    "year_established": 1984
+  },
+  {
+    "id": "00117024d494df8cd3",
+    "name": "Nam-zim",
+    "industry": "services",
+    "annual_revenue": 405590000.0,
+    "number_of_employees": 1179,
+    "billing_country": "Brazil",
+    "parent_id": "001364172ad7f5877e",
+    "year_established": 1987
+  },
+  {
+    "id": "001cf0543dae40fe9c",
+    "name": "Newex",
+    "industry": "services",
+    "annual_revenue": 1012720000.0,
+    "number_of_employees": 3492,
+    "billing_country": "Germany",
+    "parent_id": null,
+    "year_established": 1991
+  },
+  {
+    "id": "0013ab5668d2d85eb7",
+    "name": "Ontomedia",
+    "industry": "employment",
+    "annual_revenue": 882120000.0,
+    "number_of_employees": 2769,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1997
+  },
+  {
+    "id": "0016b28e95a97b7193",
+    "name": "Opentech",
+    "industry": "finance",
+    "annual_revenue": 355230000.0,
+    "number_of_employees": 853,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1994
+  },
+  {
+    "id": "0018cda13f4843eea9",
+    "name": "Plexzap",
+    "industry": "retail",
+    "annual_revenue": 2437850000.0,
+    "number_of_employees": 4874,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2001
+  },
+  {
+    "id": "0019cbdf376d389199",
+    "name": "Plusstrip",
+    "industry": "entertainment",
+    "annual_revenue": 349810000.0,
+    "number_of_employees": 315,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2002
+  },
+  {
+    "id": "001cc86c0a16c12a6b",
+    "name": "Plussunin",
+    "industry": "retail",
+    "annual_revenue": 1419980000.0,
+    "number_of_employees": 4018,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2003
+  },
+  {
+    "id": "001fea48409f4ae610",
+    "name": "Rangreen",
+    "industry": "technolgy",
+    "annual_revenue": 2938670000.0,
+    "number_of_employees": 8775,
+    "billing_country": "Panama",
+    "parent_id": null,
+    "year_established": 1987
+  },
+  {
+    "id": "001150502e0c966b57",
+    "name": "Rantouch",
+    "industry": "telecommunications",
+    "annual_revenue": 1188420000.0,
+    "number_of_employees": 3015,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1994
+  },
+  {
+    "id": "00110b90124580d9c0",
+    "name": "Ron-tech",
+    "industry": "medical",
+    "annual_revenue": 3922420000.0,
+    "number_of_employees": 6837,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1992
+  },
+  {
+    "id": "001a72fa93075e5591",
+    "name": "Rundofase",
+    "industry": "technolgy",
+    "annual_revenue": 1008060000.0,
+    "number_of_employees": 1238,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1983
+  },
+  {
+    "id": "001e5038ccdda79b17",
+    "name": "Scotfind",
+    "industry": "software",
+    "annual_revenue": 6354870000.0,
+    "number_of_employees": 16780,
+    "billing_country": "United States",
+    "parent_id": "0015f879cb54864b5a",
+    "year_established": 1996
+  },
+  {
+    "id": "0017ded2e12402d664",
+    "name": "Scottech",
+    "industry": "marketing",
+    "annual_revenue": 45390000.0,
+    "number_of_employees": 100,
+    "billing_country": "United States",
+    "parent_id": "001ac3d100965c44c6",
+    "year_established": 2012
+  },
+  {
+    "id": "001cc6724513dbee49",
+    "name": "Silis",
+    "industry": "medical",
+    "annual_revenue": 2818380000.0,
+    "number_of_employees": 6290,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1994
+  },
+  {
+    "id": "001595e51646f6b04f",
+    "name": "Singletechno",
+    "industry": "retail",
+    "annual_revenue": 2214940000.0,
+    "number_of_employees": 5374,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1996
+  },
+  {
+    "id": "00191193243189b259",
+    "name": "Sonron",
+    "industry": "telecommunications",
+    "annual_revenue": 1699850000.0,
+    "number_of_employees": 5108,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1999
+  },
+  {
+    "id": "001aea564a0ebb5e54",
+    "name": "Stanredtax",
+    "industry": "finance",
+    "annual_revenue": 1698200000.0,
+    "number_of_employees": 3798,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1987
+  },
+  {
+    "id": "00173ae34cb3021405",
+    "name": "Statholdings",
+    "industry": "employment",
+    "annual_revenue": 291270000.0,
+    "number_of_employees": 586,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1997
+  },
+  {
+    "id": "001ea8571c0e6b4a3c",
+    "name": "Streethex",
+    "industry": "retail",
+    "annual_revenue": 1376800000.0,
+    "number_of_employees": 1165,
+    "billing_country": "Belgium",
+    "parent_id": null,
+    "year_established": 1988
+  },
+  {
+    "id": "001c4caa404449a249",
+    "name": "Sumace",
+    "industry": "retail",
+    "annual_revenue": 167890000.0,
+    "number_of_employees": 493,
+    "billing_country": "Romania",
+    "parent_id": null,
+    "year_established": 2000
+  },
+  {
+    "id": "001ecd38a0163fcbb4",
+    "name": "Sunnamplex",
+    "industry": "marketing",
+    "annual_revenue": 894370000.0,
+    "number_of_employees": 1593,
+    "billing_country": "Poland",
+    "parent_id": null,
+    "year_established": 2008
+  },
+  {
+    "id": "001fe684d5a3620503",
+    "name": "The New York Inquirer",
+    "industry": "medical",
+    "annual_revenue": 439210000.0,
+    "number_of_employees": 792,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1996
+  },
+  {
+    "id": "0013dc55f8c63dd4be",
+    "name": "Toughzap",
+    "industry": "retail",
+    "annual_revenue": 332430000.0,
+    "number_of_employees": 799,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1995
+  },
+  {
+    "id": "0012a41394b2393bad",
+    "name": "Treequote",
+    "industry": "telecommunications",
+    "annual_revenue": 5266090000.0,
+    "number_of_employees": 8595,
+    "billing_country": "United States",
+    "parent_id": "00191193243189b259",
+    "year_established": 1988
+  },
+  {
+    "id": "001454b11e382d1f13",
+    "name": "Umbrella Corporation",
+    "industry": "finance",
+    "annual_revenue": 2022140000.0,
+    "number_of_employees": 5113,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1998
+  },
+  {
+    "id": "001e149d7099f7944a",
+    "name": "Vehement Capital Partners",
+    "industry": "finance",
+    "annual_revenue": 646100000.0,
+    "number_of_employees": 883,
+    "billing_country": "United States",
+    "parent_id": "001d8123facfe80d0a",
+    "year_established": 1993
+  },
+  {
+    "id": "001364172ad7f5877e",
+    "name": "Warephase",
+    "industry": "services",
+    "annual_revenue": 2041730000.0,
+    "number_of_employees": 5276,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1997
+  },
+  {
+    "id": "00178bc545b43775e3",
+    "name": "Xx-holding",
+    "industry": "finance",
+    "annual_revenue": 7537240000.0,
+    "number_of_employees": 20293,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1993
+  },
+  {
+    "id": "001fd4fe088a3e225a",
+    "name": "Xx-zobam",
+    "industry": "entertainment",
+    "annual_revenue": 3838390000.0,
+    "number_of_employees": 8274,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1989
+  },
+  {
+    "id": "001bbc6a0e5da6e732",
+    "name": "Y-corporation",
+    "industry": "employment",
+    "annual_revenue": 2871350000.0,
+    "number_of_employees": 9561,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1983
+  },
+  {
+    "id": "001eabed9f01218af8",
+    "name": "Yearin",
+    "industry": "retail",
+    "annual_revenue": 2261050000.0,
+    "number_of_employees": 3851,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2005
+  },
+  {
+    "id": "001a2fb7b2da318edb",
+    "name": "Zathunicon",
+    "industry": "retail",
+    "annual_revenue": 71120000.0,
+    "number_of_employees": 144,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 2010
+  },
+  {
+    "id": "00116e4a8bc173154d",
+    "name": "Zencorporation",
+    "industry": "technolgy",
+    "annual_revenue": 40790000.0,
+    "number_of_employees": 142,
+    "billing_country": "China",
+    "parent_id": null,
+    "year_established": 2011
+  },
+  {
+    "id": "001503b1771d8a8040",
+    "name": "Zoomit",
+    "industry": "entertainment",
+    "annual_revenue": 324190000.0,
+    "number_of_employees": 978,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1992
+  },
+  {
+    "id": "001fbcb870775a47f5",
+    "name": "Zotware",
+    "industry": "software",
+    "annual_revenue": 4478470000.0,
+    "number_of_employees": 13809,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1979
+  },
+  {
+    "id": "0018005f075dd32605",
+    "name": "Zumgoity",
+    "industry": "medical",
+    "annual_revenue": 441080000.0,
+    "number_of_employees": 1210,
+    "billing_country": "United States",
+    "parent_id": null,
+    "year_established": 1984
+  }
+]
