@@ -126,8 +126,8 @@ jobs:
       - name: Run tests
         run: pytest tests/ -v
 
-      - name: Verify append-only triggers
-        run: pytest tests/ -v -k "append_only"
+      - name: Verify append-only trigger tests specifically
+        run: pytest tests/ -v -k "cannot_be_updated or cannot_be_deleted"
 
   # ============================================================================
   # Demo Verification
