@@ -1,4 +1,8 @@
-name: Deploy to GitHub Pages
+name: Deploy demo to GitHub Pages
+
+# Publishes the zero-install forensic demo dashboard (demo/) as the public
+# GitHub Pages site. The findings are regenerated from synthetic data (seed 42)
+# on every deploy, so the live demo always matches the current analysis code.
 
 on:
   push:
@@ -15,20 +19,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install analysis dependencies
+        run: pip install numpy pandas scipy scikit-learn faker click
+
+      - name: Bake demo findings (deterministic, seed 42)
+        run: bash scripts/bake-demo.sh
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Auto-enable GitHub Pages on first deploy — no manual Settings step
+          enablement: true
+
+      - name: Upload demo as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'demo'
+
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

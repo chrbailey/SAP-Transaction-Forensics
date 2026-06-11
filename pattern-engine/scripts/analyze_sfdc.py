@@ -8,15 +8,19 @@ report as Markdown to stdout.
 Usage:
     cd /path/to/pattern-engine
     python3.11 scripts/analyze_sfdc.py
+
+    # Also write a machine-readable findings file (used by the web demo):
+    python3.11 scripts/analyze_sfdc.py --json ../demo/findings.json
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import os
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
 from typing import Any, Dict, List
@@ -79,7 +83,62 @@ def fmt_currency(v) -> str:
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
+FLAG_DESCRIPTIONS = {
+    "QUARTER_END_COMPRESSION": "Close dates clustered at quarter-end (pipeline gaming)",
+    "SPLIT_DEAL": "Deal split across multiple opportunities to stay under approval thresholds",
+    "STALE_PIPELINE": "Opportunity age far exceeds expected sales cycle",
+    "AMOUNT_INFLATION": "Deal amount inflated relative to account history",
+    "GHOST_PIPELINE": "No activity logged after initial creation (abandoned opportunity)",
+    "SPEED_ANOMALY": "Stage progression far faster or slower than baseline",
+    "STAGE_SKIP": "One or more mandatory pipeline stages skipped",
+    "STAGE_REGRESSION": "Stage moved backward (e.g., from Proposal back to Prospecting)",
+    "CROSS_SYSTEM_GAP": "Large timing gap between SFDC close and SAP order creation",
+    "OWNER_SWAP_AT_CLOSE": "Owner changed within final stage before close",
+}
+
+# Risk severity assigned to each pattern flag for demo presentation.
+FLAG_SEVERITY = {
+    "SPLIT_DEAL": "critical",
+    "AMOUNT_INFLATION": "critical",
+    "CROSS_SYSTEM_GAP": "high",
+    "OWNER_SWAP_AT_CLOSE": "high",
+    "STAGE_SKIP": "high",
+    "STAGE_REGRESSION": "high",
+    "QUARTER_END_COMPRESSION": "medium",
+    "GHOST_PIPELINE": "medium",
+    "STALE_PIPELINE": "medium",
+    "SPEED_ANOMALY": "low",
+}
+
+FLAG_ORDER = [
+    "QUARTER_END_COMPRESSION",
+    "SPLIT_DEAL",
+    "STALE_PIPELINE",
+    "AMOUNT_INFLATION",
+    "GHOST_PIPELINE",
+    "SPEED_ANOMALY",
+    "STAGE_SKIP",
+    "STAGE_REGRESSION",
+    "CROSS_SYSTEM_GAP",
+    "OWNER_SWAP_AT_CLOSE",
+]
+
+
+def _opp_example(opp: Dict[str, Any]) -> Dict[str, Any]:
+    """Compact, shareable representation of an opportunity for evidence display."""
+    return {
+        "id": opp.get("id"),
+        "name": opp.get("name"),
+        "account_id": opp.get("account_id"),
+        "amount": opp.get("amount"),
+        "stage": opp.get("stage_name"),
+        "type": opp.get("type"),
+        "close_date": opp.get("close_date"),
+        "owner": opp.get("owner_name") or opp.get("owner_id"),
+    }
+
+
+def main(json_path: str | None = None) -> None:
     # -----------------------------------------------------------------------
     # 1. Load data
     # -----------------------------------------------------------------------
@@ -229,6 +288,121 @@ def main() -> None:
             total_closed_with_date += 1
             if d.month in qtr_end_months:
                 qtr_end_count += 1
+
+    # -----------------------------------------------------------------------
+    # Build machine-readable findings (drives the zero-install web demo)
+    # -----------------------------------------------------------------------
+    if json_path:
+        opp_by_id = {o["id"]: o for o in opps}
+        acct_by_id = {a["id"]: a.get("name") for a in accounts}
+
+        anomalies_json = []
+        for flag in FLAG_ORDER:
+            ids = flag_opp_ids.get(flag, [])
+            examples = []
+            for oid in ids[:4]:
+                opp = opp_by_id.get(oid)
+                if not opp:
+                    continue
+                ex = _opp_example(opp)
+                ex["account_name"] = acct_by_id.get(ex["account_id"], ex["account_id"])
+                examples.append(ex)
+            anomalies_json.append(
+                {
+                    "flag": flag,
+                    "count": all_flags.get(flag, 0),
+                    "severity": FLAG_SEVERITY.get(flag, "medium"),
+                    "description": FLAG_DESCRIPTIONS.get(flag, ""),
+                    "examples": examples,
+                }
+            )
+
+        cross_examples = [
+            {
+                "type": a["type"],
+                "severity": a["severity"],
+                "evidence": a["evidence"],
+                "sfdc_id": a.get("sfdc_id"),
+                "sap_id": a.get("sap_id"),
+            }
+            for a in cross_anomalies[:8]
+        ]
+
+        actual_qtr_pct = (
+            qtr_end_count / total_closed_with_date * 100
+            if total_closed_with_date
+            else 0.0
+        )
+
+        total_flagged = sum(1 for o in opps if o.get("_pattern_flags"))
+        total_anomaly_instances = sum(all_flags.values())
+
+        findings = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "dataset": {
+                "opportunities": len(opps),
+                "accounts": len(accounts),
+                "stage_histories": total_stage_histories,
+                "activities": total_activities,
+                "line_items": len(line_items),
+                "sap_orders": len(sap_orders),
+                "event_log_records": len(event_log),
+                "seed": 42,
+            },
+            "headline": {
+                "opportunities_analyzed": len(opps),
+                "opportunities_flagged": total_flagged,
+                "anomaly_instances": total_anomaly_instances,
+                "anomaly_categories": sum(1 for f in FLAG_ORDER if all_flags.get(f)),
+                "cross_system_anomalies": len(cross_anomalies),
+                "high_severity_cross": sum(
+                    1 for a in cross_anomalies if a["severity"] == "high"
+                ),
+                "sap_match_rate_pct": round(cross_metrics["match_rate"] * 100, 1),
+                "win_rate_pct": round(win_rate, 1),
+                "avg_deal_size": round(avg_deal_size, 2),
+                "median_cycle_days": round(median_close_days),
+            },
+            "anomalies": anomalies_json,
+            "cross_system": {
+                "total_sfdc": cross_metrics["total_sfdc"],
+                "total_sap": cross_metrics["total_sap"],
+                "matched_pairs": cross_metrics["total_matched"],
+                "match_rate_pct": round(cross_metrics["match_rate"] * 100, 1),
+                "avg_gap_days": round(cross_metrics["avg_gap_days"], 1),
+                "anomaly_count": len(cross_anomalies),
+                "examples": cross_examples,
+            },
+            "conformance": {
+                "model": nb_result.model_name,
+                "total_cases": nb_result.total_cases,
+                "conformant_cases": nb_result.conformant_cases,
+                "conformance_rate_pct": round(nb_result.conformance_rate, 1),
+                "average_fitness": round(nb_result.average_fitness, 4),
+                "total_deviations": nb_result.total_deviations,
+                "deviation_types": dict(dev_type_counts),
+            },
+            "quarter_end": {
+                "months": [
+                    {"month": m, "count": month_dist.get(m, 0), "is_qtr_end": m in qtr_end_months}
+                    for m in range(1, 13)
+                ],
+                "qtr_end_count": qtr_end_count,
+                "total_closed": total_closed_with_date,
+                "qtr_end_pct": round(actual_qtr_pct, 1),
+                "expected_pct": round(4 / 12 * 100, 1),
+                "ratio": round(actual_qtr_pct / (4 / 12 * 100), 1) if total_closed_with_date else 0,
+            },
+            "stage_distribution": [
+                {"stage": stage, "count": cnt} for stage, cnt in stage_dist.most_common()
+            ],
+        }
+
+        out_path = Path(json_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w") as fh:
+            json.dump(findings, fh, indent=2)
+        print(f"[analyze_sfdc] Wrote findings JSON → {out_path}", file=sys.stderr)
 
     # -----------------------------------------------------------------------
     # Print report
@@ -464,4 +638,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="SFDC forensic analysis")
+    parser.add_argument(
+        "--json",
+        dest="json_path",
+        default=None,
+        help="Also write a machine-readable findings JSON file to this path",
+    )
+    args = parser.parse_args()
+    main(json_path=args.json_path)

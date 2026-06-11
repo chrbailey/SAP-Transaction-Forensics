@@ -14,7 +14,7 @@
 
 .PHONY: all generate server analyze view clean docker-up docker-down docker-build \
         docker-logs docker-ps help install-deps check-deps test lint format \
-        test-python test-node test-viewer
+        test-python test-node test-viewer demo-web bake-demo
 
 # Default target
 .DEFAULT_GOAL := help
@@ -45,6 +45,25 @@ demo-analyze:
 	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) scripts/analyze_sfdc.py
 	@echo ""
 
+## demo-web: One-command visual demo — bakes findings + opens browser dashboard
+demo-web: check-python
+	@echo "$(BLUE)Building forensic demo dashboard...$(NC)"
+	@bash scripts/bake-demo.sh
+	@echo ""
+	@echo "$(GREEN)═══════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  Dashboard ready. Opening in your browser...$(NC)"
+	@echo "$(GREEN)  If it doesn't open, visit: http://localhost:$(DEMO_PORT)$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@cd $(PROJECT_ROOT)/demo && ( \
+		( sleep 1 && ( command -v open >/dev/null 2>&1 && open http://localhost:$(DEMO_PORT) || \
+		  command -v xdg-open >/dev/null 2>&1 && xdg-open http://localhost:$(DEMO_PORT) || true ) ) & ) && \
+		$(PYTHON) -m http.server $(DEMO_PORT)
+
+## bake-demo: Regenerate the static demo data (findings.json + findings-data.js)
+bake-demo: check-python
+	@bash scripts/bake-demo.sh
+
 ## demo-kaggle: Full demo with real Kaggle CRM data (requires data/kaggle-crm/)
 demo-kaggle: check-python
 	@if [ ! -f "data/kaggle-crm/sales_pipeline.csv" ]; then \
@@ -74,6 +93,7 @@ DATA_COUNT ?= 10000
 DATA_SEED ?= 42
 SERVER_PORT ?= 3000
 VIEWER_PORT ?= 8080
+DEMO_PORT ?= 8000
 
 # Python command
 PYTHON := $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null)
@@ -102,7 +122,7 @@ generate: check-python
 		$(PYTHON) src/generate_sd.py \
 			--count $(DATA_COUNT) \
 			--seed $(DATA_SEED) \
-			--output-dir sample_output
+			--output sample_output
 	@echo "$(GREEN)Data generated in $(SYNTHETIC_DATA_DIR)/sample_output$(NC)"
 
 ## server: Start MCP server (foreground)
