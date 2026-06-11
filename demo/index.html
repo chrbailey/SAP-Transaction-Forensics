@@ -204,6 +204,25 @@
   .cursor { display: inline-block; width: 8px; background: var(--low); animation: cur .9s steps(1) infinite; }
   @keyframes cur { 50% { opacity: 0; } }
 
+  /* Case studies */
+  .case-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .case { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 14px;
+    padding: 20px; backdrop-filter: blur(6px); transition: transform .18s, box-shadow .18s; }
+  .case:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+  .case.c-border-critical { border-top-color: var(--critical); }
+  .case.c-border-high { border-top-color: var(--high); }
+  .case.c-border-medium { border-top-color: var(--medium); }
+  .case-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  .case-tag { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .case-title { font-size: 16px; font-weight: 750; }
+  .case-headline { color: var(--text); font-size: 13.5px; margin-top: 6px; font-weight: 600; }
+  .case-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin: 16px 0; }
+  .case-stats div { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; }
+  .case-stats b { display: block; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .case-stats span { font-size: 10.5px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.04em; }
+  .case-body { color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+  .case-note { text-align: center; color: var(--dim); font-size: 12px; margin-top: 20px; font-style: italic; }
+
   /* CTA */
   .cta { text-align: center; padding: 60px 0; }
   .cta h3 { font-size: 30px; font-weight: 850; margin-bottom: 12px; }
@@ -562,6 +581,60 @@
     </div></div>`;
   }
 
+  const CASES = [
+    {
+      tag: "Healthcare · NetSuite",
+      title: "License optimization",
+      headline: "$103,896/yr in waste, invisible in the user list",
+      roi: "14.4× ROI",
+      stats: [["289","Users"],["69","Eliminable"],["$103.9K","Saved/yr"],["0.8 mo","Payback"]],
+      body: "A 289-user NetSuite environment looked clean. Login timestamps cross-referenced with HR termination dates exposed 8 dormant full-access licenses, ~53 departed employees still consuming Center licenses, and 4 users whose entire job was clicking \"Approve.\"",
+      sev: "medium",
+    },
+    {
+      tag: "MedTech · Acquisition",
+      title: "Help-desk ticket forensics",
+      headline: "2,525 tickets revealed stress the ERP couldn't show",
+      roi: "38% uncategorized",
+      stats: [["2,525","Tickets"],["3,992","ERP users"],["257","Access reqs"],["38%","Uncategorized"]],
+      body: "A diagnostics manufacturer acquired by a Fortune 500. Transaction data showed normal operations. The tickets showed dummy transactions fabricated for MRP, item numbers mutating unexplainably, and an \"URGENT\" escalation culture during acquisition chaos.",
+      sev: "high",
+    },
+    {
+      tag: "Hardware · Public co.",
+      title: "High-growth ERP + ITGC forensics",
+      headline: "Credit holds overridden · 28.6% return rate · SOX-risk admin access",
+      roi: "3M+ records",
+      stats: [["3M+","CSV rows"],["102K","Sales orders"],["28.6%","RMA rate"],["7","Admin users"]],
+      body: "Across 3M+ ERP records: sales orders shipped despite \"Customer On Credit Hold,\" a 28.62% account return rate, 7 users with Administrator role (one terminated), and a deduction approval chain so broken a \"reroute\" field exists specifically because the normal chain fails.",
+      sev: "critical",
+    },
+  ];
+
+  function casesSection() {
+    const cards = CASES.map(c=>`
+      <div class="case reveal c-border-${c.sev}">
+        <div class="case-top">
+          <span class="case-tag">${esc(c.tag)}</span>
+          <span class="sev ${c.sev}">${esc(c.roi)}</span>
+        </div>
+        <h4 class="case-title">${esc(c.title)}</h4>
+        <p class="case-headline">${esc(c.headline)}</p>
+        <div class="case-stats">${c.stats.map(s=>`<div><b>${esc(s[0])}</b><span>${esc(s[1])}</span></div>`).join("")}</div>
+        <p class="case-body">${esc(c.body)}</p>
+      </div>`).join("");
+    return `
+    <section class="block" id="cases"><div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker">Proven In The Field</div>
+        <h3>Three real engagements behind the method</h3>
+        <p>The synthetic demo above shows the detectors firing on generated data. These are the actual consulting engagements that motivated them — anonymized, but the figures are real. <a href="https://github.com/chrbailey/SAP-Transaction-Forensics/blob/main/docs/CASE_STUDIES.md" target="_blank" rel="noopener">Full write-ups →</a></p>
+      </div>
+      <div class="case-grid">${cards}</div>
+      <p class="case-note reveal">Company, individual, and email identifiers removed. Financial figures, ticket counts, and category distributions are actual. Used with permission for educational purposes.</p>
+    </div></section>`;
+  }
+
   function cta() {
     return `
     <section class="block"><div class="wrap"><div class="cta reveal">
@@ -615,7 +688,7 @@
     const app = document.getElementById("app");
     app.innerHTML = hero(d) +
       `<section class="block"><div class="wrap">${riskBand(d)}</div></section>` +
-      anomaliesSection(d) + crossSection(d) + quarterSection(d) + evidenceSection(d) + cta(d);
+      anomaliesSection(d) + crossSection(d) + quarterSection(d) + evidenceSection(d) + casesSection() + cta(d);
     const foot = document.createElement("footer"); foot.className="site";
     foot.innerHTML = `<div class="wrap">Generated ${esc((d.generated_at||"").slice(0,10))} · ${d.dataset.opportunities} opportunities · ${d.dataset.event_log_records} event-log records · seed ${d.dataset.seed}. Built by <a href="https://github.com/chrbailey" target="_blank" rel="noopener">Christopher Bailey</a> · MIT · <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">source</a></div>`;
     document.body.appendChild(foot);
