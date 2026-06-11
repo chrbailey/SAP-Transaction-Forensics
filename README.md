@@ -6,6 +6,27 @@
 
 [![SAP Transaction Forensics — live demo](demo/preview.svg)](https://chrbailey.github.io/SAP-Transaction-Forensics/)
 
+## The Core Insight
+
+> **Structured data tells you *what happened*. Unstructured text tells you *why*.**
+
+Every enterprise system generates two kinds of data. Structured transactions —
+timestamps, amounts, stage changes, user IDs — tell you the official story.
+Unstructured text — the emails, Slack threads, tickets, meeting notes, timesheets,
+SOWs, and order notes that surround those transactions — tell you what *actually*
+happened. **The gap between them is where fraud, waste, and dysfunction hide.**
+
+| Structured data says | Unstructured text reveals |
+|---|---|
+| "Deal in Negotiation for 6 months" | *"Customer said not ready — Sales moved it forward anyway. No sign-off."* |
+| "Purchase Order created 03/15" | *"Requisition wasn't approved yet. Create the PO now, paperwork later."* |
+| "Phase 2: On Track, Green" | *"We're 3 weeks behind. Tell the client we're on track while we figure it out."* |
+
+This tool correlates both sides and surfaces the contradictions. It has been used
+on real engagements — see **[Field Case Studies](docs/CASE_STUDIES.md)** (3M+ ERP
+records, $103K in waste found, ITGC/SOX violations) — and ships a synthetic demo so
+you can watch the same detector classes fire without touching a real system.
+
 ## The Problem
 
 Existing forensic tools ship with hardcoded rules. "Flag invoices over $X." "Alert on vendor master changes." These rules miss new patterns and fire on irrelevant ones. Every ERP is different. Every client's fraud signature is different. A static rule engine cannot keep up.
@@ -58,6 +79,21 @@ claude                                 # opens Claude Code with 27 registered to
 Then ask Claude: *"Run a conformance check against the o2c-simple reference model."*
 
 Full walkthrough: **[QUICKSTART.md](QUICKSTART.md)** · Five-question demo: **[scripts/demo-walkthrough.md](scripts/demo-walkthrough.md)** · Pattern discovery: **[pattern-discovery/README.md](pattern-discovery/README.md)**
+
+## Proven in the Field
+
+Three real consulting engagements motivated this tool. Anonymized, but the figures
+are actual. Full write-ups in **[docs/CASE_STUDIES.md](docs/CASE_STUDIES.md)**.
+
+| Engagement | What structured data showed | What the text/forensics revealed | Result |
+|---|---|---|---|
+| **Healthcare — NetSuite license audit** (289 users) | A clean user list | 8 dormant full-access licenses, ~53 departed employees still licensed, 4 "approve-only" users | **$103,896/yr** savings · 14.4× ROI · 0.8-mo payback |
+| **MedTech — ticket forensics during acquisition** (2,525 tickets) | Normal operations | Dummy MRP transactions, mutating item numbers, "URGENT" escalation culture, 257 access-request tickets | Organizational stress invisible in the ERP, surfaced from text |
+| **Connected hardware — high-growth ERP + ITGC** (3M+ records) | Orders shipped, invoiced, cleared | Credit holds overridden to ship anyway, **28.6%** account return rate, 7 admin users (one terminated), broken approval chains | SOX-relevant control gaps documented with evidence |
+
+Each maps to a detector class in this repo (segregation-of-duties, policy override,
+temporal impossibility, reality-gap). The synthetic demo plants these same patterns
+so you can see them fire with no access to a real system.
 
 ## What This Is Not
 
