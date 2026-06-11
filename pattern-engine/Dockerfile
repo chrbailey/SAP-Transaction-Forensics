@@ -1,4 +1,4 @@
-# SAP Workflow Mining - Pattern Engine
+# Transaction Forensics - Pattern Engine
 # Python 3.11 base image for pattern discovery and correlation
 
 FROM python:3.11-slim
@@ -52,6 +52,6 @@ ENV PYTHONPATH=/app
 CMD ["python", "-m", "src.main", "run", "--input-dir", "/app/data", "--output-dir", "/app/output", "--mode", "shareable"]
 
 # Labels
-LABEL maintainer="SAP Workflow Mining Team" \
-      version="0.1.0" \
-      description="Pattern discovery engine for SAP workflow mining"
+LABEL maintainer="Transaction Forensics Team" \
+      version="0.1.1" \
+      description="Pattern discovery engine for transaction forensics"

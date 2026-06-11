@@ -14,7 +14,7 @@ Existing forensic tools ship with hardcoded rules. "Flag invoices over $X." "Ale
 
 This project has two layers:
 
-1. **Detection layer** — 23 MCP tools implementing well-known forensic checks (SoD conflicts, conformance deviations, journal anomalies, reality gaps). Deterministic, tested, callable from Claude Code.
+1. **Detection layer** — 18 analysis/data MCP tools plus 9 governance tools implementing well-known forensic checks (SoD conflicts, conformance deviations, journal anomalies). Deterministic, tested, callable from Claude Code.
 2. **Discovery layer** — a Worker/Critic/Ralph loop that proposes *new* patterns from your data, validates them against evidence, and grows a persistent pattern library. See [pattern-discovery/](pattern-discovery/).
 
 The detection layer finds things you know to look for. The discovery layer finds things you didn't.
@@ -52,7 +52,7 @@ open `demo/index.html` in a browser — the findings are baked in.
 ```bash
 make demo                              # generates synthetic data + runs analysis
 cd mcp-server && npm install && npm run build && cd ..
-claude                                 # opens Claude Code with the forensic tools wired up
+claude                                 # opens Claude Code with 27 registered tools
 ```
 
 Then ask Claude: *"Run a conformance check against the o2c-simple reference model."*
@@ -68,10 +68,9 @@ Full walkthrough: **[QUICKSTART.md](QUICKSTART.md)** · Five-question demo: **[s
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18%20|%2020%20|%2022-green.svg)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-1663%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
-[![Test Suites](https://img.shields.io/badge/suites-71-blue.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics)
+[![Node.js](https://img.shields.io/badge/Node.js-20%20|%2022%20|%2024-green.svg)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-2048%20passing-brightgreen.svg)](https://github.com/chrbailey/SAP-Transaction-Forensics/actions/workflows/ci.yml)
 
 ---
 
@@ -88,7 +87,11 @@ Full evidence lifecycle from extraction through reviewer handoff, with cryptogra
 | **Reality-Gap Detector** | Three-way gap analysis: reference models vs documented business rules vs actual event logs |
 | **Finding Lifecycle** | 8-state machine with SQLite persistence, transition history, and deduplication |
 | **Reviewer Handoff** | Self-contained audit artifacts verifiable without model access |
-| **1,663 Tests** | 1,639 TypeScript (70 suites) + 24 Python (pattern-discovery), zero regressions |
+| **2,048 Passing Tests** | 1,611 MCP + 367 pattern engine + 44 synthetic data + 24 discovery + 2 viewer; 42 skipped |
+
+The evidence infrastructure is implemented and tested as source modules. Its nine
+tool definitions are not yet registered in the live MCP tool list; see
+[QUICKSTART.md](QUICKSTART.md) for the currently callable tools.
 
 ### Sample Evidence Chain
 
@@ -143,11 +146,11 @@ python3 src/generate_sfdc.py --count 200 --accounts 50 --output sfdc_output/ --s
 
 # 2. Run the forensic analysis
 cd ../pattern-engine
-python3 pattern-engine/scripts/analyze_sfdc.py
+python3 scripts/analyze_sfdc.py
 
 # Or bring your own SFDC export:
 # Place Opportunity, Account, StageHistory CSVs in ./data/sfdc/
-# python3 pattern-engine/scripts/analyze_sfdc.py --data-dir ../data/sfdc
+# python3 scripts/analyze_sfdc.py --data-dir ../data/sfdc
 ```
 
 ---
@@ -461,7 +464,7 @@ Order 0000012345 - Risk Assessment:
 
 ### Prerequisites
 - Docker & Docker Compose (recommended)
-- OR Node.js 18+ and Python 3.10+ for local development
+- OR Node.js 20-25 and Python 3.10+ for local development
 
 ### Quick Install
 ```bash
@@ -647,7 +650,10 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 
 **Process Diagrams**: [Mermaid flowcharts for O2C and P2P](docs/analysis/process-diagrams.md)
 
-**Test Suite**: 1,663 tests total — 1,639 TypeScript tests across 70 suites (`mcp-server/`) + 24 Python tests (`pattern-discovery/`). Zero regressions.
+**Validation baseline**: 2,048 tests pass and 42 are skipped — 1,611 MCP
+server, 367 pattern engine, 44 synthetic data, 24 pattern discovery, and 2
+viewer tests. CI also builds the server, runs the demos, and scans JavaScript,
+TypeScript, Python, and Actions with CodeQL.
 
 ---
 
@@ -658,8 +664,8 @@ We've validated the MCP tools against real SAP datasets. View the detailed analy
 | Concern | How We Address It |
 |---------|-------------------|
 | **Data Access** | Read-only BAPIs only - no write operations, no arbitrary SQL |
-| **Data Location** | All processing is on-premise - no cloud, no external APIs |
-| **Network** | No outbound connections, no telemetry, no phone-home |
+| **Data Location** | Local by default; cloud LLM and SaaS adapters are opt-in |
+| **Network** | No telemetry or phone-home; configured cloud providers require outbound access |
 | **PII Protection** | Automatic redaction of emails, phones, names, addresses |
 | **Audit Trail** | Every query logged with parameters, timestamps, row counts |
 | **Row Limits** | Default 200 rows per query, max 1000 - prevents bulk extraction |
@@ -718,8 +724,8 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 |  +------------------------------------------------------------+  |
 |  |                                                            |  |
 |  |   +----------------+     +-------------------+             |  |
-|  |   | SAP ECC 6.0    |     | SAP Workflow      |             |  |
-|  |   |                |     | Mining Server     |             |  |
+|  |   | SAP ECC 6.0    |     | Transaction       |             |  |
+|  |   |                |     | Forensics Server  |             |  |
 |  |   |  +----------+  |     |                   |             |  |
 |  |   |  | SD/MM    |  | RFC |  +-------------+  |             |  |
 |  |   |  | Tables   |<--------->| MCP Server  |  |             |  |
@@ -730,7 +736,7 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 |  |   +----------------+     |  | Evidence    |  |             |  |
 |  |   | Salesforce     |     |  | Engine      |  |             |  |
 |  |   |                | API |  | +---------+ |  |             |  |
-|  |   | Opportunities  |<------>| |Provnance| |  |             |  |
+|  |   | Opportunities  |<------>| |Provenance| |  |             |  |
 |  |   | Activities     |     |  | |Registry | |  |             |  |
 |  |   +----------------+     |  | |Findings | |  |             |  |
 |  |                          |  | +---------+ |  |             |  |
@@ -749,7 +755,7 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 |  |                                                            |  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
-|                    NO EXTERNAL CONNECTIONS                        |
+|             EXTERNAL CONNECTIONS ONLY WHEN CONFIGURED             |
 +------------------------------------------------------------------+
 ```
 
@@ -762,7 +768,9 @@ No direct table access. No RFC_READ_TABLE unless explicitly enabled.
 6. Handoff Generator produces self-contained reviewer packets
 7. Web Viewer displays findings on localhost
 
-**Nothing leaves your network.**
+With local adapters and a local LLM, data remains on your network. Salesforce,
+NetSuite, OpenAI, and Anthropic integrations require outbound connections when
+explicitly configured.
 
 ---
 
@@ -803,7 +811,9 @@ Every finding includes:
 - Statistical confidence intervals
 - Explicit caveats about correlation vs. causation
 
-For formal review, use `generate_handoff_packet` to produce a self-contained audit artifact with a 25-item reviewer checklist.
+For formal review, the handoff module can produce a self-contained audit
+artifact with a 25-item reviewer checklist. The `generate_handoff_packet` MCP
+definition exists in source but is not yet registered in the live server.
 
 ### What about GDPR/data protection?
 
@@ -989,7 +999,11 @@ await mcp.callTool('ps_resume_agent', { agent_id: 'agent-123' });
 | `get_fi_document` | Retrieve FI document details | header, line_items, amounts |
 | `generate_fi_assessment` | FI/CO risk assessment report | assessment, findings, recommendations |
 
-### Evidence Infrastructure Tools
+### Evidence Infrastructure Modules (Not Yet MCP-Registered)
+
+These definitions and executors are implemented and tested in source, but they
+are not included in the current `allTools` registry. They are not callable from
+Claude Code until registration and adapter routing are completed.
 
 | Tool | Purpose | Returns |
 |------|---------|---------|
