@@ -1,4 +1,4 @@
-# SAP Workflow Mining - Pattern Card Viewer
+# Transaction Forensics - Pattern Card Viewer
 # Node.js/Express server for serving pattern analysis results
 
 FROM node:20-alpine
@@ -39,6 +39,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 CMD ["node", "src/server.js"]
 
 # Labels
-LABEL maintainer="SAP Workflow Mining Team" \
-      version="1.0.0" \
-      description="Web viewer for SAP workflow mining pattern cards"
+LABEL maintainer="Transaction Forensics Team" \
+      version="1.0.1" \
+      description="Web viewer for transaction forensics pattern cards"

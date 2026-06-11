@@ -4,8 +4,8 @@ Go from `git clone` to Claude Code answering forensic questions about synthetic 
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Python 3.9+ (for the synthetic data generator)
+- Node.js 20-25 and npm
+- Python 3.10+ (for the synthetic data generator)
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) installed
 - `make` (macOS and most Linux ship with it)
 
@@ -60,7 +60,7 @@ added 487 packages in 18s
 Claude Code reads `.mcp.json` from the repo root and auto-starts the MCP server. On first prompt you should see:
 
 ```
-[MCP] transaction-forensics: connected (18 tools available)
+[MCP] transaction-forensics: connected (27 tools available)
 ```
 
 Run `/mcp` inside Claude Code to list tools. You should see: `check_conformance`, `analyze_sod`, `analyze_journal_entries`, `analyze_gl_balances`, `generate_fi_assessment`, `ask_process`, `visualize_process`, `export_ocel`, `predict_outcome`, `search_doc_text`, `get_doc_text`, `get_doc_flow`, `get_sales_doc_header`, `get_sales_doc_items`, `get_delivery_timing`, `get_invoice_timing`, `get_master_stub`, `get_fi_document`, plus 9 `ps_*` governance tools.
@@ -106,7 +106,7 @@ The engine proposes candidate patterns, a critic validates each against evidence
 
 ## If Something Breaks
 
-**`make demo` fails with "python3: command not found"** — install Python 3.9+ and retry.
+**`make demo` fails with "python3: command not found"** — install Python 3.10+ and retry.
 
 **`npm run build` fails on `better-sqlite3`** — this package compiles native bindings. On macOS: `xcode-select --install`. On Linux: `sudo apt install build-essential python3`.
 

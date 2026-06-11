@@ -11,7 +11,7 @@ This document describes the security architecture, data handling practices, and 
 Transaction Forensics is designed for enterprise security requirements:
 
 - **Read-only access** - No write operations to SAP
-- **On-premise only** - No cloud dependencies, no external APIs
+- **Local by default** - Cloud LLM providers and SaaS adapters are opt-in
 - **No telemetry** - No phone-home, no usage tracking
 - **PII protection** - Automatic redaction enabled by default
 - **Audit logging** - Complete request/response logging
@@ -54,11 +54,11 @@ Transaction Forensics is designed for enterprise security requirements:
 ||   |                           |       |   +------------------------+  |   ||
 ||   +---------------------------+       +-------------------------------+   ||
 ||                                                                           ||
-||                         NO EXTERNAL CONNECTIONS                           ||
+||                  EXTERNAL CONNECTIONS ONLY WHEN CONFIGURED                ||
 ||                                                                           ||
 +============================================================================+
                                     |
-                                    X  (No outbound traffic)
+                                    |  (Optional outbound traffic)
                                     |
                          +--------------------+
                          |     Internet       |
@@ -132,14 +132,14 @@ All data is stored on the local file system:
 └── timing_analysis.json    # Document flow timing
 ```
 
-### No Cloud Storage
+### No Built-In Cloud Storage
 
 - No AWS S3, Azure Blob, GCP Storage
 - No SaaS analytics platforms
 - No external databases
 - No CDN or edge caching
 
-### No Persistent External Connections
+### No Background External Connections
 
 - No WebSocket connections to external servers
 - No long-polling to cloud services
@@ -149,13 +149,16 @@ All data is stored on the local file system:
 
 ## Network Security
 
-### No Outbound Connections
+### Outbound Connections Are Opt-In
 
-Transaction Forensics makes **zero outbound network connections**:
+The synthetic, CSV, RFC, local viewer, and local Ollama paths do not require
+public internet access. Configured SaaS adapters and cloud LLM providers do:
 
 ```
-Outbound to Internet:    NONE
-Outbound to Cloud:       NONE
+Outbound to Salesforce:  OPTIONAL
+Outbound to NetSuite:    OPTIONAL
+Outbound to OpenAI:      OPTIONAL
+Outbound to Anthropic:   OPTIONAL
 Outbound to CDN:         NONE
 Outbound to Analytics:   NONE
 Outbound to Telemetry:   NONE
@@ -163,13 +166,15 @@ Outbound to Telemetry:   NONE
 
 ### Required Network Access
 
-The only network connections are **within your corporate network**:
+Required connections depend on the selected adapters and LLM provider:
 
 | Source | Destination | Port | Protocol | Purpose |
 |--------|-------------|------|----------|---------|
 | MCP Server | SAP ECC | 33XX | RFC | SAP data access |
 | Browser | Web Viewer | 8080 | HTTP | Results viewing |
 | Pattern Engine | MCP Server | 3000 | HTTP | Tool calls |
+| MCP Server | Salesforce/NetSuite | 443 | HTTPS | Optional SaaS adapters |
+| MCP Server | OpenAI/Anthropic | 443 | HTTPS | Optional cloud LLM |
 
 ### Firewall Configuration
 
@@ -178,7 +183,8 @@ The only network connections are **within your corporate network**:
 ALLOW TCP from MCP-Server to SAP-ECC:33XX    # RFC
 ALLOW TCP from Browser to localhost:8080      # Web viewer
 
-# DENY (external)
+# Optional: allow only configured SaaS/LLM endpoints.
+# Otherwise deny external traffic.
 DENY ALL from MCP-Server to Internet
 DENY ALL from Pattern-Engine to Internet
 DENY ALL from Web-Viewer to Internet
@@ -206,7 +212,7 @@ DENY ALL from Web-Viewer to Internet
 
 ### Verification
 
-You can verify no external connections with:
+You can verify that actual connections match your selected configuration with:
 
 ```bash
 # Monitor network connections during operation
@@ -385,7 +391,7 @@ The RFC user should have:
 | No card data storage | Credit card patterns redacted |
 | Access restriction | SAP authorization |
 | Audit trails | Complete logging |
-| Network security | No external connections |
+| Network security | Outbound access limited to configured providers |
 
 ---
 
@@ -399,7 +405,7 @@ The RFC user should have:
 | PII redaction | Regex + patterns | Enabled |
 | Shareable mode | Additional redaction | Optional |
 | Audit logging | All requests | Enabled |
-| No telemetry | No external calls | Enforced |
+| No telemetry | No analytics or phone-home calls | Enforced |
 | Input validation | Sanitized parameters | Enabled |
 | Timeout enforcement | 2 min max | Enabled |
 
@@ -437,7 +443,7 @@ Before deploying Transaction Forensics:
 - [ ] Enable SNC (Secure Network Communications) for RFC
 - [ ] Review SAP authorization trace (ST01)
 - [ ] Configure log retention policy
-- [ ] Verify no outbound network access
+- [ ] Restrict outbound access to explicitly configured providers
 - [ ] Document data classification of output
 - [ ] Establish output file handling procedures
 - [ ] Define access control for analysis results

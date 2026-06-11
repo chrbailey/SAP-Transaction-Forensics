@@ -1,4 +1,4 @@
-# SAP Workflow Mining - MCP Server
+# Transaction Forensics - MCP Server
 # Node.js 20 base image for MCP protocol server
 
 FROM node:20-alpine AS build
@@ -62,6 +62,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 CMD ["node", "dist/index.js"]
 
 # Labels
-LABEL maintainer="SAP Workflow Mining Team" \
-      version="1.0.0" \
-      description="MCP server for SAP workflow mining"
+LABEL maintainer="Transaction Forensics Team" \
+      version="1.0.1" \
+      description="MCP server for transaction forensics"

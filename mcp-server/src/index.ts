@@ -2,11 +2,11 @@
 /**
  * Transaction Forensics MCP Server
  *
- * This server exposes 8 SAP-shaped tools for workflow mining analysis.
+ * This server exposes 18 analysis/data tools and 9 governance tools.
  * It uses the Model Context Protocol (MCP) to integrate with AI assistants.
  *
  * Architecture:
- * - Tools: 8 specialized tools for SAP document analysis
+ * - Tools: 27 registered analysis, data, and governance tools
  * - Adapters: Pluggable data sources (synthetic, ECC RFC, S/4 OData)
  * - Policies: Row limits, field restrictions, timeout handling
  * - Governance: PromptSpeak-based pre-execution blocking and holds
@@ -91,7 +91,7 @@ function createMCPServer(): Server {
   const server = new Server(
     {
       name: 'transaction-forensics',
-      version: '1.0.0',
+      version: '1.0.1',
     },
     {
       capabilities: {
