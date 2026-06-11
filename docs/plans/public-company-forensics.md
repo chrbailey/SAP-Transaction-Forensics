@@ -69,6 +69,68 @@ Plus event-driven red flags straight from filing metadata: **restatements**
 (8-K Item 4.02 "non-reliance"), **late filings** (NT 10-K / NT 10-Q), **auditor
 changes** (8-K Item 4.01), **material weakness** disclosures.
 
+## The "Secret CFO" module — peer narrative gap (what's NOT being said)
+
+Company communications are scripted and coordinated — one voice across the 10-K,
+10-Qs, 8-Ks, and press releases. That script is itself data. This module reads the
+signal in **what similar companies say that this one doesn't**, and **what this one
+overstates relative to peers and to its own numbers**. All of it from public
+disclosures — 100% legal, above board; it's systematic analyst work.
+
+**Academic backbone (this is proven, not speculative):**
+- *Lazy Prices* (Cohen, Malloy & Nguyen, **Journal of Finance 2020**): firms that
+  actively *change* the language of their filings underperform; a changers-vs-
+  non-changers portfolio earned up to **188 bps/month (~22%/yr)** abnormal returns.
+  Changes concentrate in **MD&A**, and language about the **CEO/CFO** and
+  **litigation** is the most informative. Long-stable boilerplate that suddenly
+  gets rewritten *is* the signal.
+- *Loughran–McDonald* finance-specific sentiment dictionary: positive / negative /
+  uncertainty / litigious / weak-modal word lists built for 10-Ks (free for
+  research use).
+
+### Detectors
+
+| Finding type | Question it answers | How |
+|---|---|---|
+| `PEER_OMISSION` | What are peers disclosing that this company isn't? | Build the topic universe from the peer set's risk factors + MD&A (TF-IDF/BERTopic — **reuses `herb-nlp/`**); if ≥k% of peers discuss a topic (e.g. inventory writedowns, customer concentration, covenant pressure) and this filer is silent → flag with the peer evidence |
+| `DROPPED_DISCLOSURE` | What did this company *used to* say and quietly stopped saying? | YoY/QoQ diff of its own risk factors & MD&A sections (Lazy-Prices-style similarity: cosine/Jaccard); disappeared topics ranked by how long they'd been stable |
+| `SCRIPT_BREAK` | When did the script change? | Change-point detection on language similarity over the filing series — **reuses `herb-nlp/temporal_analysis.py` (ruptures)**; a rewrite after N stable quarters scores high |
+| `NARRATIVE_INFLATION` | What's being overstated? | Superlative/positive-tone density (Loughran–McDonald) vs. (a) the peer baseline and (b) the company's own XBRL deltas — "record demand" language over flat/declining revenue is a cross-layer contradiction |
+| `EMPHASIS_ANOMALY` | What's being talked up beyond substance? | Topic word-share vs. peers vs. the matching capex/segment numbers (e.g., 10× more AI language than peers with no corresponding investment line) |
+| `TONE_FUNDAMENTALS_GAP` | Does the tone trend diverge from the numbers trend? | Tone time-series vs. Beneish/accruals/DSO time-series; widening divergence compounds the structured-layer score |
+
+### Peer set construction ("similar company, similar position, similar background")
+
+From EDGAR alone: **SIC industry code** (submissions JSON) + **size band** (revenue/
+assets via XBRL `frames` for the same period) + filer status. Optionally refine
+with business-description similarity (Item 1 text). Every finding cites its peer
+set so the comparison is reproducible.
+
+### The Ralph-loop tie-in (pattern discovery on narratives)
+
+Exactly like the existing Worker/Critic/Ralph loop in `pattern-discovery/`, but the
+pattern space is *narrative behavior*:
+- **Worker** proposes candidate signals ("companies that drop segment-guidance
+  language within 2 quarters of a miss", "litigation-word spikes preceding 8-K
+  4.02 non-reliance filings").
+- **Critic** validates each candidate against the historical filing corpus and
+  subsequent outcomes (restatements, NT filings, auditor changes — all in EDGAR
+  metadata), demands evidence citations, and rejects overfit patterns.
+- Validated patterns join the **persistent pattern library** and run automatically
+  against new filings.
+
+This makes the narrative layer a *learning system* — the repo's existing tagline —
+instead of a fixed dictionary.
+
+### Honest constraints
+
+- **Earnings-call transcripts** aren't on EDGAR (third-party licensed). Phase 2 uses
+  the 8-K prepared remarks / press-release exhibits (EX-99.1) that *are* on EDGAR;
+  full call transcripts are a later, optional source.
+- Omission analysis needs a decent peer set (≥6–8 comparable filers) to avoid
+  flagging idiosyncratic-but-legitimate silence; small/unique companies get wider
+  confidence intervals and softer language.
+
 ## Architecture reuse map (your existing modules)
 
 | Need | Reuse | New |
@@ -107,9 +169,14 @@ changes** (8-K Item 4.01), **material weakness** disclosures.
   the `analyze_public_company` CLI/tool, pre-baked example data for ~5 tickers, and
   the dashboard tab.
 - **Phase 2:** full-text MD&A retrieval + the numbers-vs-narrative REALITY_GAP, peer
-  benchmarking via `frames`.
-- **Phase 3:** universe screening (S&P 500 watchlist), ranked leaderboard, scheduled
-  re-runs / CI-published snapshots.
+  benchmarking via `frames`, and the first Secret-CFO detectors that need only the
+  company's own filing series: `DROPPED_DISCLOSURE` and `SCRIPT_BREAK`
+  (Lazy-Prices-style language diffs — highest evidence-to-effort ratio).
+- **Phase 3:** the peer-relative detectors (`PEER_OMISSION`, `NARRATIVE_INFLATION`,
+  `EMPHASIS_ANOMALY`, `TONE_FUNDAMENTALS_GAP`) over constructed peer sets; universe
+  screening (S&P 500 watchlist), ranked leaderboard, CI-published snapshots.
+- **Phase 4:** the narrative Ralph loop — Worker/Critic pattern discovery over the
+  filing corpus with outcome back-testing, growing the persistent pattern library.
 
 ## Build approach — mirror the pattern that already worked
 
