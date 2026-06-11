@@ -80,6 +80,25 @@ Then ask Claude: *"Run a conformance check against the o2c-simple reference mode
 
 Full walkthrough: **[QUICKSTART.md](QUICKSTART.md)** · Five-question demo: **[scripts/demo-walkthrough.md](scripts/demo-walkthrough.md)** · Pattern discovery: **[pattern-discovery/README.md](pattern-discovery/README.md)**
 
+### Full portfolio dashboard — 6 analysis lenses
+
+Beyond the synthetic demo, the **[portfolio dashboard](demo/portfolio/index.html)**
+(live at `/portfolio/`) presents six forensic lenses over **real** datasets. It was
+consolidated here from the now-archived `transaction-forensics` repo so everything
+lives in one place.
+
+| Lens | Data source | Scale | Key finding |
+|---|---|---|---|
+| **Overview** | Architecture + thesis | — | Structured-vs-unstructured gap analysis |
+| **CRM Pipeline** | Kaggle CRM Sales Opportunities | 8,800 opportunities | Win rates, velocity, quarter-end compression |
+| **BPI Challenge** | BPI Challenge 2019 (4TU.ResearchData) | 251,734 POs · 1.6M events | 57K payment blocks, resource concentration |
+| **IDES Compliance** | SAP IDES demo system | 3,132 cases (O2C + P2P) | **7 compliance violations** in SAP's own reference data |
+| **Client Cases** | 3 anonymized engagements | 3M+ ERP records | $103K savings, credit-hold overrides, SOD violations |
+| **NLP Patterns** | Salesforce/HERB (HuggingFace) | 37,064 documents | 11 communication clusters, approval bottlenecks |
+
+The NLP pipeline behind the last tab lives in **[`herb-nlp/`](herb-nlp/)**
+(TF-IDF + KMeans, optional BERTopic, network + temporal analysis).
+
 ## Proven in the Field
 
 Three real consulting engagements motivated this tool. Anonymized, but the figures
