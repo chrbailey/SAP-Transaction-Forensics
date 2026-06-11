@@ -4,218 +4,236 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SAP Transaction Forensics — Live Demo</title>
-<meta name="description" content="Forensic anomaly detection across SAP ERP and Salesforce CRM data. Read-only, evidence-graded, MIT licensed.">
+<meta name="description" content="Forensic anomaly detection across SAP ERP and Salesforce CRM. Read-only, evidence-graded, MIT licensed.">
 <style>
   :root {
-    --bg: #0a0e17;
-    --surface: #111827;
-    --surface2: #161f33;
-    --surface3: #1c2742;
-    --border: #1e2d45;
-    --border-active: #3b82f6;
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
+    --bg: #05070d;
+    --bg2: #0a0e1a;
+    --surface: rgba(17,24,39,0.72);
+    --surface-solid: #0e1524;
+    --border: rgba(59,130,246,0.16);
+    --border-bright: rgba(99,179,255,0.45);
+    --text: #eaf1fb;
+    --muted: #93a4bd;
+    --dim: #5b6c86;
     --accent: #3b82f6;
     --accent2: #8b5cf6;
-    --accent-glow: rgba(59,130,246,0.15);
-    --critical: #ef4444;
-    --high: #f97316;
-    --medium: #eab308;
-    --low: #22c55e;
-    --info: #64748b;
-    --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --cyan: #22d3ee;
+    --critical: #ff4d4d;
+    --high: #ff8a3d;
+    --medium: #ffd23d;
+    --low: #34d399;
+    --mono: 'SF Mono','JetBrains Mono','Fira Code',ui-monospace,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-    background-image:
-      radial-gradient(800px circle at 10% -10%, rgba(59,130,246,0.10), transparent 40%),
-      radial-gradient(700px circle at 100% 0%, rgba(139,92,246,0.10), transparent 40%);
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    font-size: 14px; line-height: 1.6; min-height: 100vh; overflow-x: hidden;
   }
-  a { color: var(--accent); text-decoration: none; }
+  a { color: var(--cyan); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+  ::selection { background: rgba(59,130,246,0.4); }
+
+  /* Animated canvas background */
+  #net { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(900px circle at 12% -5%, rgba(59,130,246,0.16), transparent 45%),
+      radial-gradient(800px circle at 95% 5%, rgba(139,92,246,0.14), transparent 42%),
+      radial-gradient(700px circle at 50% 110%, rgba(34,211,238,0.08), transparent 50%);
+  }
+
+  /* Scan intro overlay */
+  #scan {
+    position: fixed; inset: 0; z-index: 999; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; transition: opacity .6s ease, visibility .6s; font-family: var(--mono);
+  }
+  #scan.done { opacity: 0; visibility: hidden; }
+  .scan-logo {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff;
+    box-shadow: 0 0 40px rgba(59,130,246,0.55); animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1);box-shadow:0 0 30px rgba(59,130,246,.4)} 50%{transform:scale(1.07);box-shadow:0 0 55px rgba(139,92,246,.65)} }
+  .scan-lines { width: min(440px,80vw); font-size: 12.5px; color: var(--low); min-height: 110px; }
+  .scan-lines div { opacity: 0; animation: lineIn .35s forwards; }
+  .scan-lines .muted { color: var(--dim); }
+  @keyframes lineIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+  .scan-bar { width: min(440px,80vw); height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .scan-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,var(--accent),var(--cyan)); animation: fill 2.1s ease forwards; }
+  @keyframes fill { to { width: 100%; } }
 
   /* Header */
-  header.site {
-    border-bottom: 1px solid var(--border);
-    background: rgba(10,14,23,0.85);
-    backdrop-filter: blur(8px);
-    position: sticky; top: 0; z-index: 50;
-  }
-  .site-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; max-width: 1200px; margin: 0 auto; }
+  header.site { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px);
+    background: rgba(5,7,13,0.72); border-bottom: 1px solid var(--border); }
+  .site-inner { display: flex; align-items: center; justify-content: space-between; padding: 13px 24px; max-width: 1180px; margin: 0 auto; }
   .brand { display: flex; align-items: center; gap: 12px; }
-  .logo {
-    width: 34px; height: 34px; border-radius: 9px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 18px; color: white;
-    box-shadow: 0 4px 16px var(--accent-glow);
-  }
-  .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
-  .brand .sub { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+  .logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,var(--accent),var(--accent2));
+    display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; box-shadow: 0 4px 18px rgba(59,130,246,0.3); }
+  .brand h1 { font-size: 15px; font-weight: 700; }
+  .brand .sub { font-size: 11px; color: var(--dim); font-family: var(--mono); }
   .nav-links { display: flex; gap: 18px; align-items: center; font-size: 13px; }
-  .nav-links a { color: var(--text-muted); }
-  .gh-btn {
-    border: 1px solid var(--border); padding: 7px 14px; border-radius: 8px;
-    color: var(--text); font-weight: 600; font-size: 13px;
-  }
-  .gh-btn:hover { border-color: var(--border-active); text-decoration: none; background: var(--surface2); }
+  .nav-links a { color: var(--muted); }
+  .gh-btn { border: 1px solid var(--border-bright); padding: 7px 15px; border-radius: 8px; color: var(--text); font-weight: 600; }
+  .gh-btn:hover { background: rgba(59,130,246,0.12); text-decoration: none; box-shadow: 0 0 20px rgba(59,130,246,0.25); }
 
   /* Hero */
-  .hero { padding: 56px 0 28px; text-align: center; }
-  .hero .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-size: 12px; color: var(--low);
-    border: 1px solid rgba(34,197,94,0.3); background: rgba(34,197,94,0.06);
-    padding: 5px 12px; border-radius: 999px; margin-bottom: 20px;
-  }
-  .hero .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--low); box-shadow: 0 0 8px var(--low); }
-  .hero h2 { font-size: 40px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
-  .hero h2 .grad { background: linear-gradient(120deg, #60a5fa, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 680px; margin: 0 auto 22px; }
+  .hero { padding: 70px 0 20px; text-align: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--low);
+    border: 1px solid rgba(52,211,153,0.3); background: rgba(52,211,153,0.06); padding: 6px 14px; border-radius: 999px; margin-bottom: 22px; }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--low); box-shadow: 0 0 10px var(--low); animation: blink 1.6s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .hero h2 { font-size: clamp(32px,5vw,52px); line-height: 1.08; font-weight: 850; letter-spacing: -0.025em; margin-bottom: 18px; }
+  .hero h2 .grad { background: linear-gradient(110deg,#60a5fa,#a78bfa 50%,#22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lede { font-size: 18px; color: var(--muted); max-width: 700px; margin: 0 auto 26px; }
+  .hero p.lede b { color: var(--text); }
   .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .badge {
-    font-family: var(--mono); font-size: 11.5px; color: var(--text-muted);
-    border: 1px solid var(--border); border-radius: 7px; padding: 5px 11px; background: var(--surface);
-  }
+  .badge { font-family: var(--mono); font-size: 11.5px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; background: var(--surface); }
   .badge b { color: var(--text); }
 
   /* KPI grid */
-  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin: 34px 0 10px; }
-  .kpi {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px 16px; text-align: center; position: relative; overflow: hidden;
-  }
-  .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); opacity: 0.7; }
-  .kpi .num { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
-  .kpi .lbl { font-size: 11px; color: var(--text-dim); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .kpi.alert .num { color: var(--high); }
-  .kpi.crit .num { color: var(--critical); }
+  .kpis { display: grid; grid-template-columns: repeat(6,1fr); gap: 14px; margin: 40px 0 8px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 14px; text-align: center;
+    position: relative; overflow: hidden; backdrop-filter: blur(6px); }
+  .kpi::before { content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .kpi .num { font-size: 32px; font-weight: 850; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .kpi .lbl { font-size: 10.5px; color: var(--dim); margin-top: 9px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .kpi.alert .num { color: var(--high); text-shadow: 0 0 22px rgba(255,138,61,0.4); }
+  .kpi.crit .num { color: var(--critical); text-shadow: 0 0 22px rgba(255,77,77,0.45); }
 
   /* Sections */
-  section.block { padding: 40px 0; border-top: 1px solid var(--border); margin-top: 24px; }
-  .sec-head { margin-bottom: 22px; }
-  .sec-head .kicker { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase; }
-  .sec-head h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin-top: 4px; }
-  .sec-head p { color: var(--text-muted); margin-top: 6px; max-width: 760px; }
+  section.block { padding: 56px 0; }
+  .sec-head { margin-bottom: 26px; }
+  .sec-head .kicker { font-family: var(--mono); font-size: 12px; color: var(--cyan); letter-spacing: 0.08em; text-transform: uppercase; }
+  .sec-head h3 { font-size: 27px; font-weight: 850; letter-spacing: -0.01em; margin-top: 5px; }
+  .sec-head p { color: var(--muted); margin-top: 7px; max-width: 780px; }
+
+  /* reveal animation */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* Risk gauge + summary band */
+  .riskband { display: grid; grid-template-columns: 220px 1fr; gap: 26px; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; backdrop-filter: blur(6px); }
+  .gauge { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge .score { font-size: 46px; font-weight: 850; line-height: 1; font-variant-numeric: tabular-nums; }
+  .gauge .of { font-size: 11px; color: var(--dim); font-family: var(--mono); margin-top: 4px; letter-spacing: 0.05em; }
+  .riskcopy h4 { font-size: 19px; margin-bottom: 8px; }
+  .riskcopy p { color: var(--muted); }
+  .riskcopy .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .chip { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 7px; border: 1px solid var(--border); color: var(--muted); }
+  .chip b { color: var(--text); }
 
   /* Anomaly cards */
-  .anom-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .anom {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    overflow: hidden; transition: border-color .15s, transform .15s;
-  }
-  .anom:hover { border-color: var(--border-active); }
-  .anom-top { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; cursor: pointer; }
-  .anom-count {
-    flex-shrink: 0; min-width: 52px; height: 52px; border-radius: 10px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 22px; line-height: 1;
-    background: var(--surface3); border: 1px solid var(--border);
-  }
+  .anom-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+  .anom { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    transition: border-color .18s, transform .18s, box-shadow .18s; backdrop-filter: blur(6px); }
+  .anom:hover { border-color: var(--border-bright); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+  .anom-top { display: flex; align-items: flex-start; gap: 15px; padding: 17px 18px; cursor: pointer; }
+  .anom-count { flex-shrink: 0; min-width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-weight: 850; font-size: 23px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
   .anom-body { flex: 1; min-width: 0; }
   .anom-flag { font-family: var(--mono); font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-  .anom-desc { color: var(--text-muted); font-size: 13px; margin-top: 5px; }
-  .sev {
-    font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase;
-    padding: 2px 7px; border-radius: 5px; letter-spacing: 0.04em;
-  }
-  .sev.critical { color: var(--critical); background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
-  .sev.high { color: var(--high); background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); }
-  .sev.medium { color: var(--medium); background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.3); }
-  .sev.low { color: var(--low); background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); }
-  .anom-count.critical { color: var(--critical); border-color: rgba(239,68,68,0.4); }
-  .anom-count.high { color: var(--high); border-color: rgba(249,115,22,0.4); }
-  .anom-count.medium { color: var(--medium); border-color: rgba(234,179,8,0.4); }
-  .anom-count.low { color: var(--low); border-color: rgba(34,197,94,0.4); }
-  .chev { color: var(--text-dim); font-size: 12px; transition: transform .2s; margin-left: auto; padding-left: 10px; }
+  .anom-desc { color: var(--muted); font-size: 13px; margin-top: 5px; }
+  .anom-bar { height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 11px; overflow: hidden; }
+  .anom-bar i { display: block; height: 100%; width: 0; border-radius: 2px; transition: width 1s cubic-bezier(.2,.7,.2,1); }
+  .sev { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; letter-spacing: 0.04em; }
+  .sev.critical { color: var(--critical); background: rgba(255,77,77,0.12); border: 1px solid rgba(255,77,77,0.32); }
+  .sev.high { color: var(--high); background: rgba(255,138,61,0.12); border: 1px solid rgba(255,138,61,0.32); }
+  .sev.medium { color: var(--medium); background: rgba(255,210,61,0.12); border: 1px solid rgba(255,210,61,0.32); }
+  .sev.low { color: var(--low); background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.32); }
+  .c-critical { color: var(--critical) !important; border-color: rgba(255,77,77,0.4) !important; } .b-critical { background: linear-gradient(90deg,var(--critical),#b91c1c); }
+  .c-high { color: var(--high) !important; border-color: rgba(255,138,61,0.4) !important; } .b-high { background: linear-gradient(90deg,var(--high),#c2410c); }
+  .c-medium { color: var(--medium) !important; border-color: rgba(255,210,61,0.4) !important; } .b-medium { background: linear-gradient(90deg,var(--medium),#a16207); }
+  .c-low { color: var(--low) !important; border-color: rgba(52,211,153,0.4) !important; } .b-low { background: linear-gradient(90deg,var(--low),#047857); }
+  .chev { color: var(--dim); font-size: 12px; transition: transform .25s; margin-left: auto; padding-left: 10px; }
   .anom.open .chev { transform: rotate(90deg); }
-  .evidence { display: none; border-top: 1px solid var(--border); background: var(--surface2); padding: 4px 0; }
-  .anom.open .evidence { display: block; }
-  .ev-row { padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+  .evidence { max-height: 0; overflow: hidden; transition: max-height .35s ease; background: rgba(0,0,0,0.25); }
+  .anom.open .evidence { max-height: 520px; border-top: 1px solid var(--border); }
+  .ev-row { padding: 12px 18px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
   .ev-row:last-child { border-bottom: none; }
-  .ev-name { font-weight: 600; color: var(--text); }
-  .ev-meta { color: var(--text-dim); font-family: var(--mono); font-size: 11.5px; margin-top: 3px; display: flex; gap: 14px; flex-wrap: wrap; }
-  .ev-meta b { color: var(--text-muted); font-weight: 600; }
-  .ev-none { padding: 14px 18px; color: var(--text-dim); font-size: 12.5px; font-style: italic; }
+  .ev-name { font-weight: 600; }
+  .ev-meta { color: var(--dim); font-family: var(--mono); font-size: 11.5px; margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .ev-meta b { color: var(--muted); font-weight: 600; }
+  .ev-none { padding: 14px 18px; color: var(--dim); font-size: 12.5px; font-style: italic; }
 
-  /* Cross-system */
-  .cross-list { display: flex; flex-direction: column; gap: 12px; }
-  .cross {
-    display: flex; align-items: center; gap: 16px; background: var(--surface);
-    border: 1px solid var(--border); border-left-width: 3px; border-radius: 10px; padding: 14px 18px;
-  }
-  .cross.high { border-left-color: var(--high); }
+  /* Cross-system diagram */
+  .xsys { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .xdiagram { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 8px; backdrop-filter: blur(6px); }
+  .xpanel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; backdrop-filter: blur(6px); }
+  .xpanel h4 { font-size: 15px; margin-bottom: 14px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .k { color: var(--muted); } .stat-row .v { font-family: var(--mono); font-weight: 700; }
+  .cross-list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+  .cross { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--high); border-radius: 11px; padding: 14px 18px; backdrop-filter: blur(6px); }
   .cross.medium { border-left-color: var(--medium); }
-  .cross .ctype { font-family: var(--mono); font-size: 12px; font-weight: 700; min-width: 150px; }
-  .cross .cev { color: var(--text-muted); font-size: 13px; flex: 1; }
-  .cross .clink { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-align: right; }
+  .cross .ctype { font-family: var(--mono); font-size: 12px; font-weight: 700; min-width: 150px; color: var(--high); }
+  .cross.medium .ctype { color: var(--medium); }
+  .cross .cev { color: var(--muted); font-size: 13px; flex: 1; }
+  .cross .clink { font-family: var(--mono); font-size: 11px; color: var(--dim); text-align: right; }
 
-  /* Quarter-end chart */
-  .qchart { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .qbars { display: flex; align-items: flex-end; gap: 8px; height: 200px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  /* Quarter chart */
+  .qbars { display: flex; align-items: flex-end; gap: 8px; height: 220px; padding: 18px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 16px; backdrop-filter: blur(6px); }
   .qbar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
-  .qbar .fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--surface3); min-height: 2px; transition: height .4s ease; }
-  .qbar.qend .fill { background: linear-gradient(180deg, var(--high), #c2410c); }
-  .qbar .mlbl { font-size: 10px; color: var(--text-dim); font-family: var(--mono); }
-  .qbar .vlbl { font-size: 11px; color: var(--text-muted); font-weight: 700; }
-  .callout {
-    margin-top: 16px; background: rgba(249,115,22,0.07); border: 1px solid rgba(249,115,22,0.25);
-    border-radius: 10px; padding: 14px 18px; font-size: 14px;
-  }
+  .qbar .fill { width: 100%; border-radius: 5px 5px 0 0; background: rgba(99,179,255,0.18); height: 0; transition: height .9s cubic-bezier(.2,.7,.2,1); }
+  .qbar.qend .fill { background: linear-gradient(180deg,var(--high),#9a3412); box-shadow: 0 0 24px rgba(255,138,61,0.35); }
+  .qbar .mlbl { font-size: 10px; color: var(--dim); font-family: var(--mono); }
+  .qbar .vlbl { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .callout { margin-top: 16px; background: rgba(255,138,61,0.07); border: 1px solid rgba(255,138,61,0.25); border-radius: 12px; padding: 15px 18px; font-size: 14px; }
   .callout b { color: var(--high); }
 
-  /* Two-col info */
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .panel h4 { font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-row .k { color: var(--text-muted); }
-  .stat-row .v { font-family: var(--mono); font-weight: 700; }
+  /* Evidence terminal */
+  .term { font-family: var(--mono); font-size: 12.5px; background: #04060c; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 15px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .term-bar .r { background: #ff5f57; } .term-bar .y { background: #febc2e; } .term-bar .g { background: #28c840; }
+  .term-bar span { color: var(--dim); margin-left: 8px; font-size: 11.5px; }
+  .term-body { padding: 18px 20px; line-height: 1.85; white-space: pre-wrap; min-height: 220px; }
+  .t-key { color: var(--cyan); } .t-sys { color: var(--accent2); } .t-val { color: var(--low); } .t-warn { color: var(--high); } .t-dim { color: var(--dim); }
+  .cursor { display: inline-block; width: 8px; background: var(--low); animation: cur .9s steps(1) infinite; }
+  @keyframes cur { 50% { opacity: 0; } }
 
-  /* Evidence chain */
-  .chain {
-    font-family: var(--mono); font-size: 12.5px; background: #060912; border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px; overflow-x: auto; line-height: 1.8;
-  }
-  .chain .c-key { color: var(--accent); }
-  .chain .c-sys { color: var(--accent2); }
-  .chain .c-val { color: var(--low); }
-  .chain .c-warn { color: var(--high); }
-  .chain .c-dim { color: var(--text-dim); }
+  /* CTA */
+  .cta { text-align: center; padding: 60px 0; }
+  .cta h3 { font-size: 30px; font-weight: 850; margin-bottom: 12px; }
+  .cta p { color: var(--muted); max-width: 640px; margin: 0 auto 24px; }
+  .cta .code { display: inline-block; text-align: left; font-family: var(--mono); font-size: 13.5px; background: #04060c;
+    border: 1px solid var(--border-bright); border-radius: 12px; padding: 18px 22px; box-shadow: 0 0 40px rgba(59,130,246,0.15); }
+  .cta .code .cm { color: var(--dim); } .cta .code .p { color: var(--cyan); }
+  footer.site { border-top: 1px solid var(--border); padding: 30px 0; color: var(--dim); font-size: 12.5px; text-align: center; position: relative; z-index: 2; }
 
-  /* CTA / footer */
-  .cta { text-align: center; padding: 48px 0; }
-  .cta h3 { font-size: 26px; font-weight: 800; margin-bottom: 12px; }
-  .cta p { color: var(--text-muted); max-width: 620px; margin: 0 auto 22px; }
-  .cta .code {
-    display: inline-block; text-align: left; font-family: var(--mono); font-size: 13px;
-    background: #060912; border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; color: var(--text);
-  }
-  .cta .code .cm { color: var(--text-dim); }
-  footer.site { border-top: 1px solid var(--border); padding: 28px 0; color: var(--text-dim); font-size: 12.5px; text-align: center; }
+  .loading { text-align: center; padding: 90px 24px; color: var(--muted); position: relative; z-index: 2; }
 
-  .loading { text-align: center; padding: 80px 24px; color: var(--text-muted); }
-
-  @media (max-width: 880px) {
-    .kpis { grid-template-columns: repeat(2, 1fr); }
-    .anom-grid, .info-grid { grid-template-columns: 1fr; }
-    .hero h2 { font-size: 30px; }
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(3,1fr); }
+    .anom-grid, .xsys { grid-template-columns: 1fr; }
+    .riskband { grid-template-columns: 1fr; }
     .nav-links a:not(.gh-btn) { display: none; }
   }
+  @media (max-width: 520px) { .kpis { grid-template-columns: repeat(2,1fr); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
+<canvas id="net"></canvas>
+
+<div id="scan">
+  <div class="scan-logo">⊞</div>
+  <div class="scan-lines" id="scanLines"></div>
+  <div class="scan-bar"><i></i></div>
+</div>
+
 <header class="site">
   <div class="site-inner">
     <div class="brand">
@@ -229,14 +247,12 @@
       <a href="#anomalies">Anomalies</a>
       <a href="#cross">Cross-System</a>
       <a href="#evidence">Evidence</a>
-      <a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">View on GitHub ↗</a>
+      <a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
   </div>
 </header>
 
-<main id="app">
-  <div class="loading">Loading forensic findings…</div>
-</main>
+<main id="app"><div class="loading">Initializing forensic scan…</div></main>
 
 <script src="findings-data.js"></script>
 <script>
@@ -244,217 +260,303 @@
   "use strict";
 
   const FLAG_LABELS = {
-    QUARTER_END_COMPRESSION: "Quarter-End Compression",
-    SPLIT_DEAL: "Split Deal",
-    STALE_PIPELINE: "Stale Pipeline",
-    AMOUNT_INFLATION: "Amount Inflation",
-    GHOST_PIPELINE: "Ghost Pipeline",
-    SPEED_ANOMALY: "Speed Anomaly",
-    STAGE_SKIP: "Stage Skip",
-    STAGE_REGRESSION: "Stage Regression",
-    CROSS_SYSTEM_GAP: "Cross-System Gap",
-    OWNER_SWAP_AT_CLOSE: "Owner Swap At Close",
+    QUARTER_END_COMPRESSION: "Quarter-End Compression", SPLIT_DEAL: "Split Deal",
+    STALE_PIPELINE: "Stale Pipeline", AMOUNT_INFLATION: "Amount Inflation",
+    GHOST_PIPELINE: "Ghost Pipeline", SPEED_ANOMALY: "Speed Anomaly",
+    STAGE_SKIP: "Stage Skip", STAGE_REGRESSION: "Stage Regression",
+    CROSS_SYSTEM_GAP: "Cross-System Gap", OWNER_SWAP_AT_CLOSE: "Owner Swap At Close",
   };
   const SEV_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
+  const SEV_WEIGHT = { critical: 10, high: 6, medium: 3, low: 1 };
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  function fmtMoney(v) {
-    if (v == null) return "—";
-    return "$" + Number(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
-  }
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  }
+  const fmtMoney = v => v == null ? "—" : "$" + Number(v).toLocaleString("en-US",{maximumFractionDigits:0});
+  const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   async function getData() {
     if (window.DEMO_FINDINGS) return window.DEMO_FINDINGS;
-    // Fallback for live (server-served) mode
-    try {
-      const r = await fetch("findings.json", { cache: "no-store" });
-      if (r.ok) return await r.json();
-    } catch (e) { /* file:// fetch blocked — handled below */ }
+    try { const r = await fetch("findings.json",{cache:"no-store"}); if (r.ok) return await r.json(); } catch(e){}
     return null;
+  }
+
+  /* ---------- particle network background ---------- */
+  function startNetwork() {
+    const c = document.getElementById("net"), x = c.getContext("2d");
+    let w, h, pts, raf;
+    const N = Math.min(70, Math.floor((window.innerWidth*window.innerHeight)/26000));
+    function resize(){ w=c.width=innerWidth; h=c.height=innerHeight; }
+    function init(){ pts=[]; for(let i=0;i<N;i++) pts.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}); }
+    function tick(){
+      x.clearRect(0,0,w,h);
+      for(const p of pts){ p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>w)p.vx*=-1; if(p.y<0||p.y>h)p.vy*=-1; }
+      for(let i=0;i<pts.length;i++){
+        for(let j=i+1;j<pts.length;j++){
+          const a=pts[i],b=pts[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+          if(d<140){ x.strokeStyle="rgba(99,179,255,"+(0.13*(1-d/140))+")"; x.lineWidth=1; x.beginPath(); x.moveTo(a.x,a.y); x.lineTo(b.x,b.y); x.stroke(); }
+        }
+        x.fillStyle="rgba(120,180,255,0.6)"; x.beginPath(); x.arc(pts[i].x,pts[i].y,1.4,0,7); x.fill();
+      }
+      raf=requestAnimationFrame(tick);
+    }
+    resize(); init(); tick();
+    addEventListener("resize",()=>{ cancelAnimationFrame(raf); resize(); init(); tick(); });
+  }
+
+  /* ---------- scan intro ---------- */
+  function runScan(d, done) {
+    const host = document.getElementById("scanLines");
+    const lines = [
+      ["> connecting to synthetic dataset (seed 42)…", false],
+      ["> loaded " + d.dataset.opportunities + " opportunities · " + d.dataset.sap_orders + " SAP orders", true],
+      ["> running 10 forensic detectors…", false],
+      ["> " + d.headline.anomaly_instances + " anomaly instances flagged", true],
+      ["> correlating SFDC ↔ SAP…", false],
+      ["> " + d.headline.cross_system_anomalies + " cross-system contradictions found", true],
+      ["> rendering evidence…", false],
+    ];
+    let i = 0;
+    (function next(){
+      if (i >= lines.length) { setTimeout(done, 320); return; }
+      const [txt, ok] = lines[i];
+      const el = document.createElement("div");
+      el.className = ok ? "" : "muted";
+      el.textContent = txt; el.style.animationDelay = "0s";
+      host.appendChild(el);
+      i++; setTimeout(next, 300);
+    })();
+  }
+
+  function animateCount(el, target, isMoney, isPct) {
+    const dur = 1100, start = performance.now();
+    const suffix = isPct ? "%" : "";
+    function step(now){
+      const t = Math.min(1,(now-start)/dur), e = 1-Math.pow(1-t,3), v = target*e;
+      el.textContent = isMoney ? fmtMoney(v) : (Math.round(v).toLocaleString()+suffix);
+      if(t<1) requestAnimationFrame(step); else el.textContent = isMoney ? fmtMoney(target) : (target.toLocaleString()+suffix);
+    }
+    requestAnimationFrame(step);
   }
 
   function kpis(d) {
     const h = d.headline;
     const items = [
-      { num: h.opportunities_analyzed, lbl: "Opportunities", cls: "" },
-      { num: h.opportunities_flagged, lbl: "Flagged", cls: "alert" },
-      { num: h.anomaly_categories, lbl: "Anomaly Types", cls: "alert" },
-      { num: h.cross_system_anomalies, lbl: "Cross-System", cls: "crit" },
-      { num: h.win_rate_pct + "%", lbl: "Win Rate", cls: "" },
-      { num: fmtMoney(h.avg_deal_size), lbl: "Avg Deal", cls: "" },
+      { v: h.opportunities_analyzed, lbl: "Opportunities", cls: "" },
+      { v: h.opportunities_flagged, lbl: "Flagged", cls: "alert" },
+      { v: h.anomaly_instances, lbl: "Anomalies", cls: "alert" },
+      { v: h.cross_system_anomalies, lbl: "Cross-System", cls: "crit" },
+      { v: h.win_rate_pct, lbl: "Win Rate", cls: "", pct: true },
+      { v: h.avg_deal_size, lbl: "Avg Deal", cls: "", money: true },
     ];
-    return `<div class="kpis">${items.map(i =>
-      `<div class="kpi ${i.cls}"><div class="num">${esc(i.num)}</div><div class="lbl">${esc(i.lbl)}</div></div>`
+    return `<div class="kpis">${items.map((i,k)=>
+      `<div class="kpi ${i.cls}"><div class="num" data-v="${i.v}" data-money="${!!i.money}" data-pct="${!!i.pct}">0</div><div class="lbl">${esc(i.lbl)}</div></div>`
     ).join("")}</div>`;
   }
 
-  function anomalyCard(a) {
-    const label = FLAG_LABELS[a.flag] || a.flag;
-    const examples = (a.examples || []).map(e => `
+  function riskScore(d) {
+    let raw = 0;
+    d.anomalies.forEach(a => raw += (SEV_WEIGHT[a.severity]||1) * a.count);
+    raw += d.headline.cross_system_anomalies * 14;
+    const flagged = d.headline.opportunities_flagged / Math.max(1,d.headline.opportunities_analyzed);
+    const score = Math.max(8, Math.min(98, Math.round(38 + flagged*55 + Math.min(20, d.headline.cross_system_anomalies*6))));
+    return score;
+  }
+
+  function riskBand(d) {
+    const score = riskScore(d);
+    const R = 86, C = 2*Math.PI*R, off = C*(1-score/100);
+    const color = score>=70?"var(--critical)":score>=45?"var(--high)":"var(--medium)";
+    return `
+    <div class="riskband reveal">
+      <div class="gauge">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="14"/>
+          <circle id="gaugeArc" cx="100" cy="100" r="${R}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="${C}" style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1); filter:drop-shadow(0 0 8px ${color})" data-off="${off}"/>
+        </svg>
+        <div class="center"><div class="score" style="color:${color}" data-score="${score}">0</div><div class="of">RISK INDEX / 100</div></div>
+      </div>
+      <div class="riskcopy">
+        <h4>Composite risk: weighted by severity × frequency</h4>
+        <p>Every detector contributes by severity and count; cross-system contradictions weigh heaviest. This single number is what a controller or auditor would triage first — and it is fully decomposable into the findings below.</p>
+        <div class="chips">
+          <span class="chip"><b>${d.headline.opportunities_flagged}</b> of ${d.headline.opportunities_analyzed} opps flagged</span>
+          <span class="chip"><b>${d.anomalies.filter(a=>a.severity==='critical').length}</b> critical detectors firing</span>
+          <span class="chip"><b>${d.headline.sap_match_rate_pct}%</b> SAP match coverage</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function anomalyCard(a, maxCount) {
+    const label = FLAG_LABELS[a.flag] || a.flag, pct = Math.round((a.count/maxCount)*100);
+    const examples = (a.examples||[]).map(e=>`
       <div class="ev-row">
-        <div class="ev-name">${esc(e.name || e.id)}</div>
+        <div class="ev-name">${esc(e.name||e.id)}</div>
         <div class="ev-meta">
-          <span><b>Account:</b> ${esc(e.account_name || "—")}</span>
+          <span><b>Account:</b> ${esc(e.account_name||"—")}</span>
           <span><b>Amount:</b> ${fmtMoney(e.amount)}</span>
-          <span><b>Stage:</b> ${esc(e.stage || "—")}</span>
-          <span><b>Close:</b> ${esc(e.close_date || "—")}</span>
+          <span><b>Stage:</b> ${esc(e.stage||"—")}</span>
+          <span><b>Close:</b> ${esc(e.close_date||"—")}</span>
           <span><b>ID:</b> ${esc(e.id)}</span>
         </div>
       </div>`).join("");
-    const evidence = examples
-      ? examples
-      : `<div class="ev-none">No instances detected in this dataset.</div>`;
     return `
-    <div class="anom" data-flag="${esc(a.flag)}">
+    <div class="anom reveal" data-flag="${esc(a.flag)}">
       <div class="anom-top">
-        <div class="anom-count ${esc(a.severity)}">${a.count}</div>
+        <div class="anom-count c-${esc(a.severity)}">${a.count}</div>
         <div class="anom-body">
           <div class="anom-flag">${esc(label)} <span class="sev ${esc(a.severity)}">${esc(a.severity)}</span></div>
           <div class="anom-desc">${esc(a.description)}</div>
+          <div class="anom-bar"><i class="b-${esc(a.severity)}" data-w="${pct}"></i></div>
         </div>
         <span class="chev">▶</span>
       </div>
-      <div class="evidence">${evidence}</div>
+      <div class="evidence">${examples || '<div class="ev-none">No instances detected in this dataset.</div>'}</div>
     </div>`;
   }
 
   function anomaliesSection(d) {
-    const sorted = [...d.anomalies].sort((a, b) =>
-      (SEV_RANK[a.severity] - SEV_RANK[b.severity]) || (b.count - a.count));
+    const sorted = [...d.anomalies].sort((a,b)=>(SEV_RANK[a.severity]-SEV_RANK[b.severity])||(b.count-a.count));
+    const maxCount = Math.max(...sorted.map(a=>a.count), 1);
     return `
     <section class="block" id="anomalies"><div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head reveal">
         <div class="kicker">Detection Layer</div>
-        <h3>Anomaly Detection</h3>
-        <p>Ten forensic pattern checks run across every opportunity. Each instance links to specific records — click any card to inspect the evidence. Counts below come straight from the analysis you can reproduce with <code>make demo</code>.</p>
+        <h3>10 forensic detectors, every hit traceable</h3>
+        <p>Each instance links to specific records — click any card to inspect the evidence. These counts come straight from the analysis you can reproduce locally with <code>make demo-web</code>.</p>
       </div>
-      <div class="anom-grid">${sorted.map(anomalyCard).join("")}</div>
+      <div class="anom-grid">${sorted.map(a=>anomalyCard(a,maxCount)).join("")}</div>
     </div></section>`;
   }
 
   function crossSection(d) {
-    const c = d.cross_system;
-    const rows = (c.examples || []).map(e => `
-      <div class="cross ${esc(e.severity)}">
+    const c = d.cross_system, mr = c.match_rate_pct;
+    const rows = (c.examples||[]).map(e=>`
+      <div class="cross ${esc(e.severity)} reveal">
         <div class="ctype">${esc(e.type)}</div>
         <div class="cev">${esc(e.evidence)}</div>
-        <div class="clink">${esc(e.sfdc_id || "")}${e.sap_id ? " ↔ " + esc(e.sap_id) : ""}</div>
+        <div class="clink">${esc(e.sfdc_id||"")}${e.sap_id?" ↔ "+esc(e.sap_id):""}</div>
       </div>`).join("");
     return `
     <section class="block" id="cross"><div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head reveal">
         <div class="kicker">Correlation Layer</div>
-        <h3>Cross-System Correlation — SFDC ↔ SAP</h3>
-        <p>The CRM says one thing; the ERP says another. Entity resolution matches Salesforce opportunities to SAP sales orders, then flags the contradictions: timing gaps, amount discrepancies, sequence violations, and missing handoffs.</p>
+        <h3>The CRM says one thing. The ERP says another.</h3>
+        <p>Entity resolution matches Salesforce opportunities to SAP sales orders, then flags the contradictions: timing gaps, amount discrepancies, sequence violations, missing handoffs.</p>
       </div>
-      <div class="info-grid" style="margin-bottom:18px">
-        <div class="panel">
-          <h4>Match Coverage</h4>
+      <div class="xsys">
+        <div class="xdiagram reveal">${linkDiagram(c)}</div>
+        <div class="xpanel reveal">
+          <h4>Match coverage</h4>
           <div class="stat-row"><span class="k">SFDC opportunities</span><span class="v">${c.total_sfdc}</span></div>
           <div class="stat-row"><span class="k">SAP sales orders</span><span class="v">${c.total_sap}</span></div>
           <div class="stat-row"><span class="k">Matched pairs</span><span class="v">${c.matched_pairs}</span></div>
-          <div class="stat-row"><span class="k">Match rate</span><span class="v">${c.match_rate_pct}%</span></div>
+          <div class="stat-row"><span class="k">Match rate</span><span class="v" style="color:${mr<50?'var(--high)':'var(--low)'}">${mr}%</span></div>
           <div class="stat-row"><span class="k">Avg timing gap</span><span class="v">${c.avg_gap_days} days</span></div>
-        </div>
-        <div class="panel">
-          <h4>What low coverage means</h4>
-          <p style="color:var(--text-muted);font-size:13px">Only <b style="color:var(--text)">${c.match_rate_pct}%</b> of CRM opportunities trace to an SAP order. The rest closed in Salesforce with no corresponding ERP record — revenue booked in the pipeline that never became a fulfilled order. That gap is exactly where leakage and premature revenue recognition hide.</p>
+          <p style="color:var(--muted);font-size:13px;margin-top:14px">Only <b style="color:var(--text)">${mr}%</b> of CRM opportunities trace to an SAP order. The rest closed in Salesforce with no ERP record — revenue booked in the pipeline that never became a fulfilled order. That gap is exactly where leakage hides.</p>
         </div>
       </div>
       <div class="cross-list">${rows || '<div class="ev-none">No cross-system anomalies in this dataset.</div>'}</div>
     </div></section>`;
   }
 
+  function linkDiagram(c) {
+    const matched = c.matched_pairs, gap = c.total_sfdc - matched;
+    return `
+    <svg viewBox="0 0 440 260" width="100%" height="260" font-family="var(--mono)">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+      </defs>
+      <rect x="24" y="60" width="150" height="56" rx="12" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.5)"/>
+      <text x="99" y="84" fill="#cfe0ff" font-size="14" font-weight="700" text-anchor="middle">Salesforce</text>
+      <text x="99" y="103" fill="#7fa8e0" font-size="11" text-anchor="middle">${c.total_sfdc} opportunities</text>
+      <rect x="266" y="60" width="150" height="56" rx="12" fill="rgba(139,92,246,0.1)" stroke="rgba(139,92,246,0.5)"/>
+      <text x="341" y="84" fill="#e3d4ff" font-size="14" font-weight="700" text-anchor="middle">SAP ERP</text>
+      <text x="341" y="103" fill="#b79ce8" font-size="11" text-anchor="middle">${c.total_sap} sales orders</text>
+      <line x1="174" y1="88" x2="266" y2="88" stroke="url(#lg)" stroke-width="2.5" stroke-dasharray="6 6">
+        <animate attributeName="stroke-dashoffset" from="24" to="0" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <circle r="4" fill="#22d3ee"><animateMotion path="M174,88 L266,88" dur="1.6s" repeatCount="indefinite"/></circle>
+      <text x="220" y="78" fill="#22d3ee" font-size="11" text-anchor="middle">${matched} matched</text>
+      <g opacity="0.9">
+        <path d="M99,116 C99,180 99,180 99,196" stroke="rgba(255,138,61,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
+        <rect x="24" y="196" width="150" height="44" rx="10" fill="rgba(255,138,61,0.08)" stroke="rgba(255,138,61,0.4)"/>
+        <text x="99" y="214" fill="#ff8a3d" font-size="12" font-weight="700" text-anchor="middle">${gap} unmatched</text>
+        <text x="99" y="230" fill="#c97a45" font-size="10" text-anchor="middle">no ERP record</text>
+      </g>
+      <g>
+        <path d="M341,116 C341,150 220,150 220,150" stroke="rgba(255,77,77,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
+        <rect x="150" y="150" width="140" height="40" rx="10" fill="rgba(255,77,77,0.08)" stroke="rgba(255,77,77,0.4)"/>
+        <text x="220" y="168" fill="#ff4d4d" font-size="11.5" font-weight="700" text-anchor="middle">${c.anomaly_count} contradictions</text>
+        <text x="220" y="183" fill="#cc6060" font-size="10" text-anchor="middle">timing · amount · sequence</text>
+      </g>
+    </svg>`;
+  }
+
   function quarterSection(d) {
-    const q = d.quarter_end;
-    const max = Math.max(1, ...q.months.map(m => m.count));
-    const bars = q.months.map((m, i) => {
-      const h = Math.round((m.count / max) * 100);
-      return `<div class="qbar ${m.is_qtr_end ? "qend" : ""}">
-        <div class="vlbl">${m.count}</div>
-        <div class="fill" style="height:${h}%"></div>
-        <div class="mlbl">${MONTHS[i]}</div>
-      </div>`;
+    const q = d.quarter_end, max = Math.max(1, ...q.months.map(m=>m.count));
+    const bars = q.months.map((m,i)=>{
+      const h = Math.round((m.count/max)*100);
+      return `<div class="qbar ${m.is_qtr_end?"qend":""}"><div class="vlbl">${m.count}</div><div class="fill" data-h="${h}"></div><div class="mlbl">${MONTHS[i]}</div></div>`;
     }).join("");
     return `
     <section class="block"><div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head reveal">
         <div class="kicker">Behavioral Signal</div>
-        <h3>Quarter-End Compression</h3>
-        <p>When deals cluster into the last month of each quarter (Mar / Jun / Sep / Dec, highlighted), it is a classic signature of pipeline sandbagging and forecast gaming.</p>
+        <h3>Quarter-end compression</h3>
+        <p>When deals cluster into the last month of each quarter (Mar / Jun / Sep / Dec, highlighted), it's a classic signature of pipeline sandbagging and forecast gaming.</p>
       </div>
-      <div class="qbars">${bars}</div>
-      <div class="callout">
-        <b>${q.qtr_end_pct}%</b> of closed deals landed in a quarter-end month — <b>${q.ratio}×</b> the ${q.expected_pct}% you'd expect if closes were evenly distributed. ${q.qtr_end_count} of ${q.total_closed} closed opportunities.
-      </div>
+      <div class="qbars reveal">${bars}</div>
+      <div class="callout reveal"><b>${q.qtr_end_pct}%</b> of closed deals landed in a quarter-end month — <b>${q.ratio}×</b> the ${q.expected_pct}% you'd expect if closes were evenly distributed. ${q.qtr_end_count} of ${q.total_closed} closed opportunities.</div>
     </div></section>`;
   }
 
   function evidenceSection(d) {
-    const ex = (d.cross_system.examples || [])[0];
-    const a = (d.anomalies.find(x => (x.examples || []).length) || {});
-    const sample = (a.examples || [])[0] || {};
+    const ex = (d.cross_system.examples||[])[0] || {};
+    const a = d.anomalies.find(x=>(x.examples||[]).length) || {};
+    const sample = (a.examples||[])[0] || {};
+    const ev = ex.evidence || "";
+    const closeD = (ev.match(/close \(([^)]+)\)/)||[])[1] || sample.close_date || "—";
+    const erdat = (ev.match(/erdat \(([^)]+)\)/)||[])[1] || "—";
+    const gap = (ev.match(/Gap of (\d+ days)/)||[])[1] || "—";
+    const id = sample.id || ex.sfdc_id || "006…";
+    const script =
+`<span class="t-dim">$ forensics trace --finding CROSS_SYSTEM_GAP</span>
+<span class="t-dim">Finding:</span> <span class="t-warn">CROSS_SYSTEM_GAP</span> on Opportunity <span class="t-val">${esc(id)}</span>
+  <span class="t-dim">Evidence:</span>
+    <span class="t-sys">SFDC</span>.Opportunity.<span class="t-key">CloseDate</span> = <span class="t-val">${esc(closeD)}</span>
+    <span class="t-sys">SAP</span>.VBAK.<span class="t-key">ERDAT</span>       = <span class="t-val">${esc(erdat)}</span>
+    <span class="t-dim">Delta:</span> <span class="t-warn">${esc(gap)}</span>  <span class="t-dim">(CRM closed before the ERP order existed)</span>
+  <span class="t-dim">Provenance:</span>
+    Extraction Path : <span class="t-key">sfdc-o2c-opportunity v1.0</span>
+    Replay Hash     : <span class="t-key">sha256:${esc((id+"00000000").slice(-8))}…a7f3b2</span>
+  <span class="t-dim">State:</span> <span class="t-warn">CONFIRMED</span> <span class="t-dim">→ ready for reviewer handoff packet</span>`;
     return `
     <section class="block" id="evidence"><div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head reveal">
         <div class="kicker">Evidence Infrastructure</div>
-        <h3>Every Finding Is Traceable</h3>
-        <p>This is not a black box. Each finding carries field-level provenance — system, table, record, field, value, timestamp — plus a replay hash so a reviewer can verify it without ever touching the model. Below is the shape of one finding's evidence chain.</p>
+        <h3>Not a black box — every finding replays</h3>
+        <p>Each finding carries field-level provenance (system, table, record, field, value, timestamp) plus a replay hash, so a reviewer can verify it without ever touching the model.</p>
       </div>
-      <div class="chain">
-<span class="c-dim">Finding:</span> <span class="c-warn">CROSS_SYSTEM_GAP</span> on Opportunity <span class="c-val">${esc(sample.id || "006…")}</span>
-  <span class="c-dim">Evidence:</span>
-    <span class="c-sys">SFDC</span>.Opportunity.<span class="c-key">CloseDate</span>  = <span class="c-val">${esc((ex && ex.evidence && (ex.evidence.match(/close \(([^)]+)\)/) || [])[1]) || sample.close_date || "—")}</span>
-    <span class="c-sys">SAP</span>.VBAK.<span class="c-key">ERDAT</span>        = <span class="c-val">${esc((ex && ex.evidence && (ex.evidence.match(/erdat \(([^)]+)\)/) || [])[1]) || "—")}</span>
-    <span class="c-dim">Delta:</span> <span class="c-warn">${esc((ex && ex.evidence && (ex.evidence.match(/Gap of (\d+ days)/) || [])[1]) || "—")}</span>  <span class="c-dim">(SFDC closed before SAP order existed)</span>
-  <span class="c-dim">Provenance:</span>
-    Extraction Path : <span class="c-key">sfdc-o2c-opportunity v1.0</span>
-    Replay Hash     : <span class="c-key">sha256:${esc((sample.id || "0".repeat(16)).slice(-8))}…a7f3b2</span>
-  <span class="c-dim">State:</span> <span class="c-warn">CONFIRMED</span> <span class="c-dim">→ ready for reviewer handoff packet</span>
-      </div>
-    </div></section>`;
-  }
-
-  function conformanceSection(d) {
-    const c = d.conformance;
-    const devs = Object.entries(c.deviation_types || {}).sort((a, b) => b[1] - a[1]);
-    return `
-    <section class="block"><div class="wrap">
-      <div class="info-grid">
-        <div class="panel">
-          <h4>Conformance — New Business Pipeline</h4>
-          <div class="stat-row"><span class="k">Reference model</span><span class="v">${esc(c.model)}</span></div>
-          <div class="stat-row"><span class="k">Cases analyzed</span><span class="v">${c.total_cases}</span></div>
-          <div class="stat-row"><span class="k">Conformant</span><span class="v">${c.conformance_rate_pct}%</span></div>
-          <div class="stat-row"><span class="k">Average fitness</span><span class="v">${c.average_fitness}</span></div>
-          <div class="stat-row"><span class="k">Total deviations</span><span class="v">${c.total_deviations}</span></div>
-        </div>
-        <div class="panel">
-          <h4>Deviation Types</h4>
-          ${devs.length ? devs.map(([k, v]) =>
-            `<div class="stat-row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("")
-            : '<p style="color:var(--text-dim)">No critical deviations detected.</p>'}
-        </div>
+      <div class="term reveal">
+        <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>forensics — evidence chain</span></div>
+        <div class="term-body" data-script="${esc(script)}"></div>
       </div>
     </div></section>`;
   }
 
   function hero(d) {
-    const h = d.headline;
-    const ds = d.dataset;
+    const h = d.headline, ds = d.dataset;
     return `
     <div class="hero"><div class="wrap">
       <div class="eyebrow"><span class="dot"></span> Live findings · generated by the analysis pipeline</div>
       <h2>Find the anomalies your<br><span class="grad">rule engine can't see</span></h2>
-      <p class="lede">A read-only forensic pass over ${ds.opportunities} Salesforce opportunities and ${ds.sap_orders} linked SAP orders surfaced <b style="color:var(--text)">${h.anomaly_instances} anomaly instances</b> across <b style="color:var(--text)">${h.anomaly_categories} categories</b> — and <b style="color:var(--text)">${h.cross_system_anomalies}</b> contradictions between what CRM and ERP claim happened.</p>
+      <p class="lede">A read-only forensic pass over ${ds.opportunities} Salesforce opportunities and ${ds.sap_orders} linked SAP orders surfaced <b>${h.anomaly_instances} anomaly instances</b> across <b>${h.anomaly_categories} categories</b> — and <b>${h.cross_system_anomalies}</b> contradictions between what CRM and ERP claim happened.</p>
       <div class="badges">
         <span class="badge">🔒 <b>Read-only</b></span>
-        <span class="badge">🧪 Synthetic data · <b>seed ${ds.seed}</b></span>
-        <span class="badge">♻️ <b>Reproducible</b> — <code>make demo</code></span>
-        <span class="badge">⚖️ <b>MIT</b> licensed</span>
+        <span class="badge">🧪 Synthetic · <b>seed ${ds.seed}</b></span>
+        <span class="badge">♻️ <b>Reproducible</b> · <code>make demo-web</code></span>
+        <span class="badge">⚖️ <b>MIT</b></span>
       </div>
       ${kpis(d)}
     </div></div>`;
@@ -462,59 +564,75 @@
 
   function cta() {
     return `
-    <section class="block"><div class="wrap"><div class="cta">
+    <section class="block"><div class="wrap"><div class="cta reveal">
       <h3>Run this on your own machine in 60 seconds</h3>
       <p>No SAP access required. Synthetic data is generated deterministically (seed 42), analyzed, and rendered into the exact dashboard you're looking at — all locally, all read-only.</p>
-      <div class="code">
-        <span class="cm"># clone, then:</span><br>
-        make demo-web<br>
-        <span class="cm"># → generates data, runs forensics, opens this dashboard</span>
-      </div>
-      <p style="margin-top:22px">
-        <a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">Star on GitHub ↗</a>
-      </p>
+      <div class="code"><span class="cm"># clone, then:</span><br><span class="p">make</span> demo-web<br><span class="cm"># → generates data · runs forensics · opens this dashboard</span></div>
+      <p style="margin-top:24px"><a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">★ Star on GitHub ↗</a></p>
     </div></div></section>`;
+  }
+
+  function typeTerminal(el) {
+    const full = el.getAttribute("data-script");
+    el.removeAttribute("data-script");
+    const tmp = document.createElement("div"); tmp.innerHTML = full;
+    const nodes = Array.from(tmp.childNodes);
+    let i = 0;
+    const cur = document.createElement("span"); cur.className = "cursor"; cur.innerHTML = "&nbsp;";
+    el.appendChild(cur);
+    (function add(){
+      if (i >= nodes.length) { return; }
+      el.insertBefore(nodes[i].cloneNode(true), cur);
+      i++; setTimeout(add, nodes[i-1].textContent.length>1 ? 90 : 30);
+    })();
+  }
+
+  function activate(app) {
+    // count-up KPIs
+    app.querySelectorAll(".kpi .num").forEach(el=>{
+      animateCount(el, parseFloat(el.dataset.v), el.dataset.money==="true", el.dataset.pct==="true");
+    });
+    // reveals
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const el = e.target; el.classList.add("in");
+        el.querySelectorAll && el.querySelectorAll(".anom-bar i").forEach(b=>b.style.width=b.dataset.w+"%");
+        el.querySelectorAll && el.querySelectorAll(".qbar .fill").forEach(f=>f.style.height=f.dataset.h+"%");
+        const arc = el.querySelector && el.querySelector("#gaugeArc");
+        if(arc){ arc.style.strokeDashoffset = arc.dataset.off; const sc=el.querySelector(".score"); animateCount(sc, parseInt(sc.dataset.score),false,false); }
+        const term = el.querySelector && el.querySelector(".term-body[data-script]");
+        if(term) typeTerminal(term);
+        io.unobserve(el);
+      });
+    }, { threshold: 0.18 });
+    app.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+    // anomaly expand
+    app.querySelectorAll(".anom-top").forEach(t=>t.addEventListener("click",()=>t.closest(".anom").classList.toggle("open")));
   }
 
   function render(d) {
     const app = document.getElementById("app");
-    app.innerHTML =
-      hero(d) +
-      anomaliesSection(d) +
-      crossSection(d) +
-      quarterSection(d) +
-      evidenceSection(d) +
-      conformanceSection(d) +
-      cta(d);
-
-    // Expand/collapse anomaly cards
-    app.querySelectorAll(".anom-top").forEach(top => {
-      top.addEventListener("click", () => top.closest(".anom").classList.toggle("open"));
-    });
-    // Animate bars after paint
-    requestAnimationFrame(() => {
-      app.querySelectorAll(".qbar .fill").forEach(f => { f.style.height = f.style.height; });
-    });
-
-    // Footer
-    const foot = document.createElement("footer");
-    foot.className = "site";
-    foot.innerHTML = `<div class="wrap">Generated ${esc((d.generated_at || "").slice(0, 10))} · ${d.dataset.opportunities} opportunities · ${d.dataset.event_log_records} event-log records · seed ${d.dataset.seed}.
-      Built by <a href="https://github.com/chrbailey" target="_blank" rel="noopener">Christopher Bailey</a> · MIT License ·
-      <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">source</a></div>`;
+    app.innerHTML = hero(d) +
+      `<section class="block"><div class="wrap">${riskBand(d)}</div></section>` +
+      anomaliesSection(d) + crossSection(d) + quarterSection(d) + evidenceSection(d) + cta(d);
+    const foot = document.createElement("footer"); foot.className="site";
+    foot.innerHTML = `<div class="wrap">Generated ${esc((d.generated_at||"").slice(0,10))} · ${d.dataset.opportunities} opportunities · ${d.dataset.event_log_records} event-log records · seed ${d.dataset.seed}. Built by <a href="https://github.com/chrbailey" target="_blank" rel="noopener">Christopher Bailey</a> · MIT · <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">source</a></div>`;
     document.body.appendChild(foot);
+    activate(app);
   }
 
   function fail() {
-    document.getElementById("app").innerHTML = `
-      <div class="loading">
-        <p style="font-size:18px;color:var(--text)">Couldn't load findings data.</p>
-        <p style="margin-top:10px">If you opened this file directly, run <code>make demo-web</code> from the repo root,
-        or serve this folder with <code>python3 -m http.server</code> so the data file can load.</p>
-      </div>`;
+    document.getElementById("app").innerHTML =
+      `<div class="loading"><p style="font-size:18px;color:var(--text)">Couldn't load findings data.</p><p style="margin-top:10px">Run <code>make demo-web</code> from the repo root, or serve this folder with <code>python3 -m http.server</code>.</p></div>`;
+    document.getElementById("scan").classList.add("done");
   }
 
-  getData().then(d => { d ? render(d) : fail(); }).catch(fail);
+  try { startNetwork(); } catch(e){}
+  getData().then(d=>{
+    if(!d){ fail(); return; }
+    runScan(d, ()=>{ document.getElementById("scan").classList.add("done"); render(d); });
+  }).catch(fail);
 })();
 </script>
 </body>
