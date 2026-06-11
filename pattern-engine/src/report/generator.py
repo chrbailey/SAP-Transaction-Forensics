@@ -118,7 +118,7 @@ class ReportGenerator:
         lines.append("To reproduce this analysis:")
         lines.append("")
         lines.append("```bash")
-        lines.append(f"python -m pattern_engine run --seed {self.random_seed} \\")
+        lines.append(f"python -m src.main --seed {self.random_seed} run \\")
         lines.append("    --input-dir ./data --output-dir ./output")
         lines.append("```")
         lines.append("")

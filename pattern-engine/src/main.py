@@ -2,9 +2,9 @@
 Main CLI entry point for the Transaction Forensics Pattern Engine.
 
 Usage:
-    python -m pattern_engine ingest --input-dir ./data
-    python -m pattern_engine analyze --output-dir ./output
-    python -m pattern_engine report --format json|markdown
+    python -m src.main ingest --input-dir ./data
+    python -m src.main analyze --output-dir ./output
+    python -m src.main report --format json|markdown
 """
 
 import click
@@ -502,6 +502,7 @@ def run(ctx, input_dir: str, output_dir: str, output_format: str, mode: str, csv
             'seed': ctx.config['random_seed'],
             'mode': redaction_mode,
             'n_cards': len(pattern_cards),
+            'document_count': len(processed_docs),
         },
         'cards': [card.to_dict() for card in pattern_cards]
     }

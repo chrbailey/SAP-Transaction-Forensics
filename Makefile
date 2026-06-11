@@ -13,7 +13,8 @@
 #   make clean         Remove generated files
 
 .PHONY: all generate server analyze view clean docker-up docker-down docker-build \
-        docker-logs docker-ps help install-deps check-deps test lint format
+        docker-logs docker-ps help install-deps check-deps test lint format \
+        test-python test-node test-viewer
 
 # Default target
 .DEFAULT_GOAL := help
@@ -139,18 +140,12 @@ server-stop:
 ## analyze: Run pattern engine analysis
 analyze: check-python
 	@echo "$(BLUE)Running pattern analysis...$(NC)"
-	@mkdir -p $(OUTPUT_DIR)/reports $(OUTPUT_DIR)/patterns
+	@mkdir -p $(OUTPUT_DIR)
 	@cd $(PATTERN_ENGINE_DIR) && \
 		PYTHONPATH=$(PATTERN_ENGINE_DIR) \
-		$(PYTHON) -m pattern_engine analyze \
+		$(PYTHON) -m src.main run \
 			--input-dir $(SYNTHETIC_DATA_DIR)/sample_output \
-			--output-dir $(OUTPUT_DIR) \
-		|| $(PYTHON) -c "\
-import json; \
-from pathlib import Path; \
-p = Path('$(OUTPUT_DIR)/reports/pattern_report.json'); \
-p.write_text(json.dumps({'status': 'placeholder', 'message': 'Implement pattern_engine.main for full functionality'}, indent=2)); \
-print('Created placeholder report')"
+			--output-dir $(OUTPUT_DIR)
 	@echo "$(GREEN)Analysis complete. Results in $(OUTPUT_DIR)$(NC)"
 
 ## view: Start results viewer
@@ -244,19 +239,25 @@ install-node-deps: check-node
 	@cd $(MCP_SERVER_DIR) && npm install
 
 ## test: Run all tests
-test: test-python test-node
+test: test-python test-node test-viewer
 	@echo "$(GREEN)All tests passed$(NC)"
 
 ## test-python: Run Python tests
 test-python: check-python
 	@echo "$(BLUE)Running Python tests...$(NC)"
-	@cd $(SYNTHETIC_DATA_DIR) && $(PYTHON) -m pytest tests/ -v || true
-	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) -m pytest tests/ -v || true
+	@cd $(SYNTHETIC_DATA_DIR) && $(PYTHON) -m pytest tests/ -v
+	@cd $(PATTERN_ENGINE_DIR) && $(PYTHON) -m pytest tests/ -v
+	@cd $(PROJECT_ROOT)/pattern-discovery && $(PYTHON) -m pytest tests/ -v
 
 ## test-node: Run Node.js tests
 test-node: check-node
 	@echo "$(BLUE)Running Node.js tests...$(NC)"
-	@cd $(MCP_SERVER_DIR) && npm test || true
+	@cd $(MCP_SERVER_DIR) && npm test
+
+## test-viewer: Run viewer tests
+test-viewer: check-node
+	@echo "$(BLUE)Running viewer tests...$(NC)"
+	@cd $(VIEWER_DIR) && npm test
 
 ## lint: Run linters
 lint: check-python

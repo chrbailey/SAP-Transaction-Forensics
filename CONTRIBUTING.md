@@ -34,7 +34,7 @@ Be respectful, professional, and constructive. We welcome contributors from all 
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js 18+ (for MCP Server)
+- Node.js 20-25 (for MCP Server)
 - Python 3.10+ (for Pattern Engine)
 - Optional: SAP NetWeaver RFC SDK (for RFC adapter)
 

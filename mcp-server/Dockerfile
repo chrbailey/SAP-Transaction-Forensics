@@ -1,11 +1,10 @@
 # SAP Workflow Mining - MCP Server
 # Node.js 20 base image for MCP protocol server
 
-FROM node:20-alpine
+FROM node:20-alpine AS build
 
 # Set environment variables
-ENV NODE_ENV=production \
-    PORT=3000
+ENV NODE_ENV=development
 
 # Set working directory
 WORKDIR /app
@@ -16,12 +15,8 @@ RUN apk add --no-cache python3 make g++
 # Copy package files first (for layer caching)
 COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm ci --only=production --ignore-scripts \
-    && npm cache clean --force
-
-# Install dev dependencies for building TypeScript
-RUN npm ci --only=development --ignore-scripts
+# Install the complete dependency graph needed to compile TypeScript.
+RUN npm ci
 
 # Copy TypeScript config and source
 COPY tsconfig.json ./
@@ -30,11 +25,21 @@ COPY src/ ./src/
 # Build TypeScript to JavaScript
 RUN npm run build
 
-# Remove dev dependencies after build
-RUN npm prune --production
+FROM node:20-alpine AS runtime
 
-# Remove build dependencies to reduce image size
-RUN apk del python3 make g++
+ENV NODE_ENV=production \
+    PORT=3000
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev \
+    && npm cache clean --force \
+    && apk del python3 make g++
+
+COPY --from=build /app/dist ./dist
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S appgroup \

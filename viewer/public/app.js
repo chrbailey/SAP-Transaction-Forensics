@@ -236,7 +236,9 @@ class PatternViewer {
 
             <div class="phrase-section">
                 <span class="phrase-label">Top Phrases:</span>
-                <span class="phrase-list">${(pattern.top_phrases || []).join(', ')}</span>
+                <span class="phrase-list">${(pattern.top_phrases || []).map(
+                    phrase => this.escapeHtml(phrase)
+                ).join(', ')}</span>
             </div>
 
             ${timing ? `
@@ -255,7 +257,9 @@ class PatternViewer {
 
             <div class="pattern-card-meta">
                 <span class="meta-item">
-                    <strong>Sales Orgs:</strong> ${(pattern.filters?.sales_orgs || []).join(', ') || 'All'}
+                    <strong>Sales Orgs:</strong> ${(pattern.filters?.sales_orgs || []).map(
+                        org => this.escapeHtml(org)
+                    ).join(', ') || 'All'}
                 </span>
             </div>
 
@@ -530,9 +534,13 @@ class PatternViewer {
                     <div class="detail-section-title">Applicable Filters</div>
                     <p style="font-size: 0.9rem;">
                         ${pattern.filters.sales_orgs ?
-                            `<strong>Sales Orgs:</strong> ${pattern.filters.sales_orgs.join(', ')}<br>` : ''}
+                            `<strong>Sales Orgs:</strong> ${pattern.filters.sales_orgs.map(
+                                org => this.escapeHtml(org)
+                            ).join(', ')}<br>` : ''}
                         ${pattern.filters.plants ?
-                            `<strong>Plants:</strong> ${pattern.filters.plants.join(', ')}` : ''}
+                            `<strong>Plants:</strong> ${pattern.filters.plants.map(
+                                plant => this.escapeHtml(plant)
+                            ).join(', ')}` : ''}
                     </p>
                 </div>
             `;
