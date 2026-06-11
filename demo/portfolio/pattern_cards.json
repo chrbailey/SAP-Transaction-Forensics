@@ -1,0 +1,4234 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-26T09:21:01.140849",
+    "author": "Christopher Bailey",
+    "engine": "Transaction Forensics Pattern Engine v3.0",
+    "source": "Salesforce/HERB",
+    "source_url": "https://huggingface.co/datasets/Salesforce/HERB",
+    "license": "CC-BY-NC-4.0",
+    "products_analyzed": [
+      "ActionGenie",
+      "AnomalyForce",
+      "AutoTuneForce",
+      "CoachForce",
+      "CollaborateForce",
+      "CollaborationForce",
+      "ConnectForce",
+      "ContentForce",
+      "ContextForce",
+      "EdgeForce",
+      "ExplainabilityForce",
+      "FeedbackForce",
+      "FlowForce",
+      "ForecastForce",
+      "InsightForce",
+      "KnowledgeForce",
+      "LeadForce",
+      "MonitorForce",
+      "PersonalizeForce",
+      "PitchForce",
+      "ProposalForce",
+      "SearchFlow",
+      "SearchForce",
+      "SecurityForce",
+      "SentimentForce",
+      "SummarizeForce",
+      "SupportForce",
+      "TrendForce",
+      "VizForce",
+      "WorkFlowGenie"
+    ],
+    "total_messages_scanned": 32781,
+    "total_documents_scanned": 400,
+    "total_transcripts_scanned": 321,
+    "total_prs_analyzed": 3562,
+    "total_customers": 120,
+    "total_team_members": 18
+  },
+  "pipeline": {
+    "version": "2.0",
+    "stages": [
+      {
+        "name": "Ingest",
+        "duration_seconds": 0.188,
+        "documents_loaded": 37064,
+        "sources": {
+          "slack": 32781,
+          "transcript": 321,
+          "document": 400,
+          "pull_request": 3562
+        },
+        "relational_joins": "employee_map, customer_map loaded for cross-referencing"
+      },
+      {
+        "name": "Normalize",
+        "description": "Text cleaning + 22 abbreviation expansions + URL/mention stripping"
+      },
+      {
+        "name": "Vectorize",
+        "method": "TF-IDF",
+        "features": 5000,
+        "ngram_range": [
+          1,
+          3
+        ],
+        "max_features": 5000
+      },
+      {
+        "name": "Cluster",
+        "method": "KMeans",
+        "optimal_k": 15,
+        "silhouette_score": 0.0278,
+        "k_scores": {
+          "8": 0.021,
+          "9": 0.0213,
+          "10": 0.0219,
+          "11": 0.0235,
+          "12": 0.0239,
+          "13": 0.0227,
+          "14": 0.0235,
+          "15": 0.0278,
+          "16": 0.0268
+        },
+        "per_cluster_silhouette": {
+          "3": 0.1882,
+          "10": 0.0993,
+          "6": -0.004,
+          "2": -0.0034,
+          "8": 0.0021,
+          "14": 0.0536,
+          "7": 0.0565,
+          "12": 0.0524,
+          "13": 0.0076,
+          "11": 0.0678,
+          "1": 0.1317,
+          "5": 0.1554,
+          "4": 0.0546,
+          "9": 0.4798,
+          "0": 0.1365
+        },
+        "duration_seconds": 22.22,
+        "cluster_sizes": {
+          "3": 891,
+          "10": 930,
+          "6": 12002,
+          "2": 5369,
+          "8": 5384,
+          "14": 1138,
+          "7": 1452,
+          "12": 888,
+          "13": 3951,
+          "11": 1800,
+          "1": 686,
+          "5": 802,
+          "4": 1226,
+          "9": 297,
+          "0": 248
+        }
+      },
+      {
+        "name": "Stabilize",
+        "method": "Bootstrap (10 runs, Jaccard similarity)",
+        "threshold": 0.5,
+        "stable_clusters": 11,
+        "pruned_clusters": 4,
+        "duration_seconds": 7.207
+      },
+      {
+        "name": "Measure",
+        "method": "Evidence-based scoring (NO keyword heuristics)",
+        "metrics_computed": [
+          "cross_team_entropy",
+          "source_diversity",
+          "no_reply_rate",
+          "author_gini",
+          "customer_density",
+          "temporal_span_days",
+          "reaction_rate"
+        ],
+        "severity_method": "Weighted metric combination (customer_density x cross_team, author_gini, no_reply_rate)",
+        "type_method": "Dominant metric signal (highest computed score wins)",
+        "patterns_surfaced": 11,
+        "patterns_pruned": 4,
+        "duration_seconds": 0.257
+      },
+      {
+        "name": "Network",
+        "method": "Communication graph (NetworkX), Louvain communities, centrality analysis",
+        "n_nodes": 521,
+        "n_edges": 8406,
+        "communities": 7,
+        "bridge_users": [
+          "slack_admin_bot",
+          "'eid_3b36c220'",
+          "eid_3adf7b8a",
+          "eid_8658e19",
+          "'eid_46e00bc4'"
+        ],
+        "density": 0.06205521925291599
+      },
+      {
+        "name": "Temporal",
+        "method": "Change-point detection (ruptures PELT, RBF kernel)",
+        "total_days": 549,
+        "change_points": 0,
+        "busiest_day": {
+          "date": "2026-10-08",
+          "count": 208
+        }
+      }
+    ],
+    "total_duration_seconds": 29.872,
+    "pruned_clusters": [
+      {
+        "cluster_id": 2,
+        "size": 5369,
+        "reason": "unstable (stability 45% < 50% threshold)",
+        "stability": 0.449
+      },
+      {
+        "cluster_id": 14,
+        "size": 1138,
+        "reason": "unstable (stability 47% < 50% threshold)",
+        "stability": 0.469
+      },
+      {
+        "cluster_id": 12,
+        "size": 888,
+        "reason": "unstable (stability 25% < 50% threshold)",
+        "stability": 0.253
+      },
+      {
+        "cluster_id": 0,
+        "size": 248,
+        "reason": "unstable (stability 7% < 50% threshold)",
+        "stability": 0.073
+      }
+    ],
+    "network": {
+      "n_nodes": 521,
+      "n_edges": 8406,
+      "n_communities": 7,
+      "graph_density": 0.06205521925291599,
+      "bridge_users": [
+        "slack_admin_bot",
+        "'eid_3b36c220'",
+        "eid_3adf7b8a",
+        "eid_8658e19",
+        "'eid_46e00bc4'"
+      ],
+      "isolated_products": [],
+      "duration_seconds": 1.9393,
+      "top_product_overlaps": {
+        "AnomalyForce|CollaborateForce": 69,
+        "AnomalyForce|VizForce": 61,
+        "CollaborateForce|VizForce": 61,
+        "SearchFlow|SummarizeForce": 52,
+        "ContentForce|ProposalForce": 51,
+        "AnomalyForce|InsightForce": 50,
+        "CollaborateForce|InsightForce": 50,
+        "ActionGenie|SearchFlow": 49,
+        "ForecastForce|VizForce": 49,
+        "InsightForce|VizForce": 49
+      }
+    },
+    "temporal": {
+      "daily_volume": [
+        {
+          "date": "2026-01-14",
+          "count": 2
+        },
+        {
+          "date": "2026-01-16",
+          "count": 12
+        },
+        {
+          "date": "2026-01-18",
+          "count": 13
+        },
+        {
+          "date": "2026-01-21",
+          "count": 16
+        },
+        {
+          "date": "2026-01-22",
+          "count": 2
+        },
+        {
+          "date": "2026-01-23",
+          "count": 12
+        },
+        {
+          "date": "2026-01-24",
+          "count": 1
+        },
+        {
+          "date": "2026-01-25",
+          "count": 1
+        },
+        {
+          "date": "2026-01-26",
+          "count": 19
+        },
+        {
+          "date": "2026-01-27",
+          "count": 10
+        },
+        {
+          "date": "2026-01-28",
+          "count": 16
+        },
+        {
+          "date": "2026-01-29",
+          "count": 50
+        },
+        {
+          "date": "2026-01-30",
+          "count": 32
+        },
+        {
+          "date": "2026-01-31",
+          "count": 3
+        },
+        {
+          "date": "2026-02-01",
+          "count": 51
+        },
+        {
+          "date": "2026-02-02",
+          "count": 1
+        },
+        {
+          "date": "2026-02-03",
+          "count": 15
+        },
+        {
+          "date": "2026-02-04",
+          "count": 1
+        },
+        {
+          "date": "2026-02-06",
+          "count": 10
+        },
+        {
+          "date": "2026-02-07",
+          "count": 31
+        },
+        {
+          "date": "2026-02-08",
+          "count": 10
+        },
+        {
+          "date": "2026-02-09",
+          "count": 15
+        },
+        {
+          "date": "2026-02-10",
+          "count": 30
+        },
+        {
+          "date": "2026-02-11",
+          "count": 23
+        },
+        {
+          "date": "2026-02-12",
+          "count": 1
+        },
+        {
+          "date": "2026-02-13",
+          "count": 14
+        },
+        {
+          "date": "2026-02-14",
+          "count": 29
+        },
+        {
+          "date": "2026-02-15",
+          "count": 3
+        },
+        {
+          "date": "2026-02-16",
+          "count": 2
+        },
+        {
+          "date": "2026-02-17",
+          "count": 38
+        },
+        {
+          "date": "2026-02-18",
+          "count": 31
+        },
+        {
+          "date": "2026-02-20",
+          "count": 3
+        },
+        {
+          "date": "2026-02-21",
+          "count": 14
+        },
+        {
+          "date": "2026-02-22",
+          "count": 30
+        },
+        {
+          "date": "2026-02-23",
+          "count": 28
+        },
+        {
+          "date": "2026-02-24",
+          "count": 2
+        },
+        {
+          "date": "2026-02-25",
+          "count": 15
+        },
+        {
+          "date": "2026-02-26",
+          "count": 1
+        },
+        {
+          "date": "2026-02-27",
+          "count": 29
+        },
+        {
+          "date": "2026-02-28",
+          "count": 6
+        },
+        {
+          "date": "2026-03-01",
+          "count": 49
+        },
+        {
+          "date": "2026-03-02",
+          "count": 11
+        },
+        {
+          "date": "2026-03-03",
+          "count": 18
+        },
+        {
+          "date": "2026-03-04",
+          "count": 65
+        },
+        {
+          "date": "2026-03-05",
+          "count": 14
+        },
+        {
+          "date": "2026-03-06",
+          "count": 16
+        },
+        {
+          "date": "2026-03-07",
+          "count": 33
+        },
+        {
+          "date": "2026-03-08",
+          "count": 23
+        },
+        {
+          "date": "2026-03-09",
+          "count": 27
+        },
+        {
+          "date": "2026-03-10",
+          "count": 27
+        },
+        {
+          "date": "2026-03-11",
+          "count": 2
+        },
+        {
+          "date": "2026-03-12",
+          "count": 47
+        },
+        {
+          "date": "2026-03-13",
+          "count": 26
+        },
+        {
+          "date": "2026-03-14",
+          "count": 77
+        },
+        {
+          "date": "2026-03-15",
+          "count": 35
+        },
+        {
+          "date": "2026-03-16",
+          "count": 72
+        },
+        {
+          "date": "2026-03-17",
+          "count": 5
+        },
+        {
+          "date": "2026-03-18",
+          "count": 19
+        },
+        {
+          "date": "2026-03-19",
+          "count": 12
+        },
+        {
+          "date": "2026-03-20",
+          "count": 45
+        },
+        {
+          "date": "2026-03-21",
+          "count": 45
+        },
+        {
+          "date": "2026-03-22",
+          "count": 59
+        },
+        {
+          "date": "2026-03-23",
+          "count": 49
+        },
+        {
+          "date": "2026-03-24",
+          "count": 71
+        },
+        {
+          "date": "2026-03-25",
+          "count": 45
+        },
+        {
+          "date": "2026-03-26",
+          "count": 41
+        },
+        {
+          "date": "2026-03-27",
+          "count": 55
+        },
+        {
+          "date": "2026-03-28",
+          "count": 50
+        },
+        {
+          "date": "2026-03-29",
+          "count": 91
+        },
+        {
+          "date": "2026-03-30",
+          "count": 85
+        },
+        {
+          "date": "2026-03-31",
+          "count": 100
+        },
+        {
+          "date": "2026-04-01",
+          "count": 92
+        },
+        {
+          "date": "2026-04-02",
+          "count": 90
+        },
+        {
+          "date": "2026-04-03",
+          "count": 77
+        },
+        {
+          "date": "2026-04-04",
+          "count": 41
+        },
+        {
+          "date": "2026-04-05",
+          "count": 82
+        },
+        {
+          "date": "2026-04-06",
+          "count": 82
+        },
+        {
+          "date": "2026-04-07",
+          "count": 83
+        },
+        {
+          "date": "2026-04-08",
+          "count": 81
+        },
+        {
+          "date": "2026-04-09",
+          "count": 70
+        },
+        {
+          "date": "2026-04-10",
+          "count": 71
+        },
+        {
+          "date": "2026-04-11",
+          "count": 106
+        },
+        {
+          "date": "2026-04-12",
+          "count": 74
+        },
+        {
+          "date": "2026-04-13",
+          "count": 56
+        },
+        {
+          "date": "2026-04-14",
+          "count": 21
+        },
+        {
+          "date": "2026-04-15",
+          "count": 45
+        },
+        {
+          "date": "2026-04-16",
+          "count": 100
+        },
+        {
+          "date": "2026-04-17",
+          "count": 78
+        },
+        {
+          "date": "2026-04-18",
+          "count": 28
+        },
+        {
+          "date": "2026-04-19",
+          "count": 64
+        },
+        {
+          "date": "2026-04-20",
+          "count": 94
+        },
+        {
+          "date": "2026-04-21",
+          "count": 80
+        },
+        {
+          "date": "2026-04-22",
+          "count": 90
+        },
+        {
+          "date": "2026-04-23",
+          "count": 40
+        },
+        {
+          "date": "2026-04-24",
+          "count": 85
+        },
+        {
+          "date": "2026-04-25",
+          "count": 101
+        },
+        {
+          "date": "2026-04-26",
+          "count": 30
+        },
+        {
+          "date": "2026-04-27",
+          "count": 97
+        },
+        {
+          "date": "2026-04-28",
+          "count": 82
+        },
+        {
+          "date": "2026-04-29",
+          "count": 63
+        },
+        {
+          "date": "2026-04-30",
+          "count": 50
+        },
+        {
+          "date": "2026-05-01",
+          "count": 53
+        },
+        {
+          "date": "2026-05-02",
+          "count": 116
+        },
+        {
+          "date": "2026-05-03",
+          "count": 105
+        },
+        {
+          "date": "2026-05-04",
+          "count": 134
+        },
+        {
+          "date": "2026-05-05",
+          "count": 104
+        },
+        {
+          "date": "2026-05-06",
+          "count": 40
+        },
+        {
+          "date": "2026-05-07",
+          "count": 63
+        },
+        {
+          "date": "2026-05-08",
+          "count": 137
+        },
+        {
+          "date": "2026-05-09",
+          "count": 95
+        },
+        {
+          "date": "2026-05-10",
+          "count": 43
+        },
+        {
+          "date": "2026-05-11",
+          "count": 110
+        },
+        {
+          "date": "2026-05-12",
+          "count": 69
+        },
+        {
+          "date": "2026-05-13",
+          "count": 59
+        },
+        {
+          "date": "2026-05-14",
+          "count": 139
+        },
+        {
+          "date": "2026-05-15",
+          "count": 105
+        },
+        {
+          "date": "2026-05-16",
+          "count": 49
+        },
+        {
+          "date": "2026-05-17",
+          "count": 73
+        },
+        {
+          "date": "2026-05-18",
+          "count": 51
+        },
+        {
+          "date": "2026-05-19",
+          "count": 82
+        },
+        {
+          "date": "2026-05-20",
+          "count": 142
+        },
+        {
+          "date": "2026-05-21",
+          "count": 62
+        },
+        {
+          "date": "2026-05-22",
+          "count": 103
+        },
+        {
+          "date": "2026-05-23",
+          "count": 113
+        },
+        {
+          "date": "2026-05-24",
+          "count": 90
+        },
+        {
+          "date": "2026-05-25",
+          "count": 146
+        },
+        {
+          "date": "2026-05-26",
+          "count": 125
+        },
+        {
+          "date": "2026-05-27",
+          "count": 136
+        },
+        {
+          "date": "2026-05-28",
+          "count": 60
+        },
+        {
+          "date": "2026-05-29",
+          "count": 107
+        },
+        {
+          "date": "2026-05-30",
+          "count": 94
+        },
+        {
+          "date": "2026-05-31",
+          "count": 51
+        },
+        {
+          "date": "2026-06-01",
+          "count": 100
+        },
+        {
+          "date": "2026-06-02",
+          "count": 104
+        },
+        {
+          "date": "2026-06-03",
+          "count": 76
+        },
+        {
+          "date": "2026-06-04",
+          "count": 59
+        },
+        {
+          "date": "2026-06-05",
+          "count": 85
+        },
+        {
+          "date": "2026-06-06",
+          "count": 88
+        },
+        {
+          "date": "2026-06-07",
+          "count": 87
+        },
+        {
+          "date": "2026-06-08",
+          "count": 84
+        },
+        {
+          "date": "2026-06-09",
+          "count": 59
+        },
+        {
+          "date": "2026-06-10",
+          "count": 66
+        },
+        {
+          "date": "2026-06-11",
+          "count": 91
+        },
+        {
+          "date": "2026-06-12",
+          "count": 65
+        },
+        {
+          "date": "2026-06-13",
+          "count": 170
+        },
+        {
+          "date": "2026-06-14",
+          "count": 37
+        },
+        {
+          "date": "2026-06-15",
+          "count": 53
+        },
+        {
+          "date": "2026-06-16",
+          "count": 72
+        },
+        {
+          "date": "2026-06-17",
+          "count": 139
+        },
+        {
+          "date": "2026-06-18",
+          "count": 170
+        },
+        {
+          "date": "2026-06-19",
+          "count": 83
+        },
+        {
+          "date": "2026-06-20",
+          "count": 122
+        },
+        {
+          "date": "2026-06-21",
+          "count": 104
+        },
+        {
+          "date": "2026-06-22",
+          "count": 178
+        },
+        {
+          "date": "2026-06-23",
+          "count": 130
+        },
+        {
+          "date": "2026-06-24",
+          "count": 110
+        },
+        {
+          "date": "2026-06-25",
+          "count": 66
+        },
+        {
+          "date": "2026-06-26",
+          "count": 92
+        },
+        {
+          "date": "2026-06-27",
+          "count": 112
+        },
+        {
+          "date": "2026-06-28",
+          "count": 98
+        },
+        {
+          "date": "2026-06-29",
+          "count": 185
+        },
+        {
+          "date": "2026-06-30",
+          "count": 61
+        },
+        {
+          "date": "2026-07-01",
+          "count": 116
+        },
+        {
+          "date": "2026-07-02",
+          "count": 140
+        },
+        {
+          "date": "2026-07-03",
+          "count": 69
+        },
+        {
+          "date": "2026-07-04",
+          "count": 109
+        },
+        {
+          "date": "2026-07-05",
+          "count": 167
+        },
+        {
+          "date": "2026-07-06",
+          "count": 72
+        },
+        {
+          "date": "2026-07-07",
+          "count": 155
+        },
+        {
+          "date": "2026-07-08",
+          "count": 174
+        },
+        {
+          "date": "2026-07-09",
+          "count": 51
+        },
+        {
+          "date": "2026-07-10",
+          "count": 168
+        },
+        {
+          "date": "2026-07-11",
+          "count": 146
+        },
+        {
+          "date": "2026-07-12",
+          "count": 91
+        },
+        {
+          "date": "2026-07-13",
+          "count": 129
+        },
+        {
+          "date": "2026-07-14",
+          "count": 116
+        },
+        {
+          "date": "2026-07-15",
+          "count": 109
+        },
+        {
+          "date": "2026-07-16",
+          "count": 119
+        },
+        {
+          "date": "2026-07-17",
+          "count": 104
+        },
+        {
+          "date": "2026-07-18",
+          "count": 100
+        },
+        {
+          "date": "2026-07-19",
+          "count": 87
+        },
+        {
+          "date": "2026-07-20",
+          "count": 114
+        },
+        {
+          "date": "2026-07-21",
+          "count": 118
+        },
+        {
+          "date": "2026-07-22",
+          "count": 77
+        },
+        {
+          "date": "2026-07-23",
+          "count": 106
+        },
+        {
+          "date": "2026-07-24",
+          "count": 91
+        },
+        {
+          "date": "2026-07-25",
+          "count": 143
+        },
+        {
+          "date": "2026-07-26",
+          "count": 70
+        },
+        {
+          "date": "2026-07-27",
+          "count": 125
+        },
+        {
+          "date": "2026-07-28",
+          "count": 103
+        },
+        {
+          "date": "2026-07-29",
+          "count": 121
+        },
+        {
+          "date": "2026-07-30",
+          "count": 133
+        },
+        {
+          "date": "2026-07-31",
+          "count": 58
+        },
+        {
+          "date": "2026-08-01",
+          "count": 82
+        },
+        {
+          "date": "2026-08-02",
+          "count": 107
+        },
+        {
+          "date": "2026-08-03",
+          "count": 123
+        },
+        {
+          "date": "2026-08-04",
+          "count": 89
+        },
+        {
+          "date": "2026-08-05",
+          "count": 115
+        },
+        {
+          "date": "2026-08-06",
+          "count": 114
+        },
+        {
+          "date": "2026-08-07",
+          "count": 64
+        },
+        {
+          "date": "2026-08-08",
+          "count": 85
+        },
+        {
+          "date": "2026-08-09",
+          "count": 81
+        },
+        {
+          "date": "2026-08-10",
+          "count": 83
+        },
+        {
+          "date": "2026-08-11",
+          "count": 75
+        },
+        {
+          "date": "2026-08-12",
+          "count": 116
+        },
+        {
+          "date": "2026-08-13",
+          "count": 108
+        },
+        {
+          "date": "2026-08-14",
+          "count": 76
+        },
+        {
+          "date": "2026-08-15",
+          "count": 68
+        },
+        {
+          "date": "2026-08-16",
+          "count": 75
+        },
+        {
+          "date": "2026-08-17",
+          "count": 97
+        },
+        {
+          "date": "2026-08-18",
+          "count": 88
+        },
+        {
+          "date": "2026-08-19",
+          "count": 126
+        },
+        {
+          "date": "2026-08-20",
+          "count": 78
+        },
+        {
+          "date": "2026-08-21",
+          "count": 121
+        },
+        {
+          "date": "2026-08-22",
+          "count": 101
+        },
+        {
+          "date": "2026-08-23",
+          "count": 108
+        },
+        {
+          "date": "2026-08-24",
+          "count": 115
+        },
+        {
+          "date": "2026-08-25",
+          "count": 102
+        },
+        {
+          "date": "2026-08-26",
+          "count": 135
+        },
+        {
+          "date": "2026-08-27",
+          "count": 129
+        },
+        {
+          "date": "2026-08-28",
+          "count": 146
+        },
+        {
+          "date": "2026-08-29",
+          "count": 121
+        },
+        {
+          "date": "2026-08-30",
+          "count": 144
+        },
+        {
+          "date": "2026-08-31",
+          "count": 107
+        },
+        {
+          "date": "2026-09-01",
+          "count": 169
+        },
+        {
+          "date": "2026-09-02",
+          "count": 141
+        },
+        {
+          "date": "2026-09-03",
+          "count": 124
+        },
+        {
+          "date": "2026-09-04",
+          "count": 169
+        },
+        {
+          "date": "2026-09-05",
+          "count": 128
+        },
+        {
+          "date": "2026-09-06",
+          "count": 86
+        },
+        {
+          "date": "2026-09-07",
+          "count": 123
+        },
+        {
+          "date": "2026-09-08",
+          "count": 181
+        },
+        {
+          "date": "2026-09-09",
+          "count": 93
+        },
+        {
+          "date": "2026-09-10",
+          "count": 158
+        },
+        {
+          "date": "2026-09-11",
+          "count": 64
+        },
+        {
+          "date": "2026-09-12",
+          "count": 147
+        },
+        {
+          "date": "2026-09-13",
+          "count": 62
+        },
+        {
+          "date": "2026-09-14",
+          "count": 180
+        },
+        {
+          "date": "2026-09-15",
+          "count": 151
+        },
+        {
+          "date": "2026-09-16",
+          "count": 122
+        },
+        {
+          "date": "2026-09-17",
+          "count": 103
+        },
+        {
+          "date": "2026-09-18",
+          "count": 116
+        },
+        {
+          "date": "2026-09-19",
+          "count": 131
+        },
+        {
+          "date": "2026-09-20",
+          "count": 87
+        },
+        {
+          "date": "2026-09-21",
+          "count": 110
+        },
+        {
+          "date": "2026-09-22",
+          "count": 102
+        },
+        {
+          "date": "2026-09-23",
+          "count": 104
+        },
+        {
+          "date": "2026-09-24",
+          "count": 142
+        },
+        {
+          "date": "2026-09-25",
+          "count": 118
+        },
+        {
+          "date": "2026-09-26",
+          "count": 119
+        },
+        {
+          "date": "2026-09-27",
+          "count": 105
+        },
+        {
+          "date": "2026-09-28",
+          "count": 79
+        },
+        {
+          "date": "2026-09-29",
+          "count": 96
+        },
+        {
+          "date": "2026-09-30",
+          "count": 97
+        },
+        {
+          "date": "2026-10-01",
+          "count": 160
+        },
+        {
+          "date": "2026-10-02",
+          "count": 129
+        },
+        {
+          "date": "2026-10-03",
+          "count": 111
+        },
+        {
+          "date": "2026-10-04",
+          "count": 102
+        },
+        {
+          "date": "2026-10-05",
+          "count": 140
+        },
+        {
+          "date": "2026-10-06",
+          "count": 111
+        },
+        {
+          "date": "2026-10-07",
+          "count": 84
+        },
+        {
+          "date": "2026-10-08",
+          "count": 208
+        },
+        {
+          "date": "2026-10-09",
+          "count": 81
+        },
+        {
+          "date": "2026-10-10",
+          "count": 52
+        },
+        {
+          "date": "2026-10-11",
+          "count": 133
+        },
+        {
+          "date": "2026-10-12",
+          "count": 128
+        },
+        {
+          "date": "2026-10-13",
+          "count": 86
+        },
+        {
+          "date": "2026-10-14",
+          "count": 86
+        },
+        {
+          "date": "2026-10-15",
+          "count": 88
+        },
+        {
+          "date": "2026-10-16",
+          "count": 130
+        },
+        {
+          "date": "2026-10-17",
+          "count": 94
+        },
+        {
+          "date": "2026-10-18",
+          "count": 127
+        },
+        {
+          "date": "2026-10-19",
+          "count": 124
+        },
+        {
+          "date": "2026-10-20",
+          "count": 92
+        },
+        {
+          "date": "2026-10-21",
+          "count": 118
+        },
+        {
+          "date": "2026-10-22",
+          "count": 76
+        },
+        {
+          "date": "2026-10-23",
+          "count": 125
+        },
+        {
+          "date": "2026-10-24",
+          "count": 86
+        },
+        {
+          "date": "2026-10-25",
+          "count": 87
+        },
+        {
+          "date": "2026-10-26",
+          "count": 89
+        },
+        {
+          "date": "2026-10-27",
+          "count": 67
+        },
+        {
+          "date": "2026-10-28",
+          "count": 105
+        },
+        {
+          "date": "2026-10-29",
+          "count": 133
+        },
+        {
+          "date": "2026-10-30",
+          "count": 145
+        },
+        {
+          "date": "2026-10-31",
+          "count": 98
+        },
+        {
+          "date": "2026-11-01",
+          "count": 85
+        },
+        {
+          "date": "2026-11-02",
+          "count": 99
+        },
+        {
+          "date": "2026-11-03",
+          "count": 100
+        },
+        {
+          "date": "2026-11-04",
+          "count": 86
+        },
+        {
+          "date": "2026-11-05",
+          "count": 61
+        },
+        {
+          "date": "2026-11-06",
+          "count": 111
+        },
+        {
+          "date": "2026-11-07",
+          "count": 107
+        },
+        {
+          "date": "2026-11-08",
+          "count": 111
+        },
+        {
+          "date": "2026-11-09",
+          "count": 78
+        },
+        {
+          "date": "2026-11-10",
+          "count": 152
+        },
+        {
+          "date": "2026-11-11",
+          "count": 92
+        },
+        {
+          "date": "2026-11-12",
+          "count": 112
+        },
+        {
+          "date": "2026-11-13",
+          "count": 88
+        },
+        {
+          "date": "2026-11-14",
+          "count": 80
+        },
+        {
+          "date": "2026-11-15",
+          "count": 107
+        },
+        {
+          "date": "2026-11-16",
+          "count": 95
+        },
+        {
+          "date": "2026-11-17",
+          "count": 84
+        },
+        {
+          "date": "2026-11-18",
+          "count": 58
+        },
+        {
+          "date": "2026-11-19",
+          "count": 109
+        },
+        {
+          "date": "2026-11-20",
+          "count": 73
+        },
+        {
+          "date": "2026-11-21",
+          "count": 102
+        },
+        {
+          "date": "2026-11-22",
+          "count": 106
+        },
+        {
+          "date": "2026-11-23",
+          "count": 98
+        },
+        {
+          "date": "2026-11-24",
+          "count": 60
+        },
+        {
+          "date": "2026-11-25",
+          "count": 83
+        },
+        {
+          "date": "2026-11-26",
+          "count": 62
+        },
+        {
+          "date": "2026-11-27",
+          "count": 102
+        },
+        {
+          "date": "2026-11-28",
+          "count": 49
+        },
+        {
+          "date": "2026-11-29",
+          "count": 110
+        },
+        {
+          "date": "2026-11-30",
+          "count": 52
+        },
+        {
+          "date": "2026-12-01",
+          "count": 106
+        },
+        {
+          "date": "2026-12-02",
+          "count": 55
+        },
+        {
+          "date": "2026-12-03",
+          "count": 83
+        },
+        {
+          "date": "2026-12-04",
+          "count": 92
+        },
+        {
+          "date": "2026-12-05",
+          "count": 77
+        },
+        {
+          "date": "2026-12-06",
+          "count": 60
+        },
+        {
+          "date": "2026-12-07",
+          "count": 48
+        },
+        {
+          "date": "2026-12-08",
+          "count": 47
+        },
+        {
+          "date": "2026-12-09",
+          "count": 82
+        },
+        {
+          "date": "2026-12-10",
+          "count": 47
+        },
+        {
+          "date": "2026-12-11",
+          "count": 56
+        },
+        {
+          "date": "2026-12-12",
+          "count": 53
+        },
+        {
+          "date": "2026-12-13",
+          "count": 69
+        },
+        {
+          "date": "2026-12-14",
+          "count": 49
+        },
+        {
+          "date": "2026-12-15",
+          "count": 85
+        },
+        {
+          "date": "2026-12-16",
+          "count": 42
+        },
+        {
+          "date": "2026-12-17",
+          "count": 68
+        },
+        {
+          "date": "2026-12-18",
+          "count": 62
+        },
+        {
+          "date": "2026-12-19",
+          "count": 61
+        },
+        {
+          "date": "2026-12-20",
+          "count": 38
+        },
+        {
+          "date": "2026-12-21",
+          "count": 123
+        },
+        {
+          "date": "2026-12-22",
+          "count": 79
+        },
+        {
+          "date": "2026-12-23",
+          "count": 18
+        },
+        {
+          "date": "2026-12-24",
+          "count": 92
+        },
+        {
+          "date": "2026-12-25",
+          "count": 39
+        },
+        {
+          "date": "2026-12-26",
+          "count": 69
+        },
+        {
+          "date": "2026-12-27",
+          "count": 88
+        },
+        {
+          "date": "2026-12-28",
+          "count": 21
+        },
+        {
+          "date": "2026-12-29",
+          "count": 73
+        },
+        {
+          "date": "2026-12-30",
+          "count": 80
+        },
+        {
+          "date": "2026-12-31",
+          "count": 79
+        },
+        {
+          "date": "2027-01-01",
+          "count": 36
+        },
+        {
+          "date": "2027-01-02",
+          "count": 40
+        },
+        {
+          "date": "2027-01-03",
+          "count": 35
+        },
+        {
+          "date": "2027-01-04",
+          "count": 68
+        },
+        {
+          "date": "2027-01-05",
+          "count": 70
+        },
+        {
+          "date": "2027-01-06",
+          "count": 47
+        },
+        {
+          "date": "2027-01-07",
+          "count": 35
+        },
+        {
+          "date": "2027-01-08",
+          "count": 51
+        },
+        {
+          "date": "2027-01-09",
+          "count": 72
+        },
+        {
+          "date": "2027-01-10",
+          "count": 60
+        },
+        {
+          "date": "2027-01-11",
+          "count": 56
+        },
+        {
+          "date": "2027-01-12",
+          "count": 48
+        },
+        {
+          "date": "2027-01-13",
+          "count": 39
+        },
+        {
+          "date": "2027-01-14",
+          "count": 56
+        },
+        {
+          "date": "2027-01-15",
+          "count": 54
+        },
+        {
+          "date": "2027-01-16",
+          "count": 18
+        },
+        {
+          "date": "2027-01-17",
+          "count": 56
+        },
+        {
+          "date": "2027-01-18",
+          "count": 58
+        },
+        {
+          "date": "2027-01-19",
+          "count": 25
+        },
+        {
+          "date": "2027-01-20",
+          "count": 32
+        },
+        {
+          "date": "2027-01-21",
+          "count": 48
+        },
+        {
+          "date": "2027-01-22",
+          "count": 38
+        },
+        {
+          "date": "2027-01-23",
+          "count": 49
+        },
+        {
+          "date": "2027-01-24",
+          "count": 70
+        },
+        {
+          "date": "2027-01-25",
+          "count": 42
+        },
+        {
+          "date": "2027-01-26",
+          "count": 33
+        },
+        {
+          "date": "2027-01-27",
+          "count": 51
+        },
+        {
+          "date": "2027-01-28",
+          "count": 26
+        },
+        {
+          "date": "2027-01-29",
+          "count": 56
+        },
+        {
+          "date": "2027-01-30",
+          "count": 11
+        },
+        {
+          "date": "2027-01-31",
+          "count": 41
+        },
+        {
+          "date": "2027-02-01",
+          "count": 40
+        },
+        {
+          "date": "2027-02-02",
+          "count": 40
+        },
+        {
+          "date": "2027-02-03",
+          "count": 45
+        },
+        {
+          "date": "2027-02-04",
+          "count": 65
+        },
+        {
+          "date": "2027-02-05",
+          "count": 12
+        },
+        {
+          "date": "2027-02-06",
+          "count": 93
+        },
+        {
+          "date": "2027-02-07",
+          "count": 37
+        },
+        {
+          "date": "2027-02-08",
+          "count": 20
+        },
+        {
+          "date": "2027-02-09",
+          "count": 47
+        },
+        {
+          "date": "2027-02-10",
+          "count": 68
+        },
+        {
+          "date": "2027-02-11",
+          "count": 49
+        },
+        {
+          "date": "2027-02-12",
+          "count": 19
+        },
+        {
+          "date": "2027-02-13",
+          "count": 38
+        },
+        {
+          "date": "2027-02-14",
+          "count": 45
+        },
+        {
+          "date": "2027-02-15",
+          "count": 45
+        },
+        {
+          "date": "2027-02-16",
+          "count": 34
+        },
+        {
+          "date": "2027-02-17",
+          "count": 68
+        },
+        {
+          "date": "2027-02-18",
+          "count": 10
+        },
+        {
+          "date": "2027-02-19",
+          "count": 25
+        },
+        {
+          "date": "2027-02-20",
+          "count": 41
+        },
+        {
+          "date": "2027-02-21",
+          "count": 22
+        },
+        {
+          "date": "2027-02-22",
+          "count": 53
+        },
+        {
+          "date": "2027-02-23",
+          "count": 8
+        },
+        {
+          "date": "2027-02-24",
+          "count": 24
+        },
+        {
+          "date": "2027-02-25",
+          "count": 26
+        },
+        {
+          "date": "2027-02-26",
+          "count": 44
+        },
+        {
+          "date": "2027-02-27",
+          "count": 41
+        },
+        {
+          "date": "2027-02-28",
+          "count": 48
+        },
+        {
+          "date": "2027-03-01",
+          "count": 63
+        },
+        {
+          "date": "2027-03-02",
+          "count": 47
+        },
+        {
+          "date": "2027-03-03",
+          "count": 43
+        },
+        {
+          "date": "2027-03-04",
+          "count": 40
+        },
+        {
+          "date": "2027-03-05",
+          "count": 26
+        },
+        {
+          "date": "2027-03-06",
+          "count": 28
+        },
+        {
+          "date": "2027-03-07",
+          "count": 41
+        },
+        {
+          "date": "2027-03-08",
+          "count": 53
+        },
+        {
+          "date": "2027-03-09",
+          "count": 34
+        },
+        {
+          "date": "2027-03-10",
+          "count": 19
+        },
+        {
+          "date": "2027-03-11",
+          "count": 14
+        },
+        {
+          "date": "2027-03-12",
+          "count": 33
+        },
+        {
+          "date": "2027-03-13",
+          "count": 19
+        },
+        {
+          "date": "2027-03-14",
+          "count": 9
+        },
+        {
+          "date": "2027-03-15",
+          "count": 59
+        },
+        {
+          "date": "2027-03-16",
+          "count": 11
+        },
+        {
+          "date": "2027-03-17",
+          "count": 30
+        },
+        {
+          "date": "2027-03-18",
+          "count": 31
+        },
+        {
+          "date": "2027-03-19",
+          "count": 16
+        },
+        {
+          "date": "2027-03-20",
+          "count": 18
+        },
+        {
+          "date": "2027-03-21",
+          "count": 19
+        },
+        {
+          "date": "2027-03-22",
+          "count": 22
+        },
+        {
+          "date": "2027-03-23",
+          "count": 37
+        },
+        {
+          "date": "2027-03-24",
+          "count": 11
+        },
+        {
+          "date": "2027-03-25",
+          "count": 27
+        },
+        {
+          "date": "2027-03-26",
+          "count": 19
+        },
+        {
+          "date": "2027-03-27",
+          "count": 32
+        },
+        {
+          "date": "2027-03-28",
+          "count": 24
+        },
+        {
+          "date": "2027-03-29",
+          "count": 17
+        },
+        {
+          "date": "2027-03-30",
+          "count": 41
+        },
+        {
+          "date": "2027-03-31",
+          "count": 9
+        },
+        {
+          "date": "2027-04-01",
+          "count": 32
+        },
+        {
+          "date": "2027-04-02",
+          "count": 26
+        },
+        {
+          "date": "2027-04-04",
+          "count": 27
+        },
+        {
+          "date": "2027-04-05",
+          "count": 19
+        },
+        {
+          "date": "2027-04-06",
+          "count": 12
+        },
+        {
+          "date": "2027-04-07",
+          "count": 27
+        },
+        {
+          "date": "2027-04-08",
+          "count": 11
+        },
+        {
+          "date": "2027-04-09",
+          "count": 41
+        },
+        {
+          "date": "2027-04-10",
+          "count": 1
+        },
+        {
+          "date": "2027-04-11",
+          "count": 24
+        },
+        {
+          "date": "2027-04-12",
+          "count": 21
+        },
+        {
+          "date": "2027-04-13",
+          "count": 11
+        },
+        {
+          "date": "2027-04-14",
+          "count": 9
+        },
+        {
+          "date": "2027-04-15",
+          "count": 30
+        },
+        {
+          "date": "2027-04-18",
+          "count": 21
+        },
+        {
+          "date": "2027-04-19",
+          "count": 9
+        },
+        {
+          "date": "2027-04-20",
+          "count": 21
+        },
+        {
+          "date": "2027-04-22",
+          "count": 13
+        },
+        {
+          "date": "2027-04-23",
+          "count": 19
+        },
+        {
+          "date": "2027-04-24",
+          "count": 7
+        },
+        {
+          "date": "2027-04-26",
+          "count": 8
+        },
+        {
+          "date": "2027-04-27",
+          "count": 9
+        },
+        {
+          "date": "2027-04-28",
+          "count": 11
+        },
+        {
+          "date": "2027-04-29",
+          "count": 10
+        },
+        {
+          "date": "2027-04-30",
+          "count": 7
+        },
+        {
+          "date": "2027-05-01",
+          "count": 8
+        },
+        {
+          "date": "2027-05-02",
+          "count": 16
+        },
+        {
+          "date": "2027-05-05",
+          "count": 20
+        },
+        {
+          "date": "2027-05-06",
+          "count": 7
+        },
+        {
+          "date": "2027-05-07",
+          "count": 12
+        },
+        {
+          "date": "2027-05-08",
+          "count": 19
+        },
+        {
+          "date": "2027-05-11",
+          "count": 12
+        },
+        {
+          "date": "2027-05-12",
+          "count": 20
+        },
+        {
+          "date": "2027-05-13",
+          "count": 14
+        },
+        {
+          "date": "2027-05-15",
+          "count": 18
+        },
+        {
+          "date": "2027-05-17",
+          "count": 11
+        },
+        {
+          "date": "2027-05-19",
+          "count": 20
+        },
+        {
+          "date": "2027-05-22",
+          "count": 20
+        },
+        {
+          "date": "2027-05-23",
+          "count": 8
+        },
+        {
+          "date": "2027-05-24",
+          "count": 15
+        },
+        {
+          "date": "2027-05-25",
+          "count": 7
+        },
+        {
+          "date": "2027-05-26",
+          "count": 19
+        },
+        {
+          "date": "2027-05-29",
+          "count": 21
+        },
+        {
+          "date": "2027-05-30",
+          "count": 18
+        },
+        {
+          "date": "2027-06-01",
+          "count": 23
+        },
+        {
+          "date": "2027-06-02",
+          "count": 11
+        },
+        {
+          "date": "2027-06-03",
+          "count": 11
+        },
+        {
+          "date": "2027-06-05",
+          "count": 20
+        },
+        {
+          "date": "2027-06-06",
+          "count": 34
+        },
+        {
+          "date": "2027-06-07",
+          "count": 1
+        },
+        {
+          "date": "2027-06-08",
+          "count": 11
+        },
+        {
+          "date": "2027-06-09",
+          "count": 20
+        },
+        {
+          "date": "2027-06-14",
+          "count": 10
+        },
+        {
+          "date": "2027-06-15",
+          "count": 9
+        },
+        {
+          "date": "2027-06-16",
+          "count": 7
+        },
+        {
+          "date": "2027-06-17",
+          "count": 10
+        },
+        {
+          "date": "2027-06-18",
+          "count": 10
+        },
+        {
+          "date": "2027-06-19",
+          "count": 21
+        },
+        {
+          "date": "2027-06-20",
+          "count": 16
+        },
+        {
+          "date": "2027-06-24",
+          "count": 10
+        },
+        {
+          "date": "2027-06-25",
+          "count": 11
+        },
+        {
+          "date": "2027-06-27",
+          "count": 11
+        },
+        {
+          "date": "2027-06-28",
+          "count": 7
+        },
+        {
+          "date": "2027-06-29",
+          "count": 8
+        },
+        {
+          "date": "2027-06-30",
+          "count": 9
+        },
+        {
+          "date": "2027-07-04",
+          "count": 9
+        },
+        {
+          "date": "2027-07-05",
+          "count": 6
+        },
+        {
+          "date": "2027-07-06",
+          "count": 7
+        },
+        {
+          "date": "2027-07-08",
+          "count": 1
+        },
+        {
+          "date": "2027-07-09",
+          "count": 11
+        },
+        {
+          "date": "2027-07-10",
+          "count": 11
+        },
+        {
+          "date": "2027-07-11",
+          "count": 8
+        },
+        {
+          "date": "2027-07-14",
+          "count": 12
+        },
+        {
+          "date": "2027-07-16",
+          "count": 9
+        }
+      ],
+      "change_points": [],
+      "per_product_trends": {
+        "MonitorForce": {
+          "total": 894,
+          "daily_avg": 1.63,
+          "peak_day": "2026-01-29",
+          "trend": "decreasing"
+        },
+        "WorkFlowGenie": {
+          "total": 1072,
+          "daily_avg": 1.95,
+          "peak_day": "2026-02-10",
+          "trend": "decreasing"
+        },
+        "ConnectForce": {
+          "total": 977,
+          "daily_avg": 1.78,
+          "peak_day": "2026-05-08",
+          "trend": "decreasing"
+        },
+        "SearchFlow": {
+          "total": 1235,
+          "daily_avg": 2.25,
+          "peak_day": "2026-05-04",
+          "trend": "decreasing"
+        },
+        "ContentForce": {
+          "total": 1066,
+          "daily_avg": 1.94,
+          "peak_day": "2026-03-04",
+          "trend": "decreasing"
+        },
+        "InsightForce": {
+          "total": 1262,
+          "daily_avg": 2.3,
+          "peak_day": "2026-03-04",
+          "trend": "decreasing"
+        },
+        "TrendForce": {
+          "total": 1011,
+          "daily_avg": 1.84,
+          "peak_day": "2026-03-16",
+          "trend": "decreasing"
+        },
+        "SupportForce": {
+          "total": 925,
+          "daily_avg": 1.68,
+          "peak_day": "2026-03-24",
+          "trend": "decreasing"
+        },
+        "ForecastForce": {
+          "total": 1079,
+          "daily_avg": 1.97,
+          "peak_day": "2026-04-10",
+          "trend": "decreasing"
+        },
+        "LeadForce": {
+          "total": 1243,
+          "daily_avg": 2.26,
+          "peak_day": "2026-04-09",
+          "trend": "decreasing"
+        },
+        "VizForce": {
+          "total": 1371,
+          "daily_avg": 2.5,
+          "peak_day": "2026-06-13",
+          "trend": "decreasing"
+        },
+        "SentimentForce": {
+          "total": 1136,
+          "daily_avg": 2.07,
+          "peak_day": "2026-04-02",
+          "trend": "decreasing"
+        },
+        "CoachForce": {
+          "total": 1111,
+          "daily_avg": 2.02,
+          "peak_day": "2026-10-01",
+          "trend": "decreasing"
+        },
+        "FlowForce": {
+          "total": 877,
+          "daily_avg": 1.6,
+          "peak_day": "2026-04-24",
+          "trend": "decreasing"
+        },
+        "SecurityForce": {
+          "total": 1072,
+          "daily_avg": 1.95,
+          "peak_day": "2026-04-24",
+          "trend": "decreasing"
+        },
+        "FeedbackForce": {
+          "total": 998,
+          "daily_avg": 1.82,
+          "peak_day": "2026-06-30",
+          "trend": "decreasing"
+        },
+        "AnomalyForce": {
+          "total": 925,
+          "daily_avg": 1.68,
+          "peak_day": "2026-05-04",
+          "trend": "decreasing"
+        },
+        "PersonalizeForce": {
+          "total": 964,
+          "daily_avg": 1.76,
+          "peak_day": "2026-05-23",
+          "trend": "decreasing"
+        },
+        "ExplainabilityForce": {
+          "total": 1276,
+          "daily_avg": 2.32,
+          "peak_day": "2026-10-08",
+          "trend": "stable"
+        },
+        "KnowledgeForce": {
+          "total": 1113,
+          "daily_avg": 2.03,
+          "peak_day": "2026-05-30",
+          "trend": "decreasing"
+        },
+        "CollaborateForce": {
+          "total": 1491,
+          "daily_avg": 2.72,
+          "peak_day": "2026-06-02",
+          "trend": "stable"
+        },
+        "ActionGenie": {
+          "total": 1047,
+          "daily_avg": 1.91,
+          "peak_day": "2026-10-30",
+          "trend": "stable"
+        },
+        "AutoTuneForce": {
+          "total": 1136,
+          "daily_avg": 2.07,
+          "peak_day": "2026-06-29",
+          "trend": "decreasing"
+        },
+        "CollaborationForce": {
+          "total": 844,
+          "daily_avg": 1.54,
+          "peak_day": "2026-06-22",
+          "trend": "decreasing"
+        },
+        "PitchForce": {
+          "total": 1187,
+          "daily_avg": 2.16,
+          "peak_day": "2026-07-08",
+          "trend": "stable"
+        },
+        "EdgeForce": {
+          "total": 975,
+          "daily_avg": 1.78,
+          "peak_day": "2026-08-27",
+          "trend": "increasing"
+        },
+        "ContextForce": {
+          "total": 1022,
+          "daily_avg": 1.86,
+          "peak_day": "2026-09-17",
+          "trend": "increasing"
+        },
+        "SearchForce": {
+          "total": 1206,
+          "daily_avg": 2.2,
+          "peak_day": "2027-03-23",
+          "trend": "increasing"
+        },
+        "SummarizeForce": {
+          "total": 1190,
+          "daily_avg": 2.17,
+          "peak_day": "2026-09-27",
+          "trend": "increasing"
+        },
+        "ProposalForce": {
+          "total": 1076,
+          "daily_avg": 1.96,
+          "peak_day": "2026-12-21",
+          "trend": "increasing"
+        }
+      },
+      "activity_windows": {
+        "earliest": "2026-01-14",
+        "latest": "2027-07-16",
+        "total_days": 549,
+        "active_days": 510
+      },
+      "busiest_day": {
+        "date": "2026-10-08",
+        "count": 208
+      },
+      "quietest_day": {
+        "date": "2026-01-24",
+        "count": 1
+      },
+      "duration_seconds": 0.1468
+    }
+  },
+  "cards": [
+    {
+      "id": "PAT-C64B1E",
+      "title": "Programming / Programming Interface",
+      "description": "Cluster of 1,800 documents across 30 products. Cross-team entropy: 0.97. Author concentration (Gini): 0.48. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "MEDIUM",
+      "confidence_score": 0.6,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 2.0/5.0. Based on: customer density (0.000), cross-team entropy (0.97), author Gini (0.48), no-reply rate (100%).",
+      "top_phrases": [
+        "api",
+        "programming",
+        "programming interface",
+        "api application",
+        "api application programming",
+        "application programming"
+      ],
+      "occurrence": "1,800 of 37,064 documents (4.9%)",
+      "effect": "Spans 30 products, 304 authors, 535 days. Sources: {'slack': 1373, 'pull_request': 425, 'document': 2}.",
+      "evidence": {
+        "source_count": 1800,
+        "source_breakdown": {
+          "slack": 1373,
+          "pull_request": 425,
+          "document": 2
+        },
+        "sample_messages": [
+          "Great points, both of you! Next, let's look at Rocket.Chat's real-time event API integration. This feature facilitates seamless interactions with external applications. Here's the PR link: https://git",
+          "Thanks for the input, everyone! I'll take a closer look at these features and see how we can adapt some of their strategies for our Slack Events API integration. I'll keep you all updated on my findin",
+          "Alright, I've gone through the changes. The Slack Events API integration looks solid, and I can see that the endpoints are correctly set up to handle incoming events. Nice work! \ud83d\udc4d",
+          "Sure, I can provide some context. The new direction focuses on enhancing our core features rather than expanding third-party integrations. The Slack Events API integration was meant to support interac"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-01-21 to 2027-07-10"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.969,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.75,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.478,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 304,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 535,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.43,
+        "communication": 4.41,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Great points, both of you! Next, let's look at Rocket.Chat's real-time event API integration. This f",
+        "Thanks for the input, everyone! I'll take a closer look at these features and see how we can adapt s"
+      ],
+      "caveats": "Confidence 60% = stability (96%) x silhouette (0.068). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 1,800 documents. Dominant metric signal: communication (4.4). Top phrases: api, programming, programming interface.",
+      "computation": {
+        "cluster_id": 11,
+        "cluster_size": 1800,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0678,
+        "stability": {
+          "mean": 0.958,
+          "std": 0.024,
+          "min": 0.919,
+          "max": 0.994,
+          "stable": true
+        },
+        "severity_score": 2.02,
+        "top_tfidf_terms": [
+          "api",
+          "programming",
+          "programming interface",
+          "api application",
+          "api application programming",
+          "application programming"
+        ]
+      }
+    },
+    {
+      "id": "PAT-6C0A38",
+      "title": "Pr Pull Request / Pr Pull",
+      "description": "Cluster of 3,951 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.39. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "MEDIUM",
+      "confidence_score": 0.52,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 2.0/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.39), no-reply rate (100%).",
+      "top_phrases": [
+        "pr",
+        "pr pull request",
+        "pr pull",
+        "pull request",
+        "pull",
+        "request"
+      ],
+      "occurrence": "3,951 of 37,064 documents (10.7%)",
+      "effect": "Spans 30 products, 378 authors, 476 days. Sources: {'slack': 3711, 'pull_request': 240}.",
+      "evidence": {
+        "source_count": 3951,
+        "source_breakdown": {
+          "slack": 3711,
+          "pull_request": 240
+        },
+        "sample_messages": [
+          "First up, we have Mattermost's integration of webhooks for third-party app interactions. This feature allows Mattermost to exchange data in real-time with other applications. You can check out the PR ",
+          "Absolutely, Bob! Lastly, we have Zulip's enhancement of their bot framework to handle events from external services. This improves automation and integration capabilities. Check out the PR here: https",
+          "Great points, @eid_49aa3b00 and Charlie! Next up is TensorFlow's feature. They have a PR titled 'Efficient Data Pipeline for Model Training' which enhances data handling efficiency during model traini",
+          "Agreed, both of you. Lastly, let's look at Apache Airflow's feature. They have a PR titled 'Dynamic Task Scheduling for Data Pipelines' which adds dynamic scheduling capabilities. Here's the link: htt"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [
+          "BlueWave"
+        ],
+        "time_range": "2026-03-20 to 2027-07-10"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.99,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.5,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.394,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 378,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [
+            "BlueWave"
+          ],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 476,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.18,
+        "communication": 3.97,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "First up, we have Mattermost's integration of webhooks for third-party app interactions. This featur",
+        "Absolutely, Bob! Lastly, we have Zulip's enhancement of their bot framework to handle events from ex"
+      ],
+      "caveats": "Confidence 52% = stability (86%) x silhouette (0.008). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 3,951 documents. Dominant metric signal: communication (4.0). Top phrases: pr, pr pull request, pr pull.",
+      "computation": {
+        "cluster_id": 13,
+        "cluster_size": 3951,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0076,
+        "stability": {
+          "mean": 0.864,
+          "std": 0.063,
+          "min": 0.755,
+          "max": 0.978,
+          "stable": true
+        },
+        "severity_score": 1.99,
+        "top_tfidf_terms": [
+          "pr",
+          "pr pull request",
+          "pr pull",
+          "pull request",
+          "pull",
+          "request"
+        ]
+      }
+    },
+    {
+      "id": "PAT-385A70",
+      "title": "User / Think / Great",
+      "description": "Cluster of 12,002 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.37. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.42,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 2.5/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.37), no-reply rate (100%).",
+      "top_phrases": [
+        "user",
+        "think",
+        "great",
+        "good",
+        "sounds",
+        "maybe"
+      ],
+      "occurrence": "12,002 of 37,064 documents (32.4%)",
+      "effect": "Spans 30 products, 516 authors, 546 days. Sources: {'slack': 10781, 'transcript': 22, 'document': 10, 'pull_request': 1189}.",
+      "evidence": {
+        "source_count": 12002,
+        "source_breakdown": {
+          "slack": 10781,
+          "transcript": 22,
+          "document": 10,
+          "pull_request": 1189
+        },
+        "sample_messages": [
+          "Thanks for sharing, Charlie! @eid_13fdff84 I think the Executive Summary is clear, but it might benefit from a bit more detail on the specific AI technologies used. This could help differentiate us fr",
+          "Good point, Emma. Also, in the Market Overview section, it might be helpful to include some recent statistics or trends about the growth of AI in collaboration tools. This could strengthen our argumen",
+          "I agree with George. Adding some data could really bolster the Market Overview. Additionally, in the Target Audience section, maybe we could specify more about the size of businesses we're targeting. ",
+          "The Competitive Analysis is solid, but maybe we could add a bit more about our unique selling proposition. What makes our AI suggestions more contextually relevant than others? This could be a key dif"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [
+          "DataSolutions",
+          "TechCorp",
+          "SmartData"
+        ],
+        "time_range": "2026-01-16 to 2027-07-16"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.995,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 1.0,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.371,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 516,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [
+            "DataSolutions",
+            "TechCorp",
+            "SmartData"
+          ],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 546,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.11,
+        "communication": 4.98,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Thanks for sharing, Charlie! @eid_13fdff84 I think the Executive Summary is clear, but it might bene",
+        "Good point, Emma. Also, in the Market Overview section, it might be helpful to include some recent s"
+      ],
+      "caveats": "Confidence 42% = stability (70%) x silhouette (-0.004). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 12,002 documents. Dominant metric signal: communication (5.0). Top phrases: user, think, great.",
+      "computation": {
+        "cluster_id": 6,
+        "cluster_size": 12002,
+        "method": "TF-IDF + KMeans",
+        "silhouette": -0.004,
+        "stability": {
+          "mean": 0.703,
+          "std": 0.123,
+          "min": 0.569,
+          "max": 0.922,
+          "stable": true
+        },
+        "severity_score": 2.48,
+        "top_tfidf_terms": [
+          "user",
+          "think",
+          "great",
+          "good",
+          "sounds",
+          "maybe"
+        ]
+      }
+    },
+    {
+      "id": "PAT-85D069",
+      "title": "Data / Time / Processing",
+      "description": "Cluster of 5,384 documents across 30 products. Cross-team entropy: 1.00. Author concentration (Gini): 0.51. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.38,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 2.0/5.0. Based on: customer density (0.000), cross-team entropy (1.00), author Gini (0.51), no-reply rate (100%).",
+      "top_phrases": [
+        "data",
+        "time",
+        "processing",
+        "real time",
+        "real",
+        "model"
+      ],
+      "occurrence": "5,384 of 37,064 documents (14.5%)",
+      "effect": "Spans 30 products, 449 authors, 546 days. Sources: {'slack': 3287, 'document': 388, 'pull_request': 1708, 'transcript': 1}.",
+      "evidence": {
+        "source_count": 5384,
+        "source_breakdown": {
+          "slack": 3287,
+          "document": 388,
+          "pull_request": 1708,
+          "transcript": 1
+        },
+        "sample_messages": [
+          "@here Explore the capabilities of the spaCy library, a powerful tool for natural language processing that can be used to build features like onForceX's smart action suggestions. https://github.com/exp",
+          "Sounds good, George. One more thing, in the Security and Authentication section, should we mention any specific compliance standards we're aiming to meet, like GDPR or CCPA? This could be important fo",
+          "I agree with @eid_fd8cecea. The integration with Spaces discussions is a unique feature. It could really set them apart. But I'm curious about how they handle data privacy. \ud83e\udd14",
+          "Yeah, @eid_4df5d4b7, I noticed that too. They seem to have a strong focus on natural language processing for understanding context in DMs and group chats."
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-01-16 to 2027-07-16"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.996,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 1.0,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.513,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 449,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 546,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.54,
+        "communication": 4.99,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "@here Explore the capabilities of the spaCy library, a powerful tool for natural language processing",
+        "Sounds good, George. One more thing, in the Security and Authentication section, should we mention a"
+      ],
+      "caveats": "Confidence 38% = stability (63%) x silhouette (0.002). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 5,384 documents. Dominant metric signal: communication (5.0). Top phrases: data, time, processing.",
+      "computation": {
+        "cluster_id": 8,
+        "cluster_size": 5384,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0021,
+        "stability": {
+          "mean": 0.63,
+          "std": 0.259,
+          "min": 0.242,
+          "max": 0.916,
+          "stable": true
+        },
+        "severity_score": 2.05,
+        "top_tfidf_terms": [
+          "data",
+          "time",
+          "processing",
+          "real time",
+          "real",
+          "model"
+        ]
+      }
+    },
+    {
+      "id": "PAT-8B2C9F",
+      "title": "Let Know / Know",
+      "description": "Cluster of 1,452 documents across 30 products. Cross-team entropy: 1.00. Author concentration (Gini): 0.43. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.37,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 1.5/5.0. Based on: customer density (0.000), cross-team entropy (1.00), author Gini (0.43), no-reply rate (100%).",
+      "top_phrases": [
+        "let know",
+        "know",
+        "let",
+        "looking forward",
+        "forward",
+        "let know need"
+      ],
+      "occurrence": "1,452 of 37,064 documents (3.9%)",
+      "effect": "Spans 30 products, 377 authors, 546 days. Sources: {'slack': 1452}.",
+      "evidence": {
+        "source_count": 1452,
+        "source_breakdown": {
+          "slack": 1452
+        },
+        "sample_messages": [
+          "Sounds good, @eid_fd8cecea. Looking forward to it! \ud83d\udc4d",
+          "Looking forward to it! Thanks for the great discussion, everyone. \ud83d\ude0a",
+          "On it too! Looking forward to seeing how you've tackled the integration with our existing systems. \ud83d\udc4d",
+          "Sounds good, @eid_13cb0e90. Once that's done, we can re-evaluate. Let us know if you need any help setting up the tests. \ud83d\udcaa"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-01-16 to 2027-07-16"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.998,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.432,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 377,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 546,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.3,
+        "communication": 3.49,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Sounds good, @eid_fd8cecea. Looking forward to it! \ud83d\udc4d",
+        "Looking forward to it! Thanks for the great discussion, everyone. \ud83d\ude0a"
+      ],
+      "caveats": "Confidence 37% = stability (57%) x silhouette (0.057). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 1,452 documents. Dominant metric signal: communication (3.5). Top phrases: let know, know, let.",
+      "computation": {
+        "cluster_id": 7,
+        "cluster_size": 1452,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0565,
+        "stability": {
+          "mean": 0.573,
+          "std": 0.177,
+          "min": 0.365,
+          "max": 0.959,
+          "stable": true
+        },
+        "severity_score": 1.51,
+        "top_tfidf_terms": [
+          "let know",
+          "know",
+          "let",
+          "looking forward",
+          "forward",
+          "let know need"
+        ]
+      }
+    },
+    {
+      "id": "PAT-14537D",
+      "title": "Approved / Lgtm / Lgtm Approved",
+      "description": "Cluster of 1,226 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.39. Customer references: 0.002/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.33,
+      "severity": "high",
+      "severity_reasoning": "Computed severity score: 2.0/5.0. Based on: customer density (0.002), cross-team entropy (0.99), author Gini (0.39), no-reply rate (100%).",
+      "top_phrases": [
+        "approved",
+        "lgtm",
+        "lgtm approved",
+        "appreciate quick",
+        "appreciate",
+        "quick"
+      ],
+      "occurrence": "1,226 of 37,064 documents (3.3%)",
+      "effect": "Spans 30 products, 255 authors, 437 days. Sources: {'slack': 1226}.",
+      "evidence": {
+        "source_count": 1226,
+        "source_breakdown": {
+          "slack": 1226
+        },
+        "sample_messages": [
+          "Thanks, @eid_4bcfb482 and Hannah! Appreciate the quick review and feedback. I'll merge it now. \ud83d\ude0a",
+          "Everything looks good to me. LGTM, approved! \u2705",
+          "Thanks, @Hannah Johnson and @Charlie Jones! Appreciate the quick review and feedback. I'll merge it now. \ud83d\ude4c",
+          "Yep, I can confirm that too. The integration looks seamless. LGTM, approved! \u2705"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [
+          "TechCorp",
+          "CloudSync"
+        ],
+        "time_range": "2026-03-14 to 2027-05-26"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.989,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.388,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 255,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.002,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [
+            "TechCorp",
+            "CloudSync"
+          ],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 437,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.02,
+        "bottleneck": 3.16,
+        "communication": 3.47,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Thanks, @eid_4bcfb482 and Hannah! Appreciate the quick review and feedback. I'll merge it now. \ud83d\ude0a",
+        "Everything looks good to me. LGTM, approved! \u2705"
+      ],
+      "caveats": "Confidence 33% = stability (51%) x silhouette (0.055). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 1,226 documents. Dominant metric signal: communication (3.5). Top phrases: approved, lgtm, lgtm approved.",
+      "computation": {
+        "cluster_id": 4,
+        "cluster_size": 1226,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0546,
+        "stability": {
+          "mean": 0.508,
+          "std": 0.174,
+          "min": 0.072,
+          "max": 0.612,
+          "stable": true
+        },
+        "severity_score": 1.99,
+        "top_tfidf_terms": [
+          "approved",
+          "lgtm",
+          "lgtm approved",
+          "appreciate quick",
+          "appreciate",
+          "quick"
+        ]
+      }
+    },
+    {
+      "id": "PAT-1E4237",
+      "title": "Joined / Joined Develop / Joined Planning",
+      "description": "Cluster of 891 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.00. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "MEDIUM",
+      "confidence_score": 0.65,
+      "severity": "medium",
+      "severity_reasoning": "Computed severity score: 1.1/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.00), no-reply rate (100%).",
+      "top_phrases": [
+        "joined",
+        "joined develop",
+        "joined planning",
+        "develop",
+        "planning",
+        "joined invite"
+      ],
+      "occurrence": "891 of 37,064 documents (2.4%)",
+      "effect": "Spans 30 products, 1 authors, 540 days. Sources: {'slack': 891}.",
+      "evidence": {
+        "source_count": 891,
+        "source_breakdown": {
+          "slack": 891
+        },
+        "sample_messages": [
+          "@eid_13fdff84 joined planning-onForceX. Also, @eid_d96fb219, @eid_2589c967, @eid_ec3b5d65 joined via invite.",
+          "@eid_4df5d4b7, @eid_8658e19c, @eid_fa6ec727, @eid_13cb0e90 joined planning-onForceX.",
+          "@eid_fd8cecea, @eid_eb1756e0 joined planning-onForceX.",
+          "@eid_5346d7a5 joined planning-onForceX."
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-01-14 to 2027-07-08"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.991,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.0,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 1,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 540,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 2.0,
+        "communication": 3.47,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "@eid_13fdff84 joined planning-onForceX. Also, @eid_d96fb219, @eid_2589c967, @eid_ec3b5d65 joined via",
+        "@eid_4df5d4b7, @eid_8658e19c, @eid_fa6ec727, @eid_13cb0e90 joined planning-onForceX."
+      ],
+      "caveats": "Confidence 65% = stability (95%) x silhouette (0.188). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 891 documents. Dominant metric signal: communication (3.5). Top phrases: joined, joined develop, joined planning.",
+      "computation": {
+        "cluster_id": 3,
+        "cluster_size": 891,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.1882,
+        "stability": {
+          "mean": 0.95,
+          "std": 0.149,
+          "min": 0.502,
+          "max": 1.0,
+          "stable": true
+        },
+        "severity_score": 1.1,
+        "top_tfidf_terms": [
+          "joined",
+          "joined develop",
+          "joined planning",
+          "develop",
+          "planning",
+          "joined invite"
+        ]
+      }
+    },
+    {
+      "id": "PAT-F39316",
+      "title": "Open Source / Source / Open",
+      "description": "Cluster of 930 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.43. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "MEDIUM",
+      "confidence_score": 0.57,
+      "severity": "medium",
+      "severity_reasoning": "Computed severity score: 1.3/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.43), no-reply rate (100%).",
+      "top_phrases": [
+        "open source",
+        "source",
+        "open",
+        "hi team",
+        "hi",
+        "team"
+      ],
+      "occurrence": "930 of 37,064 documents (2.5%)",
+      "effect": "Spans 30 products, 279 authors, 537 days. Sources: {'slack': 930}.",
+      "evidence": {
+        "source_count": 930,
+        "source_breakdown": {
+          "slack": 930
+        },
+        "sample_messages": [
+          "Hi team, I've shared the <https://sf-internal.slack.com/archives/docs/onforcex_market_research_report|Market Research Report> for onForceX. Let's discuss and refine it together. Looking forward to you",
+          "Hi team, I wanted to discuss the Market Research Report on X-Genie. It's pretty interesting and I think we can learn a lot from it. \ud83d\udcca",
+          "Hi team, I've shared the <https://sf-internal.slack.com/archives/docs/onforcex_product_vision_document|Product Vision Document> for onForceX. Let's discuss and refine it to ensure it aligns with our s",
+          "Hi team, I wanted to discuss the X-Genie Product Vision Document. It's quite interesting and could have some implications for us. Thoughts? \ud83e\udd14"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-01-18 to 2027-07-10"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.995,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.434,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 279,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 537,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.3,
+        "communication": 3.48,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Hi team, I've shared the <https://sf-internal.slack.com/archives/docs/onforcex_market_research_repor",
+        "Hi team, I wanted to discuss the Market Research Report on X-Genie. It's pretty interesting and I th"
+      ],
+      "caveats": "Confidence 57% = stability (89%) x silhouette (0.099). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 930 documents. Dominant metric signal: communication (3.5). Top phrases: open source, source, open.",
+      "computation": {
+        "cluster_id": 10,
+        "cluster_size": 930,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.0993,
+        "stability": {
+          "mean": 0.888,
+          "std": 0.116,
+          "min": 0.658,
+          "max": 0.999,
+          "stable": true
+        },
+        "severity_score": 1.31,
+        "top_tfidf_terms": [
+          "open source",
+          "source",
+          "open",
+          "hi team",
+          "hi",
+          "team"
+        ]
+      }
+    },
+    {
+      "id": "PAT-107721",
+      "title": "Customers Reporting / Team Customers Reporting / Reporting Issues",
+      "description": "Cluster of 297 documents across 30 products. Cross-team entropy: 1.00. Author concentration (Gini): 0.27. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "MEDIUM",
+      "confidence_score": 0.57,
+      "severity": "medium",
+      "severity_reasoning": "Computed severity score: 0.9/5.0. Based on: customer density (0.000), cross-team entropy (1.00), author Gini (0.27), no-reply rate (100%).",
+      "top_phrases": [
+        "customers reporting",
+        "team customers reporting",
+        "reporting issues",
+        "customers reporting issues",
+        "hi team customers",
+        "team customers"
+      ],
+      "occurrence": "297 of 37,064 documents (0.8%)",
+      "effect": "Spans 30 products, 46 authors, 414 days. Sources: {'slack': 297}.",
+      "evidence": {
+        "source_count": 297,
+        "source_breakdown": {
+          "slack": 297
+        },
+        "sample_messages": [
+          "Hi team, several customers are reporting issues with ActionGenie that we need to address. Let's go through them one by one. \ud83d\ude0a",
+          "Hi team, several customers are reporting issues with ActionGenie that we need to address. Let's go through them one by one. \ud83d\ude0a",
+          "Hi team, several customers are reporting issues with ActionGenie that we need to address. Let's go through them one by one. \ud83d\ude0a",
+          "Hi team, several customers are reporting issues with ActionGenie that we need to address ASAP. Let's go through them one by one. \ud83d\ude80"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-05-20 to 2027-07-09"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 1.0,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.271,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 46,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 414,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 2.81,
+        "communication": 3.5,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Hi team, several customers are reporting issues with ActionGenie that we need to address. Let's go t",
+        "Hi team, several customers are reporting issues with ActionGenie that we need to address. Let's go t"
+      ],
+      "caveats": "Confidence 57% = stability (64%) x silhouette (0.480). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 297 documents. Dominant metric signal: communication (3.5). Top phrases: customers reporting, team customers reporting, reporting issues.",
+      "computation": {
+        "cluster_id": 9,
+        "cluster_size": 297,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.4798,
+        "stability": {
+          "mean": 0.638,
+          "std": 0.365,
+          "min": 0.17,
+          "max": 1.0,
+          "stable": true
+        },
+        "severity_score": 0.94,
+        "top_tfidf_terms": [
+          "customers reporting",
+          "team customers reporting",
+          "reporting issues",
+          "customers reporting issues",
+          "hi team customers",
+          "team customers"
+        ]
+      }
+    },
+    {
+      "id": "PAT-2D0986",
+      "title": "Thanks Sharing / Sharing / Thanks Sharing Ll",
+      "description": "Cluster of 802 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.37. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.46,
+      "severity": "medium",
+      "severity_reasoning": "Computed severity score: 1.3/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.37), no-reply rate (100%).",
+      "top_phrases": [
+        "thanks sharing",
+        "sharing",
+        "thanks sharing ll",
+        "sharing ll",
+        "thanks",
+        "ll look"
+      ],
+      "occurrence": "802 of 37,064 documents (2.2%)",
+      "effect": "Spans 30 products, 227 authors, 471 days. Sources: {'slack': 802}.",
+      "evidence": {
+        "source_count": 802,
+        "source_breakdown": {
+          "slack": 802
+        },
+        "sample_messages": [
+          "Hey @eid_13cb0e90, thanks for sharing! I'll take a look at it now. \ud83d\udc40",
+          "Hey @eid_31cb6db5, thanks for sharing! I'll start reviewing it now. \ud83d\ude0a",
+          "@eid_4cede092 Thanks for sharing, I'll take a look now! \ud83d\udd0d",
+          "Hey @eid_31cb6db5, thanks for sharing! I'll start reviewing it now. Just to confirm, this covers error handling at all critical points, right?"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-03-14 to 2027-06-29"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.992,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.369,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 227,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 471,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.11,
+        "communication": 3.48,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Hey @eid_13cb0e90, thanks for sharing! I'll take a look at it now. \ud83d\udc40",
+        "Hey @eid_31cb6db5, thanks for sharing! I'll start reviewing it now. \ud83d\ude0a"
+      ],
+      "caveats": "Confidence 46% = stability (67%) x silhouette (0.155). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 802 documents. Dominant metric signal: communication (3.5). Top phrases: thanks sharing, sharing, thanks sharing ll.",
+      "computation": {
+        "cluster_id": 5,
+        "cluster_size": 802,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.1554,
+        "stability": {
+          "mean": 0.669,
+          "std": 0.24,
+          "min": 0.152,
+          "max": 0.986,
+          "stable": true
+        },
+        "severity_score": 1.28,
+        "top_tfidf_terms": [
+          "thanks sharing",
+          "sharing",
+          "thanks sharing ll",
+          "sharing ll",
+          "thanks",
+          "ll look"
+        ]
+      }
+    },
+    {
+      "id": "PAT-58803D",
+      "title": "Team Check Pr / Team Check / Hi Team Check",
+      "description": "Cluster of 686 documents across 30 products. Cross-team entropy: 0.99. Author concentration (Gini): 0.39. Customer references: 0.000/doc.",
+      "type": "communication",
+      "confidence": "LOW",
+      "confidence_score": 0.4,
+      "severity": "medium",
+      "severity_reasoning": "Computed severity score: 1.3/5.0. Based on: customer density (0.000), cross-team entropy (0.99), author Gini (0.39), no-reply rate (100%).",
+      "top_phrases": [
+        "team check pr",
+        "team check",
+        "hi team check",
+        "check pr",
+        "check pr pull",
+        "know thoughts"
+      ],
+      "occurrence": "686 of 37,064 documents (1.9%)",
+      "effect": "Spans 30 products, 208 authors, 400 days. Sources: {'slack': 686}.",
+      "evidence": {
+        "source_count": 686,
+        "source_breakdown": {
+          "slack": 686
+        },
+        "sample_messages": [
+          "Hi team, please check my PR for integrating the Slack Events API: https://github.com/salesforce/onForceX/pull/1. This will allow onForceX to interact with third-party Slack apps by setting up the nece",
+          "Hi team, please check my PR for the new data ingestion pipeline: https://github.com/salesforce/onForceX/pull/3. \ud83d\ude80 This PR introduces a pipeline to efficiently process incoming data for AI model update",
+          "Hi team, please check my PR for defining data schemas for third-party app interactions: https://github.com/salesforce/onForceX/pull/4. I've created clear and concise data schemas to ensure consistent ",
+          "Hi team, please check my PR for the new error handling and alerting mechanism: https://github.com/salesforce/onForceX/pull/6. This update ensures robust error handling and alerting in our data process"
+        ],
+        "affected_products": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce",
+          "CollaborationForce",
+          "ConnectForce",
+          "ContentForce",
+          "ContextForce",
+          "EdgeForce",
+          "ExplainabilityForce",
+          "FeedbackForce",
+          "FlowForce",
+          "ForecastForce",
+          "InsightForce",
+          "KnowledgeForce",
+          "LeadForce",
+          "MonitorForce",
+          "PersonalizeForce",
+          "PitchForce",
+          "ProposalForce",
+          "SearchFlow",
+          "SearchForce",
+          "SecurityForce",
+          "SentimentForce",
+          "SummarizeForce",
+          "SupportForce",
+          "TrendForce",
+          "VizForce",
+          "WorkFlowGenie"
+        ],
+        "affected_teams": [
+          "ActionGenie",
+          "AnomalyForce",
+          "AutoTuneForce",
+          "CoachForce",
+          "CollaborateForce"
+        ],
+        "customers_referenced": [],
+        "time_range": "2026-03-14 to 2027-04-19"
+      },
+      "metrics": {
+        "cross_team_entropy": {
+          "value": 0.99,
+          "method": "Shannon entropy of product distribution, normalized to [0,1]",
+          "interpretation": "1.0 = evenly distributed across all products, 0.0 = single product"
+        },
+        "source_diversity": {
+          "value": 0.25,
+          "method": "Unique source types / 4 (slack, transcript, document, PR)",
+          "interpretation": "1.0 = present in all source types"
+        },
+        "no_reply_rate": {
+          "value": 1.0,
+          "method": "Fraction of Slack messages with 0 thread replies",
+          "interpretation": "Higher = less engagement / potential communication gap"
+        },
+        "avg_thread_depth": {
+          "value": 0.0,
+          "method": "Mean thread reply count for Slack messages in cluster"
+        },
+        "author_gini": {
+          "value": 0.388,
+          "method": "Gini coefficient of message authorship distribution",
+          "interpretation": "Higher = more concentrated (fewer authors dominating)"
+        },
+        "unique_authors": {
+          "value": 208,
+          "method": "Count of distinct user IDs in cluster"
+        },
+        "customer_density": {
+          "value": 0.0,
+          "method": "Customer name mentions per document in cluster"
+        },
+        "customers_referenced": {
+          "value": [],
+          "method": "Customer names found via relational join with customer master data"
+        },
+        "temporal_span_days": {
+          "value": 400,
+          "method": "Days between earliest and latest timestamped document"
+        },
+        "reaction_rate": {
+          "value": 0.0,
+          "method": "Fraction of messages with emoji reactions"
+        },
+        "product_count": {
+          "value": 30,
+          "method": "Distinct products represented in cluster"
+        }
+      },
+      "metric_signals": {
+        "compliance": 1.0,
+        "bottleneck": 3.16,
+        "communication": 3.47,
+        "anomaly": 2.0
+      },
+      "sample_snippets": [
+        "Hi team, please check my PR for integrating the Slack Events API: https://github.com/salesforce/onFo",
+        "Hi team, please check my PR for the new data ingestion pipeline: https://github.com/salesforce/onFor"
+      ],
+      "caveats": "Confidence 40% = stability (59%) x silhouette (0.132). Cluster stability tested across 10 bootstrap runs. Severity computed from metrics, not keyword matching.",
+      "recommendation": "Investigate 686 documents. Dominant metric signal: communication (3.5). Top phrases: team check pr, team check, hi team check.",
+      "computation": {
+        "cluster_id": 1,
+        "cluster_size": 686,
+        "method": "TF-IDF + KMeans",
+        "silhouette": 0.1317,
+        "stability": {
+          "mean": 0.587,
+          "std": 0.32,
+          "min": 0.131,
+          "max": 1.0,
+          "stable": true
+        },
+        "severity_score": 1.29,
+        "top_tfidf_terms": [
+          "team check pr",
+          "team check",
+          "hi team check",
+          "check pr",
+          "check pr pull",
+          "know thoughts"
+        ]
+      }
+    }
+  ]
+}

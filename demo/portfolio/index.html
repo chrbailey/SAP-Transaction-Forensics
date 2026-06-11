@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Forensics — Enterprise Process Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sf-blue: #0176D3;
+  --sf-blue-dark: #014486;
+  --sf-blue-light: #E8F4FD;
+  --sf-nav: #032D60;
+  --bg: #F4F6F9;
+  --bg-card: #FFFFFF;
+  --text: #181818;
+  --text-secondary: #444746;
+  --text-muted: #706E6B;
+  --border: #E5E5E5;
+  --border-light: #F0F0F0;
+  --critical: #C23934;
+  --critical-bg: #FEF1EE;
+  --high: #E87722;
+  --high-bg: #FFF4EC;
+  --medium: #CA8D04;
+  --medium-bg: #FFF9E6;
+  --low: #2E844A;
+  --low-bg: #EEF6F0;
+  --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+/* ─── Header ─── */
+.header { background: var(--sf-nav); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.header-inner { max-width: 1600px; margin: 0 auto; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.header-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.header-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--sf-blue), #49B6FF); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+.header-title { font-size: 18px; font-weight: 700; }
+.header-subtitle { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1.5px; }
+
+/* ─── Tab nav ─── */
+.header-tabs { display: flex; align-items: center; gap: 2px; margin-left: 16px; flex-shrink: 1; flex-wrap: wrap; }
+.tab-btn { background: none; border: none; color: rgba(255,255,255,0.6); font-family: var(--font); font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; position: relative; white-space: nowrap; }
+.tab-btn:hover { color: white; background: rgba(255,255,255,0.08); }
+.tab-btn.active { color: white; }
+.tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 14px; right: 14px; height: 2px; background: #49B6FF; border-radius: 1px; }
+
+/* ─── Header meta stats ─── */
+.header-meta { display: flex; gap: 16px; align-items: center; margin-left: auto; flex-shrink: 0; }
+.header-stat { text-align: right; }
+.header-stat-value { font-size: 14px; font-weight: 700; font-family: var(--mono); }
+.header-stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.5; }
+.header-export { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 6px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; }
+.header-export:hover { background: rgba(255,255,255,0.2); }
+
+/* ─── Tab panels ─── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ═══════════════════════════════════════
+   CRM FORENSICS styles
+═══════════════════════════════════════ */
+.page { max-width: 1400px; margin: 0 auto; padding: 32px; }
+.section { margin-bottom: 32px; }
+.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-sm); }
+.stat-card-value { font-size: 32px; font-weight: 800; font-family: var(--mono); color: var(--text); line-height: 1; margin-bottom: 4px; }
+.stat-card-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.stat-card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+.stat-card.accent-blue { border-left: 4px solid var(--sf-blue); }
+.stat-card.accent-green { border-left: 4px solid var(--low); }
+.stat-card.accent-orange { border-left: 4px solid var(--high); }
+.stat-card.accent-navy { border-left: 4px solid var(--sf-nav); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm); }
+.panel-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.panel-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+.pipeline-flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; row-gap: 8px; }
+.pipeline-stage { display: flex; align-items: center; gap: 0; }
+.stage-box { background: var(--sf-blue-light); border: 1px solid #B4D6F0; color: var(--sf-blue-dark); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 6px; white-space: nowrap; }
+.stage-box.stage-won { background: var(--low-bg); border-color: #A3D9B1; color: #1B5E20; }
+.stage-arrow { color: var(--text-muted); font-size: 16px; padding: 0 6px; flex-shrink: 0; }
+.conformance-callout { margin-top: 20px; display: flex; gap: 16px; align-items: stretch; }
+.callout-box { flex: 1; padding: 16px 18px; border-radius: 6px; }
+.callout-box.red { background: var(--critical-bg); border: 1px solid #F5B8B5; }
+.callout-box.yellow { background: var(--medium-bg); border: 1px solid #F5D97E; }
+.callout-value { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+.callout-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.callout-desc { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+.chart-area { margin-top: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-row-label { font-size: 12px; color: var(--text-secondary); font-family: var(--mono); width: 36px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 28px; background: var(--bg); border-radius: 4px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; color: white; font-family: var(--mono); transition: width 0.6s ease; min-width: 32px; }
+.bar-fill.qe { background: var(--high); }
+.bar-fill.regular { background: var(--sf-blue); }
+.bar-value { font-size: 11px; font-family: var(--mono); color: var(--text-muted); width: 36px; text-align: right; flex-shrink: 0; }
+.velocity-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.velocity-label { font-size: 12px; color: var(--text-secondary); width: 90px; flex-shrink: 0; }
+.velocity-track { flex: 1; height: 32px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.velocity-fill { height: 100%; background: var(--sf-nav); border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 11px; font-weight: 600; color: white; font-family: var(--mono); transition: width 0.6s ease; }
+.velocity-pct { font-size: 12px; font-family: var(--mono); color: var(--text-muted); width: 48px; text-align: right; flex-shrink: 0; }
+.hbar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.hbar-label { font-size: 12px; color: var(--text-secondary); width: 120px; flex-shrink: 0; }
+.hbar-track { flex: 1; height: 24px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.hbar-fill { height: 100%; background: linear-gradient(90deg, var(--sf-blue), #49B6FF); border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 11px; font-weight: 600; color: white; font-family: var(--mono); transition: width 0.6s ease; }
+.hbar-val { font-size: 12px; font-family: var(--mono); color: var(--text-muted); width: 64px; text-align: right; flex-shrink: 0; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding: 8px 12px; border-bottom: 2px solid var(--border); text-align: left; }
+.data-table th.num { text-align: right; }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+.data-table td.num { text-align: right; font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+.data-table tbody tr:hover { background: var(--bg); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--sf-blue-light); color: var(--sf-blue-dark); border-radius: 50%; font-size: 10px; font-weight: 700; font-family: var(--mono); margin-right: 8px; }
+.win-rate-bar { display: inline-flex; align-items: center; gap: 8px; }
+.win-rate-fill { height: 6px; background: var(--low); border-radius: 3px; }
+.win-rate-text { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--low); }
+.account-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-light); position: relative; }
+.account-row:last-child { border-bottom: none; }
+.account-name { font-size: 14px; font-weight: 600; }
+.account-rev { font-size: 13px; font-family: var(--mono); color: var(--sf-blue); font-weight: 700; }
+.account-bar-wrap { flex: 1; margin: 0 16px; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.account-bar { height: 100%; background: var(--sf-blue); border-radius: 3px; }
+.findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.finding-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+.finding-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.finding-card.critical::before { background: var(--critical); }
+.finding-card.high::before { background: var(--high); }
+.finding-card.medium::before { background: var(--medium); }
+.finding-card.low::before { background: var(--low); }
+.finding-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.finding-title { font-size: 15px; font-weight: 700; }
+.badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px; }
+.badge.critical { background: var(--critical-bg); color: var(--critical); }
+.badge.high { background: var(--high-bg); color: var(--high); }
+.badge.medium { background: var(--medium-bg); color: var(--medium); }
+.badge.low { background: var(--low-bg); color: var(--low); }
+.finding-stat { font-size: 24px; font-weight: 800; font-family: var(--mono); margin-bottom: 6px; }
+.finding-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.finding-card.critical .finding-stat { color: var(--critical); }
+.finding-card.high .finding-stat { color: var(--high); }
+.finding-card.medium .finding-stat { color: var(--medium); }
+.finding-card.low .finding-stat { color: var(--low); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+#tab-crm .section { animation: fadeUp 0.35s ease-out backwards; }
+#tab-crm .section:nth-child(1) { animation-delay: 0.05s; }
+#tab-crm .section:nth-child(2) { animation-delay: 0.10s; }
+#tab-crm .section:nth-child(3) { animation-delay: 0.15s; }
+#tab-crm .section:nth-child(4) { animation-delay: 0.20s; }
+#tab-crm .section:nth-child(5) { animation-delay: 0.25s; }
+#tab-crm .section:nth-child(6) { animation-delay: 0.30s; }
+#tab-crm .section:nth-child(7) { animation-delay: 0.35s; }
+#tab-crm .section:nth-child(8) { animation-delay: 0.40s; }
+
+/* ═══════════════════════════════════════
+   NLP PATTERN ANALYSIS styles
+═══════════════════════════════════════ */
+.severity-bar { max-width: 1600px; margin: 0 auto; padding: 16px 32px; display: flex; gap: 12px; }
+.severity-pill { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; flex: 1; transition: all 0.15s; }
+.severity-pill:hover { box-shadow: var(--shadow-md); }
+.severity-dot { width: 10px; height: 10px; border-radius: 50%; }
+.severity-pill-count { font-size: 20px; font-weight: 800; font-family: var(--mono); }
+.severity-pill-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.filters { max-width: 1600px; margin: 0 auto; padding: 0 32px 16px; display: flex; gap: 12px; align-items: center; }
+.filter-select, .filter-input { font-family: var(--font); font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text); outline: none; }
+.filter-select:focus, .filter-input:focus { border-color: var(--sf-blue); }
+.filter-input { flex: 1; max-width: 300px; }
+.filter-clear { font-family: var(--font); font-size: 12px; color: var(--sf-blue); background: none; border: none; cursor: pointer; padding: 8px; }
+.nlp-main { max-width: 1600px; margin: 0 auto; padding: 0 32px 32px; display: grid; grid-template-columns: 1fr; gap: 16px; transition: all 0.3s; }
+.nlp-main.has-detail { grid-template-columns: 1fr 480px; }
+.cards-grid { display: grid; gap: 12px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; animation: fadeUp 0.3s ease-out backwards; }
+.card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.card[data-severity="critical"]::before { background: var(--critical); }
+.card[data-severity="high"]::before { background: var(--high); }
+.card[data-severity="medium"]::before { background: var(--medium); }
+.card[data-severity="low"]::before { background: var(--low); }
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.card.selected { border-color: var(--sf-blue); box-shadow: 0 0 0 1px var(--sf-blue); }
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.card-badges { display: flex; gap: 6px; flex-shrink: 0; }
+.badge-critical { background: var(--critical-bg); color: var(--critical); }
+.badge-high { background: var(--high-bg); color: var(--high); }
+.badge-medium { background: var(--medium-bg); color: var(--medium); }
+.badge-low { background: var(--low-bg); color: var(--low); }
+.badge-type { background: #F0EDFF; color: #9050E9; }
+.badge-type[data-type="bottleneck"] { background: var(--sf-blue-light); color: var(--sf-blue); }
+.badge-type[data-type="compliance"] { background: var(--critical-bg); color: var(--critical); }
+.badge-type[data-type="communication"] { background: var(--low-bg); color: #3BA755; }
+.badge-type[data-type="approval"] { background: var(--high-bg); color: var(--high); }
+.badge-type[data-type="escalation"] { background: #FDE8F3; color: #DD2590; }
+.card-title { font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+.card-desc { font-size: 13px; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-light); }
+.card-phrases { display: flex; gap: 4px; flex-wrap: wrap; }
+.phrase-tag { font-size: 11px; font-family: var(--mono); padding: 2px 8px; background: #F4F6F9; border-radius: 3px; color: var(--text-muted); }
+.card-confidence { display: flex; align-items: center; gap: 6px; }
+.confidence-bar-bg { width: 48px; height: 4px; background: var(--border-light); border-radius: 2px; overflow: hidden; }
+.confidence-bar-fill { height: 100%; border-radius: 2px; }
+.confidence-label { font-size: 11px; font-family: var(--mono); font-weight: 500; color: var(--text-muted); }
+.card-id { font-size: 10px; font-family: var(--mono); color: var(--text-muted); opacity: 0.6; }
+.detail-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow-y: auto; max-height: calc(100vh - 180px); position: sticky; top: 100px; box-shadow: var(--shadow-md); animation: slideIn 0.25s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.detail-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; position: sticky; top: 0; background: var(--bg-card); z-index: 1; }
+.detail-close { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; line-height: 1; }
+.detail-close:hover { background: var(--bg); }
+.detail-body { padding: 20px 24px; }
+.detail-section { margin-bottom: 20px; }
+.detail-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
+.detail-description { font-size: 14px; line-height: 1.65; color: var(--text-secondary); }
+.detail-impact { background: var(--sf-blue-light); border-left: 3px solid var(--sf-blue); padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--sf-blue-dark); }
+.detail-recommendation { background: var(--low-bg); border-left: 3px solid var(--low); padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #1B5E20; }
+.detail-caveat { font-size: 12px; color: var(--text-muted); font-style: italic; padding: 8px 0; }
+.evidence-msg { background: var(--bg); border-radius: 8px; padding: 12px 16px 12px 32px; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); position: relative; border-left: 3px solid var(--border); }
+.evidence-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.meta-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary); }
+.meta-badge-product { background: var(--sf-blue-light); border-color: #B4D6F0; color: var(--sf-blue-dark); }
+.meta-badge-team { background: #F0EDFF; border-color: #D4CCFF; color: #9050E9; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.card:nth-child(1) { animation-delay: 0.02s; }
+.card:nth-child(2) { animation-delay: 0.04s; }
+.card:nth-child(3) { animation-delay: 0.06s; }
+.card:nth-child(4) { animation-delay: 0.08s; }
+.card:nth-child(5) { animation-delay: 0.10s; }
+.card:nth-child(6) { animation-delay: 0.12s; }
+
+/* ─── Shared footer ─── */
+.footer { max-width: 1600px; margin: 0 auto; padding: 16px 32px 32px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.footer a { color: var(--sf-blue); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .three-col { grid-template-columns: 1fr 1fr; }
+  .findings-grid { grid-template-columns: 1fr; }
+  .nlp-main.has-detail { grid-template-columns: 1fr; }
+  .detail-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 480px; max-height: 100vh; z-index: 200; border-radius: 0; }
+}
+@media (max-width: 768px) {
+  .header-inner { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .header-meta { display: none; }
+  .header-tabs { margin-left: 0; }
+  .page { padding: 16px; }
+  .severity-bar, .filters, .nlp-main, .footer { padding-left: 16px; padding-right: 16px; }
+  .severity-bar { flex-wrap: wrap; }
+  .detail-panel { width: 100%; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .three-col { grid-template-columns: 1fr; }
+  .pipeline-flow { gap: 4px; }
+  .stage-box { font-size: 11px; padding: 6px 10px; }
+}
+
+/* ─── Hover Tooltips ─── */
+[data-tooltip] { position: relative; cursor: pointer; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  background: #032D60; color: white; padding: 4px 10px; border-radius: 4px;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;
+  z-index: 10; pointer-events: none; margin-bottom: 6px;
+}
+[data-tooltip]:hover::before {
+  content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #032D60;
+  z-index: 10; pointer-events: none;
+}
+
+/* ─── Agent Table Expand ─── */
+.data-table tbody tr.agent-row { cursor: pointer; }
+.data-table tbody tr.agent-row:hover { background: var(--sf-blue-light); }
+.agent-detail td { background: var(--bg); font-size: 12px; color: var(--text-secondary); padding: 8px 12px 12px 44px; font-style: italic; border-bottom: 1px solid var(--border-light); }
+
+/* ─── Stage Pill Interaction ─── */
+.stage-pill { cursor: pointer; transition: all 0.15s; }
+.stage-pill:hover { box-shadow: 0 0 0 2px var(--sf-blue); transform: translateY(-1px); }
+.stage-pill.stage-selected { box-shadow: 0 0 0 3px var(--sf-blue), 0 4px 12px rgba(1,118,211,0.3); background: var(--sf-blue) !important; color: white !important; border-color: var(--sf-blue) !important; }
+.stage-pill.stage-selected.stage-won-pill { background: var(--low) !important; box-shadow: 0 0 0 3px var(--low), 0 4px 12px rgba(46,132,74,0.3); }
+#stage-detail { margin-top: 12px; font-size: 13px; font-family: 'IBM Plex Mono', monospace; color: var(--sf-blue-dark); background: var(--sf-blue-light); border: 1px solid #B4D6F0; border-radius: 6px; padding: 10px 14px; display: none; }
+#stage-detail.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-icon">TF</div>
+      <div>
+        <div class="header-title">Transaction Forensics</div>
+        <div class="header-subtitle">ERP Access, Inc. — Christopher Bailey — Built with Claude Code (AI pair-programming)</div>
+      </div>
+    </div>
+    <div class="header-tabs">
+      <button class="tab-btn active" id="tab-btn-home" onclick="switchTab('home')">Overview</button>
+      <button class="tab-btn" id="tab-btn-crm" onclick="switchTab('crm')">CRM Pipeline</button>
+      <button class="tab-btn" id="tab-btn-bpi" onclick="switchTab('bpi')">BPI Challenge</button>
+      <button class="tab-btn" id="tab-btn-ides" onclick="switchTab('ides')">IDES Compliance</button>
+      <button class="tab-btn" id="tab-btn-cases" onclick="switchTab('cases')">Client Cases</button>
+      <button class="tab-btn" id="tab-btn-nlp" onclick="switchTab('nlp')">NLP Patterns</button>
+    </div>
+    <div class="header-meta">
+      <!-- Home stats -->
+      <div id="meta-home" style="display:flex;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value">1,639</div><div class="header-stat-label">Tests Passing</div></div>
+        <div class="header-stat"><div class="header-stat-value">19</div><div class="header-stat-label">Extraction Paths</div></div>
+        <div class="header-stat"><div class="header-stat-value">11</div><div class="header-stat-label">MCP Tools</div></div>
+      </div>
+      <!-- CRM stats -->
+      <div id="meta-crm" style="display:none;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value">8,800</div><div class="header-stat-label">Opportunities</div></div>
+        <div class="header-stat"><div class="header-stat-value">85</div><div class="header-stat-label">Accounts</div></div>
+        <div class="header-stat"><div class="header-stat-value">$10M</div><div class="header-stat-label">Revenue</div></div>
+      </div>
+      <!-- BPI stats -->
+      <div id="meta-bpi" style="display:none;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value">251,734</div><div class="header-stat-label">Purchase Orders</div></div>
+        <div class="header-stat"><div class="header-stat-value">1.6M</div><div class="header-stat-label">Events</div></div>
+        <div class="header-stat"><div class="header-stat-value">42</div><div class="header-stat-label">Activities</div></div>
+      </div>
+      <!-- IDES stats -->
+      <div id="meta-ides" style="display:none;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value">3,132</div><div class="header-stat-label">Cases</div></div>
+        <div class="header-stat"><div class="header-stat-value" style="color:#FF6B6B">7</div><div class="header-stat-label">Violations Found</div></div>
+        <div class="header-stat"><div class="header-stat-value">300</div><div class="header-stat-label">Process Variants</div></div>
+      </div>
+      <!-- Cases stats -->
+      <div id="meta-cases" style="display:none;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value">3</div><div class="header-stat-label">Client Engagements</div></div>
+        <div class="header-stat"><div class="header-stat-value">3M+</div><div class="header-stat-label">ERP Records</div></div>
+        <div class="header-stat"><div class="header-stat-value">$103K</div><div class="header-stat-label">Savings Found</div></div>
+      </div>
+      <!-- NLP stats -->
+      <div id="meta-nlp" style="display:none;gap:24px;align-items:center;">
+        <div class="header-stat"><div class="header-stat-value" id="stat-source">—</div><div class="header-stat-label">Data Source</div></div>
+        <div class="header-stat"><div class="header-stat-value" id="stat-messages">—</div><div class="header-stat-label">Messages Scanned</div></div>
+        <div class="header-stat"><div class="header-stat-value" id="stat-products">—</div><div class="header-stat-label">Products Analyzed</div></div>
+        <button class="header-export" id="btn-export">Export JSON ↓</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- AI Authorship Banner — prominent, above all content -->
+<div style="max-width:1600px;margin:0 auto;padding:12px 32px 0">
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:#E8F4FD;border:1px solid #B4D6F0;border-radius:6px;font-size:12px;color:#014486">
+    <strong style="white-space:nowrap">AI Disclosure:</strong>
+    <span>Architecture and analysis methodology by Christopher Bailey. Implementation pair-programmed with <a href="https://claude.ai/claude-code" style="color:#0176D3;font-weight:600">Claude Code</a> (Anthropic). All commits co-authored — see <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" style="color:#0176D3">git history</a> for full attribution.</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 0: Overview / Home (DEFAULT)
+═══════════════════════════════════════════════ -->
+<div id="tab-home" class="tab-panel active">
+<div class="page" style="max-width:1200px">
+
+  <!-- Hero -->
+  <div style="margin-bottom:40px">
+    <div style="font-size:32px;font-weight:800;line-height:1.2;margin-bottom:12px">Structured data tells you <em>what</em> happened.<br><span style="color:var(--sf-blue)">Unstructured text tells you <em>why</em>.</span></div>
+    <div style="font-size:15px;color:var(--text-secondary);line-height:1.7;max-width:800px">
+      Transaction Forensics is a cross-system process forensics platform that combines ERP transaction logs with the unstructured text that surrounds them — emails, Slack messages, progress reports, call transcripts, and order notes — to surface the discrepancies between what organizations report and what actually happened. Built by ERP Access, Inc.
+    </div>
+  </div>
+
+  <!-- The Thesis -->
+  <div class="section">
+    <div class="section-title">The Core Insight</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow-sm);margin-bottom:8px">
+      <div style="font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:20px">
+        Every enterprise system generates two kinds of data. <strong>Structured transactions</strong> — timestamps, amounts, stage changes, user IDs — tell you the official story. <strong>Unstructured text</strong> — the emails, Slack threads, meeting notes, timesheets, SOWs, and progress reports that surround those transactions — tell you what actually happened. The gap between them is where fraud, waste, and dysfunction hide.
+      </div>
+
+      <!-- Before/After comparison -->
+      <div style="display:grid;grid-template-columns:1fr 48px 1fr;gap:0;margin-bottom:20px">
+
+        <!-- Structured Only -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 0 0 8px;padding:20px">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px">Structured Data Says</div>
+
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid var(--border-light)">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--text-muted)">CRM OPPORTUNITY</div>
+              <div style="font-size:13px;margin-top:4px">"Deal in Negotiation for 6 months"</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid var(--border-light)">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--text-muted)">SAP P2P</div>
+              <div style="font-size:13px;margin-top:4px">"Purchase Order created 03/15"</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid var(--border-light)">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--text-muted)">TIMESHEET</div>
+              <div style="font-size:13px;margin-top:4px">"40 hours billed to Project Alpha"</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid var(--border-light)">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--text-muted)">PROJECT STATUS</div>
+              <div style="font-size:13px;margin-top:4px">"Phase 2: On Track, Green"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VS divider -->
+        <div style="display:flex;align-items:center;justify-content:center;background:var(--sf-nav);color:white;font-size:11px;font-weight:800;letter-spacing:1px">vs</div>
+
+        <!-- Unstructured Reveals -->
+        <div style="background:var(--critical-bg);border:1px solid #E8A8A5;border-radius:0 8px 8px 0;padding:20px">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B1A15;margin-bottom:14px">Unstructured Text Reveals</div>
+
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid #F0B4B4">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--critical)">SLACK THREAD</div>
+              <div style="font-size:13px;margin-top:4px">"Customer said not ready — but Sales moved it forward anyway. No documented sign-off."</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid #F0B4B4">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--critical)">EMAIL CHAIN</div>
+              <div style="font-size:13px;margin-top:4px">"Requisition wasn't approved yet. Create the PO now, we'll get the paperwork later."</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid #F0B4B4">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--critical)">PROGRESS REPORT</div>
+              <div style="font-size:13px;margin-top:4px">"Assigned to Project Alpha but worked on Beta all week. SOW deliverables not started."</div>
+            </div>
+            <div style="padding:10px 14px;background:white;border-radius:6px;border:1px solid #F0B4B4">
+              <div style="font-size:11px;font-family:var(--mono);color:var(--critical)">MEETING TRANSCRIPT</div>
+              <div style="font-size:13px;margin-top:4px">"We're 3 weeks behind. Tell the client we're on track while we figure this out."</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Evidence from our analysis -->
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Evidence From Our Analysis</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+
+        <div style="padding:14px;background:var(--bg);border-radius:6px;border-left:3px solid var(--critical)">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px">SAP IDES: Retroactive Documentation</div>
+          <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Structured data shows PO and PR both exist. <strong>Timestamps reveal</strong> the PO was created before the PR — approval was documented after the fact. Only detectable by cross-referencing temporal sequence.</div>
+          <div style="margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--critical);cursor:pointer" onclick="switchTab('ides')">See IDES Compliance tab &#8594;</div>
+        </div>
+
+        <div style="padding:14px;background:var(--bg);border-radius:6px;border-left:3px solid var(--high)">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px">HERB: Approvals in Slack, Not Systems</div>
+          <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">37,064 enterprise documents analyzed (32.8K Slack messages, 3.6K pull requests, 400 docs, 321 transcripts). <strong>1,226 "LGTM/Approved" messages found in Slack channels</strong> — informal approvals with no audit trail. Structured approval workflows show no record of these decisions.</div>
+          <div style="margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--high);cursor:pointer" onclick="switchTab('nlp')">See NLP Patterns tab &#8594;</div>
+        </div>
+
+        <div style="padding:14px;background:var(--bg);border-radius:6px;border-left:3px solid #9050E9">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px">BPI: 57K Payment Blocks — Why?</div>
+          <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Structured data shows 22.7% of POs hit payment blocks. <strong>The event log can't explain why</strong> — that answer lives in vendor correspondence, invoice discrepancy notes, and buyer emails that aren't in the event log.</div>
+          <div style="margin-top:8px;font-size:10px;font-family:var(--mono);color:#9050E9;cursor:pointer" onclick="switchTab('bpi')">See BPI Challenge tab &#8594;</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- The real-world statement -->
+    <div style="background:var(--sf-nav);border-radius:var(--radius);padding:24px 28px;color:white;box-shadow:var(--shadow-md)">
+      <div style="font-size:14px;line-height:1.8;opacity:0.9">
+        <strong style="opacity:1">20 years of ERP consulting taught me this:</strong> In every engagement where something went wrong — billing disputes, project failures, compliance gaps — the structured transaction data looked clean. The truth was always in the unstructured layer: the email where someone said "skip the approval," the timesheet that didn't match the progress report, the SOW deliverable that was marked complete but never started. This tool automates finding those discrepancies at scale.
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="section">
+    <div class="section-title">System Architecture</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow-sm);overflow-x:auto">
+
+      <!-- Pipeline flow -->
+      <div style="display:flex;align-items:flex-start;gap:12px;min-width:900px">
+
+        <!-- Data Sources -->
+        <div style="flex:0 0 180px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;text-align:center">Data Sources</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px 12px;background:#EEF6F0;border:1px solid #C8E6C9;border-radius:6px;font-size:11px;font-weight:600;text-align:center">SAP ERP (IDES/ECC)</div>
+            <div style="padding:8px 12px;background:#E8F4FD;border:1px solid #B4D6F0;border-radius:6px;font-size:11px;font-weight:600;text-align:center">Salesforce CRM</div>
+            <div style="padding:8px 12px;background:#F3E8FF;border:1px solid #D4B4F0;border-radius:6px;font-size:11px;font-weight:600;text-align:center">BPI Challenge (XES)</div>
+            <div style="padding:8px 12px;background:#FFF4EC;border:1px solid #F0D4B4;border-radius:6px;font-size:11px;font-weight:600;text-align:center">Slack / HERB Comms</div>
+            <div style="padding:8px 12px;background:#FEF1EE;border:1px solid #F0B4B4;border-radius:6px;font-size:11px;font-weight:600;text-align:center">NetSuite ERP</div>
+            <div style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;text-align:center;color:var(--text-muted)">CSV / Custom</div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="flex:0 0 40px;display:flex;align-items:center;justify-content:center;padding-top:60px">
+          <div style="font-size:24px;color:var(--text-muted)">&#8594;</div>
+        </div>
+
+        <!-- Adapters -->
+        <div style="flex:0 0 140px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;text-align:center">7 Adapters</div>
+          <div style="padding:16px;background:var(--bg);border:2px dashed var(--border);border-radius:8px">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8;text-align:center">
+              IDataAdapter<br>interface<br>
+              <span style="font-size:10px;color:var(--text-muted)">Normalize to<br>unified event log</span>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text-muted);text-align:center;font-family:var(--mono)">BPI, CSV, ECC,<br>S4, SALT, SFDC,<br>Synthetic</div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="flex:0 0 40px;display:flex;align-items:center;justify-content:center;padding-top:60px">
+          <div style="font-size:24px;color:var(--text-muted)">&#8594;</div>
+        </div>
+
+        <!-- Analysis Engines -->
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;text-align:center">Analysis Engines</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="padding:12px;background:#E8F4FD;border:1px solid #B4D6F0;border-radius:6px">
+              <div style="font-size:12px;font-weight:700;color:var(--sf-blue-dark)">Conformance Checker</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Token-based replay<br>van der Aalst algorithms<br>Process model builder</div>
+            </div>
+            <div style="padding:12px;background:#FEF1EE;border:1px solid #F0B4B4;border-radius:6px">
+              <div style="font-size:12px;font-weight:700;color:#8B1A15">Temporal Analyzer</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Throughput times<br>Bottleneck detection<br>Delay probability</div>
+            </div>
+            <div style="padding:12px;background:#F3E8FF;border:1px solid #D4B4F0;border-radius:6px">
+              <div style="font-size:12px;font-weight:700;color:#6B21A8">Pattern Clustering</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">TF-IDF + K-Means<br>Effect sizing (Cohen's d)<br>Stability bootstrap</div>
+            </div>
+            <div style="padding:12px;background:#FFF4EC;border:1px solid #F0D4B4;border-radius:6px">
+              <div style="font-size:12px;font-weight:700;color:#92400E">Cross-System Resolver</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Entity matching<br>Levenshtein + proximity<br>Gap detection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="flex:0 0 40px;display:flex;align-items:center;justify-content:center;padding-top:60px">
+          <div style="font-size:24px;color:var(--text-muted)">&#8594;</div>
+        </div>
+
+        <!-- Outputs -->
+        <div style="flex:0 0 160px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;text-align:center">Forensic Output</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px 12px;background:var(--critical-bg);border:1px solid #E8A8A5;border-radius:6px;font-size:11px;font-weight:600;text-align:center;color:#8B1A15">Compliance<br>Violations</div>
+            <div style="padding:8px 12px;background:var(--high-bg);border:1px solid #F0D4B4;border-radius:6px;font-size:11px;font-weight:600;text-align:center;color:#92400E">Bottleneck<br>Reports</div>
+            <div style="padding:8px 12px;background:var(--medium-bg);border:1px solid #E8D48B;border-radius:6px;font-size:11px;font-weight:600;text-align:center;color:#7A6C1E">Pattern<br>Cards</div>
+            <div style="padding:8px 12px;background:#EEF6F0;border:1px solid #C8E6C9;border-radius:6px;font-size:11px;font-weight:600;text-align:center;color:#2E7D32">Evidence<br>Ledger</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tech annotations -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:24px;justify-content:center;flex-wrap:wrap">
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--mono)">TypeScript (MCP Server)</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--mono)">Python 3.11 (Pattern Engine)</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--mono)">1,639 tests across 70 suites</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--mono)">Deterministic (seed=42)</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--mono)">Zero frontend dependencies</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis Tabs as clickable cards -->
+  <div class="section">
+    <div class="section-title">Four Forensic Lenses</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+      <div onclick="switchTab('crm')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);transition:all 0.15s;border-top:4px solid var(--sf-blue)" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--sf-blue);margin-bottom:4px">8,800</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">CRM Pipeline Forensics</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Sales opportunity analysis — win rates, velocity patterns, agent performance, quarter-end compression. Kaggle real-world CRM data.</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--sf-blue);font-weight:600">Explore &#8594;</div>
+      </div>
+
+      <div onclick="switchTab('bpi')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);transition:all 0.15s;border-top:4px solid var(--high)" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--high);margin-bottom:4px">251K</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">BPI Challenge 2019</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Real purchase-to-pay from a multinational. 1.6M events, payment blocks, process variability, resource concentration risks.</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--high);font-weight:600">Explore &#8594;</div>
+      </div>
+
+      <div onclick="switchTab('ides')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);transition:all 0.15s;border-top:4px solid var(--critical)" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--critical);margin-bottom:4px">7</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">SAP IDES Compliance</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Compliance violations in SAP's own demo system. Maverick buying, retroactive documentation, segregation of duties risks.</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--critical);font-weight:600">Explore &#8594;</div>
+      </div>
+
+      <div onclick="switchTab('nlp')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);transition:all 0.15s;border-top:4px solid #9050E9" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:#9050E9;margin-bottom:4px">37K</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">NLP Pattern Analysis</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Salesforce HERB — 37K documents (Slack, PRs, transcripts) clustered into communication patterns. Network graphs, bridge users, team dynamics.</div>
+        <div style="margin-top:12px;font-size:11px;color:#9050E9;font-weight:600">Explore &#8594;</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Real-World link card (detail on its own tab) -->
+  <div onclick="switchTab('cases')" style="cursor:pointer;background:linear-gradient(135deg,#032D60,#0176D3);border-radius:var(--radius);padding:20px 24px;color:white;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:20px;margin-bottom:16px;transition:all 0.15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+    <div style="flex:1">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.6;margin-bottom:4px">Real-World Client Data</div>
+      <div style="font-size:16px;font-weight:700">3 anonymized engagements — 3M+ ERP records, $103K savings, ITGC violations, 28.6% RMA rate</div>
+      <div style="font-size:12px;opacity:0.7;margin-top:4px">License audit + ticket forensics + high-growth hardware company ERP forensics with credit hold overrides and SOD violations</div>
+    </div>
+    <div style="font-size:14px;font-weight:700;opacity:0.8;white-space:nowrap">View Cases &#8594;</div>
+  </div>
+
+  <!-- Design Philosophy -->
+  <div class="section">
+    <div class="section-title">Design Principles</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Adapter Pattern</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Every data source implements <span style="font-family:var(--mono);background:var(--bg);padding:1px 6px;border-radius:3px;font-size:11px">IDataAdapter</span> — normalize once, analyze everywhere. Adding a new ERP means writing one adapter, not rewriting analysis logic. Currently: SAP, Salesforce, NetSuite, BPI (XES/OCEL), CSV, synthetic.</div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Deterministic Reproducibility</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">All analysis uses <span style="font-family:var(--mono);background:var(--bg);padding:1px 6px;border-radius:3px;font-size:11px">seed=42</span>. Every pattern card, every cluster, every statistical test can be reproduced exactly. Run <span style="font-family:var(--mono);background:var(--bg);padding:1px 6px;border-radius:3px;font-size:11px">make demo</span> and get identical output. No non-determinism in the forensic chain.</div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Evidence-Based Findings</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Every claim links to an evidence ledger entry with source files, row counts, timestamps, and reproducibility parameters. Effect sizes use Cohen's d with 95% CI. Weak results are labeled as exploratory — no overclaiming.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Evidence Platform Capabilities -->
+  <div class="section">
+    <div class="section-title">Evidence Platform Capabilities</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);border-top:3px solid var(--critical)">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--critical);margin-bottom:4px">12</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Contradiction Types</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">AMOUNT_DIVERGENCE, TEMPORAL_IMPOSSIBILITY, SOD_VIOLATION, STATUS_CONTRADICTION, APPROVAL_BYPASS, DUPLICATE_PAYMENT, PHANTOM_VENDOR, RETROACTIVE_CHANGE, MISSING_RECEIPT, THRESHOLD_SPLIT, POLICY_OVERRIDE, GHOST_EMPLOYEE</div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);border-top:3px solid var(--sf-blue)">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--sf-blue);margin-bottom:4px">19</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Extraction Paths</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Deterministic extraction across SAP O2C, FI/CO, P2P + Salesforce + NetSuite pipelines. Schema validator with 19-table IDES reference (438 fields). Reality-gap detector: 3-way comparison of reference vs documented vs actual.</div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);border-top:3px solid var(--low)">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--low);margin-bottom:4px">8</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Finding Lifecycle States</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">DETECTED &#8594; CONFIRMED &#8594; ASSIGNED &#8594; INVESTIGATING &#8594; ESCALATED &#8594; REMEDIATED &#8594; VERIFIED &#8594; RESOLVED. Field-level provenance with SHA-256 replay verification. Reviewer handoff packets as self-contained audit artifacts.</div>
+      </div>
+
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">7 Evidence Systems</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;font-family:var(--mono)">
+          Contradiction Engine (12 types)<br>
+          Schema Validator (438 IDES fields)<br>
+          Reality-Gap Detector (3-way diff)<br>
+          Finding Lifecycle (8-state machine)<br>
+          Reviewer Handoff Packets<br>
+          Field-Level Provenance (SHA-256)<br>
+          MCP Tool Integration (11 tools)
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Platform Stats</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;font-family:var(--mono)">
+          1,639 tests across 70 test suites<br>
+          7 data adapters + 7 evidence systems<br>
+          19 deterministic extraction paths<br>
+          12-type contradiction engine<br>
+          19-table IDES schema reference<br>
+          11 MCP tools for agent integration<br>
+          TypeScript + Python 3.11
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- How AI Was Used -->
+  <div class="section">
+    <div class="section-title">How AI Was Used — Honest Accounting</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--sf-blue)">What I Did (Christopher Bailey)</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+            &#8226; Defined the problem space and research questions<br>
+            &#8226; Selected data sources and licensed datasets<br>
+            &#8226; Designed the adapter architecture and analysis pipeline<br>
+            &#8226; Chose conformance algorithms (van der Aalst token replay)<br>
+            &#8226; Interpreted findings and wrote forensic narratives<br>
+            &#8226; Determined what's a real finding vs. a statistical artifact<br>
+            &#8226; Real-world client engagement and domain expertise (20 yrs ERP)
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:#9050E9">What Claude Code Did (AI Pair-Programmer)</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+            &#8226; Implemented data adapters and parsers (TypeScript)<br>
+            &#8226; Built pattern engine and clustering pipeline (Python)<br>
+            &#8226; Wrote conformance checking engine<br>
+            &#8226; Generated test suites (1,639 tests across 70 suites)<br>
+            &#8226; Built this dashboard (vanilla HTML/CSS/JS)<br>
+            &#8226; Statistical computations (effect sizing, CI, p-values)<br>
+            &#8226; All code visible in <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" style="color:#9050E9">git history</a> with co-author tags
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:6px;font-size:12px;color:var(--text-secondary);line-height:1.6">
+        <strong>The honest version:</strong> Claude Code is a force multiplier. The 1,639-test, 7-adapter, 7-evidence-system platform you see here was built in weeks, not months. But the AI doesn't know what's worth finding — it doesn't know that a PO-before-PR is a Sarbanes-Oxley risk, or that 22.7% payment block rates are 4x industry norms. Domain expertise decides what to look for; AI makes looking fast.
+      </div>
+    </div>
+  </div>
+
+  <!-- Source & Links -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">Data Sources</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:2;font-family:var(--mono)">
+        Kaggle CRM Sales Opportunities — Apache 2.0<br>
+        BPI Challenge 2019 — 4TU.ResearchData, CC BY 4.0<br>
+        SAP IDES — sap-extractor, MIT License<br>
+        Salesforce HERB — HuggingFace, CC-BY-NC-4.0<br>
+        Client data — anonymized, used with permission
+      </div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">Reproduce This</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:2;font-family:var(--mono)">
+        git clone github.com/chrbailey/SAP-Transaction-Forensics<br>
+        make demo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# one-command bootstrap<br>
+        make test&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 1,639 tests<br>
+        make demo-kaggle&nbsp;# real Kaggle CRM data<br>
+        <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" style="color:var(--sf-blue)">View on GitHub &#8594;</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>Christopher Bailey · ERP Access, Inc. — Cross-System Process Forensics · 2026</div>
+  <div><a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">github.com/chrbailey/SAP-Transaction-Forensics</a></div>
+</footer>
+
+</div><!-- /tab-home -->
+
+<!-- ═══════════════════════════════════════════════
+     TAB 1: CRM Pipeline Forensics
+═══════════════════════════════════════════════ -->
+<div id="tab-crm" class="tab-panel">
+
+<div class="page">
+
+  <!-- SECTION 1: Pipeline Overview -->
+  <div class="section">
+    <div class="section-title">Pipeline Overview</div>
+    <div class="stat-grid">
+      <div class="stat-card accent-green">
+        <div class="stat-card-value">63.2%</div>
+        <div class="stat-card-label">Win Rate</div>
+        <div class="stat-card-sub">4,238 Won / 6,711 Closed</div>
+      </div>
+      <div class="stat-card accent-blue">
+        <div class="stat-card-value">$2,361</div>
+        <div class="stat-card-label">Avg Deal Size</div>
+        <div class="stat-card-sub">Across all closed-won deals</div>
+      </div>
+      <div class="stat-card accent-navy">
+        <div class="stat-card-value">57 days</div>
+        <div class="stat-card-label">Median Velocity</div>
+        <div class="stat-card-sub">Time from open to close</div>
+      </div>
+      <div class="stat-card accent-orange">
+        <div class="stat-card-value">2,089</div>
+        <div class="stat-card-label">Open Pipeline</div>
+        <div class="stat-card-sub">Opportunities in progress</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Conformance Analysis -->
+  <div class="section">
+    <div class="section-title">Conformance Analysis</div>
+    <div class="panel">
+      <div class="panel-title">New Business Pipeline Model</div>
+      <div class="panel-subtitle">Expected stage sequence for opportunity progression</div>
+      <div class="pipeline-flow">
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Prospecting', 500)">Prospecting</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Qualification', 1589)">Qualification</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Needs Analysis', 0)">Needs Analysis</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Value Proposition', 0)">Value Proposition</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Id. Decision Makers', 0)">Id. Decision Makers</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Perception Analysis', 0)">Perception Analysis</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Proposal / Price Quote', 0)">Proposal / Price Quote</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-pill" onclick="selectStage(this, 'Negotiation / Review', 0)">Negotiation / Review</div>
+          <span class="stage-arrow">→</span>
+        </div>
+        <div class="pipeline-stage">
+          <div class="stage-box stage-won stage-pill stage-won-pill" onclick="selectStage(this, 'Closed Won', 4238)">Closed Won</div>
+        </div>
+      </div>
+      <div id="stage-detail"></div>
+      <div class="conformance-callout">
+        <div class="callout-box" style="background:#FFF9E6;border:1px solid #E8D48B">
+          <div class="callout-value" style="color:var(--medium)">0.05</div>
+          <div class="callout-label">Avg Fitness Score</div>
+          <div class="callout-desc">Average fitness 0.05 — expected when real-world CRM data is measured against an aspirational 8-stage model. Most organizations skip stages; low conformance is typical, not alarming.</div>
+        </div>
+        <div class="callout-box yellow">
+          <div class="callout-value" style="color:var(--medium)">53,862</div>
+          <div class="callout-label">Deviations Detected</div>
+          <div class="callout-desc">Stage skips, reversals, and out-of-sequence transitions detected across 8,300 opportunities (closed + open) with stage history.</div>
+        </div>
+        <div class="callout-box" style="background:var(--sf-blue-light);border:1px solid #B4D6F0;flex:1;padding:16px 18px;border-radius:6px;">
+          <div class="callout-value" style="color:var(--sf-blue)">8,300</div>
+          <div class="callout-label" style="color:var(--sf-blue-dark)">Cases Analyzed</div>
+          <div class="callout-desc" style="color:var(--sf-blue-dark)">All opportunities with stage history (closed + open) analyzed for sequence conformance against the defined process model.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 + 4: Quarter-End Compression & Velocity -->
+  <div class="two-col section">
+
+    <div class="panel">
+      <div class="panel-title">Quarter-End Compression</div>
+      <div class="panel-subtitle">Monthly close distribution — QE months highlighted in orange</div>
+      <div class="chart-area">
+        <div class="bar-row" data-tooltip="Jan: 0 (0.0%)">
+          <div class="bar-row-label">Jan</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:0%">—</div></div>
+          <div class="bar-value">0</div>
+        </div>
+        <div class="bar-row" data-tooltip="Feb: 0 (0.0%)">
+          <div class="bar-row-label">Feb</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:0%">—</div></div>
+          <div class="bar-value">0</div>
+        </div>
+        <div class="bar-row" data-tooltip="Mar: 647 (9.6%) — QE month">
+          <div class="bar-row-label" style="font-weight:700;color:var(--high)">Mar</div>
+          <div class="bar-track"><div class="bar-fill qe" style="width:80.4%">647</div></div>
+          <div class="bar-value">647</div>
+        </div>
+        <div class="bar-row" data-tooltip="Apr: 586 (8.7%)">
+          <div class="bar-row-label">Apr</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:72.8%">586</div></div>
+          <div class="bar-value">586</div>
+        </div>
+        <div class="bar-row" data-tooltip="May: 805 (12.0%) — peak month">
+          <div class="bar-row-label">May</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:100%">805</div></div>
+          <div class="bar-value">805</div>
+        </div>
+        <div class="bar-row" data-tooltip="Jun: 641 (9.6%) — QE month">
+          <div class="bar-row-label" style="font-weight:700;color:var(--high)">Jun</div>
+          <div class="bar-track"><div class="bar-fill qe" style="width:79.6%">641</div></div>
+          <div class="bar-value">641</div>
+        </div>
+        <div class="bar-row" data-tooltip="Jul: 627 (9.3%)">
+          <div class="bar-row-label">Jul</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:77.9%">627</div></div>
+          <div class="bar-value">627</div>
+        </div>
+        <div class="bar-row" data-tooltip="Aug: 785 (11.7%)">
+          <div class="bar-row-label">Aug</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:97.5%">785</div></div>
+          <div class="bar-value">785</div>
+        </div>
+        <div class="bar-row" data-tooltip="Sep: 635 (9.5%) — QE month">
+          <div class="bar-row-label" style="font-weight:700;color:var(--high)">Sep</div>
+          <div class="bar-track"><div class="bar-fill qe" style="width:78.9%">635</div></div>
+          <div class="bar-value">635</div>
+        </div>
+        <div class="bar-row" data-tooltip="Oct: 566 (8.4%)">
+          <div class="bar-row-label">Oct</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:70.3%">566</div></div>
+          <div class="bar-value">566</div>
+        </div>
+        <div class="bar-row" data-tooltip="Nov: 768 (11.4%)">
+          <div class="bar-row-label">Nov</div>
+          <div class="bar-track"><div class="bar-fill regular" style="width:95.4%">768</div></div>
+          <div class="bar-value">768</div>
+        </div>
+        <div class="bar-row" data-tooltip="Dec: 651 (9.7%) — QE month">
+          <div class="bar-row-label" style="font-weight:700;color:var(--high)">Dec</div>
+          <div class="bar-track"><div class="bar-fill qe" style="width:80.9%">651</div></div>
+          <div class="bar-value">651</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:12px 16px;background:var(--medium-bg);border:1px solid #E8D48B;border-radius:6px;font-size:13px;color:#7A6C1E;">
+        <strong>38.4%</strong> close in quarter-end months (Mar/Jun/Sep/Dec) — <strong>1.15×</strong> the expected baseline of 33.3% (4 of 12 months). Slight concentration but within normal range for B2B sales cycles.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Deal Velocity Distribution</div>
+      <div class="panel-subtitle">Time-to-close buckets — closed won opportunities only</div>
+      <div style="margin-top:8px;">
+        <div class="velocity-row" data-tooltip="0–30 days: 1,817 deals (42.9%) — fast transactional">
+          <div class="velocity-label">0–30 days</div>
+          <div class="velocity-track"><div class="velocity-fill" style="width:100%">1,817</div></div>
+          <div class="velocity-pct">42.9%</div>
+        </div>
+        <div class="velocity-row" data-tooltip="31–60 days: 377 deals (8.9%)">
+          <div class="velocity-label">31–60 days</div>
+          <div class="velocity-track"><div class="velocity-fill" style="width:20.7%">377</div></div>
+          <div class="velocity-pct">8.9%</div>
+        </div>
+        <div class="velocity-row" data-tooltip="61–90 days: 1,078 deals (25.4%)">
+          <div class="velocity-label">61–90 days</div>
+          <div class="velocity-track"><div class="velocity-fill" style="width:59.3%">1,078</div></div>
+          <div class="velocity-pct">25.4%</div>
+        </div>
+        <div class="velocity-row" data-tooltip="91–180 days: 966 deals (22.8%) — enterprise negotiations">
+          <div class="velocity-label">91–180 days</div>
+          <div class="velocity-track"><div class="velocity-fill" style="width:53.2%">966</div></div>
+          <div class="velocity-pct">22.8%</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-light);">
+        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:12px;">Velocity Insights</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="padding:12px;background:var(--bg);border-radius:6px;">
+            <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--sf-blue)">57</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Median Days</div>
+          </div>
+          <div style="padding:12px;background:var(--bg);border-radius:6px;">
+            <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--sf-nav)">4,238</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Deals Measured</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text-secondary);line-height:1.6;">
+          The bimodal distribution — 43% closing in under 30 days, 23% taking 91–180 days — suggests two distinct deal types: quick transactional sales and extended enterprise negotiations.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 5 + 6: Agents & Product Mix -->
+  <div class="two-col section">
+
+    <div class="panel">
+      <div class="panel-title">Top Agents by Win Rate</div>
+      <div class="panel-subtitle">Minimum 50 closed opportunities — top 10 performers</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th class="num">Win Rate</th>
+            <th class="num">Won</th>
+            <th class="num">Closed</th>
+            <th class="num">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">1</span>Hayden Neloms</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">70.4%</span><span class="win-rate-fill" style="width:38px;display:inline-block;"></span></span></td>
+            <td class="num">107</td>
+            <td class="num">152</td>
+            <td class="num">$272K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,542 · deals/month: ~8.9 · win rate 5.4 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">2</span>Maureen Marcano</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">70.0%</span></span></td>
+            <td class="num">149</td>
+            <td class="num">213</td>
+            <td class="num">$350K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,349 · deals/month: ~12.4 · win rate 5.0 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">3</span>Wilburn Farren</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">69.6%</span></span></td>
+            <td class="num">55</td>
+            <td class="num">79</td>
+            <td class="num">$158K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,873 · deals/month: ~4.6 · win rate 4.6 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">4</span>Cecily Lampkin</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">66.9%</span></span></td>
+            <td class="num">107</td>
+            <td class="num">160</td>
+            <td class="num">$230K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,150 · deals/month: ~9.4 · win rate 1.9 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">5</span>Versie Hillebrand</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">66.7%</span></span></td>
+            <td class="num">176</td>
+            <td class="num">264</td>
+            <td class="num">$188K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $1,068 · deals/month: ~15.5 · high volume, lower avg deal</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">6</span>Moses Frase</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">66.2%</span></span></td>
+            <td class="num">129</td>
+            <td class="num">195</td>
+            <td class="num">$207K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $1,605 · deals/month: ~11.5 · win rate 1.2 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">7</span>Boris Faz</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">66.0%</span></span></td>
+            <td class="num">101</td>
+            <td class="num">153</td>
+            <td class="num">$262K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,594 · deals/month: ~9.0 · win rate 1.0 pts above team avg</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">8</span>James Ascencio</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">65.5%</span></span></td>
+            <td class="num">135</td>
+            <td class="num">206</td>
+            <td class="num">$414K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $3,067 · deals/month: ~12.1 · highest avg deal in top 10</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge">9</span>Corliss Cosme</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">65.5%</span></span></td>
+            <td class="num">150</td>
+            <td class="num">229</td>
+            <td class="num">$421K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,807 · deals/month: ~13.5 · strong volume + high deal size</td></tr>
+          <tr class="agent-row" onclick="toggleAgentDetail(this)">
+            <td><span class="rank-badge" style="background:var(--medium-bg);color:var(--medium);">10</span>Reed Clapper</td>
+            <td class="num"><span class="win-rate-bar"><span class="win-rate-text">65.4%</span></span></td>
+            <td class="num">155</td>
+            <td class="num">237</td>
+            <td class="num">$438K</td>
+          </tr>
+          <tr class="agent-detail" style="display:none"><td colspan="5">avg deal size $2,826 · deals/month: ~13.9 · top revenue generator in the table</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Product Revenue Mix</div>
+      <div class="panel-subtitle">Closed-won revenue by product — total $10,005K</div>
+      <div style="margin-top:8px;">
+        <div class="hbar-row" data-tooltip="GTXPro: $3,510K (35.1%) — 729 deals won">
+          <div class="hbar-label">GTXPro</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:100%">$3,510K</div></div>
+          <div class="hbar-val">35.1%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="GTX Plus Pro: $2,630K (26.3%) — 479 deals won">
+          <div class="hbar-label">GTX Plus Pro</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:74.9%">$2,630K</div></div>
+          <div class="hbar-val">26.3%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="MG Advanced: $2,216K (22.2%) — 654 deals won">
+          <div class="hbar-label">MG Advanced</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:63.1%">$2,216K</div></div>
+          <div class="hbar-val">22.2%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="GTX Plus Basic: $705K (7.1%) — 653 deals won">
+          <div class="hbar-label">GTX Plus Basic</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:20.1%">$705K</div></div>
+          <div class="hbar-val">7.1%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="GTX Basic: $499K (5.0%) — 915 deals won">
+          <div class="hbar-label">GTX Basic</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:14.2%">$499K</div></div>
+          <div class="hbar-val">5.0%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="GTK 500: $401K (4.0%) — 15 deals won">
+          <div class="hbar-label">GTK 500</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:11.4%">$401K</div></div>
+          <div class="hbar-val">4.0%</div>
+        </div>
+        <div class="hbar-row" data-tooltip="MG Special: $44K (0.4%) — 793 deals won">
+          <div class="hbar-label">MG Special</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:1.3%"></div></div>
+          <div class="hbar-val">0.4%</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-light);">
+        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:8px;">Concentration</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;">Top 3 products (GTXPro, GTX Plus Pro, MG Advanced) account for <strong>83.6%</strong> of total revenue. MG Special at $44K represents tail inventory with minimal impact.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 7: Account Concentration -->
+  <div class="section">
+    <div class="section-title">Account Concentration</div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Top Accounts by Revenue</div>
+        <div class="panel-subtitle">Closed-won revenue across 85 accounts</div>
+        <div style="margin-top:8px;">
+          <div class="account-row" data-tooltip="Kan-code: $341K — 3.4% of total revenue">
+            <div class="account-name">Kan-code</div>
+            <div class="account-bar-wrap"><div class="account-bar" style="width:100%"></div></div>
+            <div class="account-rev">$341K</div>
+          </div>
+          <div class="account-row" data-tooltip="Konex: $269K — 2.7% of total revenue">
+            <div class="account-name">Konex</div>
+            <div class="account-bar-wrap"><div class="account-bar" style="width:78.9%"></div></div>
+            <div class="account-rev">$269K</div>
+          </div>
+          <div class="account-row" data-tooltip="Condax: $206K — 2.1% of total revenue">
+            <div class="account-name">Condax</div>
+            <div class="account-bar-wrap"><div class="account-bar" style="width:60.4%"></div></div>
+            <div class="account-rev">$206K</div>
+          </div>
+          <div class="account-row" data-tooltip="Cheers: $198K — 2.0% of total revenue">
+            <div class="account-name">Cheers</div>
+            <div class="account-bar-wrap"><div class="account-bar" style="width:58.1%"></div></div>
+            <div class="account-rev">$198K</div>
+          </div>
+          <div class="account-row" data-tooltip="Hottechi: $195K — 1.9% of total revenue">
+            <div class="account-name">Hottechi</div>
+            <div class="account-bar-wrap"><div class="account-bar" style="width:57.2%"></div></div>
+            <div class="account-rev">$195K</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="panel-title">Diversification Assessment</div>
+          <div class="panel-subtitle">CR5 concentration ratio (top-5 revenue share)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+            <div style="padding:16px;background:var(--low-bg);border-radius:6px;border:1px solid #A3D9B1;">
+              <div style="font-size:28px;font-weight:800;font-family:var(--mono);color:var(--low)">12.1%</div>
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Top 5 Share</div>
+            </div>
+            <div style="padding:16px;background:var(--sf-blue-light);border-radius:6px;border:1px solid #B4D6F0;">
+              <div style="font-size:28px;font-weight:800;font-family:var(--mono);color:var(--sf-blue)">85</div>
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Total Accounts</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:14px 16px;background:var(--low-bg);border:1px solid #A3D9B1;border-radius:6px;font-size:13px;color:#1B5E20;line-height:1.6;">
+          <strong>Healthy distribution.</strong> Top 5 accounts represent only 12.1% of revenue — well below typical key-account concentration risk thresholds. No single customer dependency.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Key Findings -->
+  <div class="section">
+    <div class="section-title">Key Findings</div>
+    <div class="findings-grid">
+
+      <div class="finding-card low">
+        <div class="finding-header">
+          <div class="finding-title">Quarter-End Concentration</div>
+          <span class="badge low">Low</span>
+        </div>
+        <div class="finding-stat">38.4%</div>
+        <div class="finding-desc">38.4% of closed deals close in quarter-end months (Mar/Jun/Sep/Dec), vs. a 33.3% uniform baseline (4 of 12 months). The 1.15× ratio suggests mild concentration — typical in B2B sales where fiscal quarters influence buyer and seller timing. Not a strong anomaly signal on its own.</div>
+      </div>
+
+      <div class="finding-card medium">
+        <div class="finding-header">
+          <div class="finding-title">Stage Conformance Gap (Expected)</div>
+          <span class="badge medium">Expected</span>
+        </div>
+        <div class="finding-stat">Avg fitness: 0.05</div>
+        <div class="finding-desc"><strong>This is an expected result, not an anomaly.</strong> The 8-stage New Business pipeline (Prospecting → Qualification → Needs Analysis → ... → Negotiation/Review → Closed Won) is an aspirational reference model, not an operational requirement. Real-world CRM data typically records only 2-4 stages per deal. The 53,862 "missing_activity" deviations across 8,300 opportunities (closed + open) quantify the gap between prescribed process and actual practice — useful for process improvement, but not indicative of control failures. Average fitness score: 0.05.</div>
+      </div>
+
+      <div class="finding-card low">
+        <div class="finding-header">
+          <div class="finding-title">Agent Performance Spread</div>
+          <span class="badge low">Low</span>
+        </div>
+        <div class="finding-stat">15-pt spread</div>
+        <div class="finding-desc">Win rates among active agents range from approximately 55% to 70.4%, a 15-point spread. Top performers (Hayden Neloms, Maureen Marcano) sustain 70%+ win rates across 150–200+ closed deals, suggesting reproducible behavioral patterns worth codifying as playbooks.</div>
+      </div>
+
+      <div class="finding-card low">
+        <div class="finding-header">
+          <div class="finding-title">Account Diversification</div>
+          <span class="badge low">Low</span>
+        </div>
+        <div class="finding-stat">12.1% top-5</div>
+        <div class="finding-desc">The top 5 accounts (Kan-code, Konex, Condax, Cheers, Hottechi) represent only 12.1% of total closed-won revenue across 85 accounts. Revenue is broadly distributed, reducing customer concentration risk. No single account exceeds 3.4% of total revenue.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Pipeline Transparency — CRM Tab -->
+<div style="max-width:1600px;margin:0 auto;padding:0 32px 24px">
+  <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-card);overflow:hidden">
+    <button id="crm-pipeline-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'; this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▸ Pipeline Transparency — How This Analysis Works':'▾ Pipeline Transparency — How This Analysis Works'" style="width:100%;padding:14px 24px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:var(--font);font-size:14px;font-weight:700;color:var(--text)">
+      <span>▸ Pipeline Transparency — How This Analysis Works</span>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:400">Click to expand</span>
+    </button>
+    <div style="display:none;padding:0 24px 24px;border-top:1px solid var(--border)">
+
+      <!-- Pipeline stages -->
+      <div style="display:flex;gap:8px;align-items:center;margin:16px 0 24px;flex-wrap:wrap">
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#0176D3">CSV Ingest</div>
+        <div style="color:var(--text-muted)">→</div>
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#9050E9">SFDC Normalize</div>
+        <div style="color:var(--text-muted)">→</div>
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#E87722">Event Log Build</div>
+        <div style="color:var(--text-muted)">→</div>
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#2E844A">Conformance Check</div>
+        <div style="color:var(--text-muted)">→</div>
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#C23934">Pattern Detection</div>
+        <div style="color:var(--text-muted)">→</div>
+        <div style="padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:#032D60">Report</div>
+      </div>
+
+      <!-- Stage details -->
+      <div style="margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid #0176D3">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Stage 1: CSV Ingest</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8">
+          Source: Kaggle CRM Sales Opportunities (innocentmfa)<br>
+          Files: sales_pipeline.csv (8,800 rows), accounts.csv (85), products.csv (7), sales_teams.csv (35)<br>
+          Converter: convert_kaggle_crm.py maps CSV fields to SFDC JSON schema
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid #9050E9">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Stage 2: SFDC Normalization</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8">
+          Adapter: SFDCSyntheticAdapter implements IDataAdapter (8 methods)<br>
+          Field mapper: Opportunity.Id → VBELN, Account.Id → KUNNR, Amount → NETWR<br>
+          Pipeline models: Prospecting → Qualification → Needs Analysis → ... → Closed Won<br>
+          Stage mapping: "Engaging" → "Qualification", "Won" → "Closed Won", "Lost" → "Closed Lost"
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid #E87722">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Stage 3: Event Log Construction</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8">
+          Records: 49,408 events from 8,800 opportunities<br>
+          Stage transitions: 31,787 entries (with synthetic intermediate stages for Won deals)<br>
+          Activities: 17,621 task records (product-related subjects)<br>
+          Format: case_id, activity, timestamp, resource, attributes
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid #2E844A">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Stage 4: Conformance Checking</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8">
+          Algorithm: Token-based replay (van der Aalst, 2016)<br>
+          Model: sfdc_new_business — 8-stage pipeline with mandatory transitions<br>
+          Cases: 8,300 analyzed | Fitness range: 0.00 – 0.10 (real data lacks full stage coverage)<br>
+          Deviations: 53,862 total (45,386 missing_activity, 8,476 skipped_activity)
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid #C23934">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Stage 5: Pattern Detection</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8">
+          Quarter-end compression: 38.4% of closes in QE months (1.15x the 33.3% baseline)<br>
+          Deal velocity bimodal: 42.9% close within 30 days, 22.8% take 91-180 days<br>
+          Agent spread: 15-point win rate range (55%–70%) across 30 agents<br>
+          Account concentration: Top 5 = 12.1% of revenue (healthy diversification)
+        </div>
+      </div>
+
+      <!-- Technology stack -->
+      <div style="margin-top:20px;padding:16px;background:#F0EDFF;border-radius:8px;border-left:3px solid #9050E9">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#9050E9">Technology Stack</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:2">
+          MCP Server: TypeScript (ESM, strict mode), 7 data adapters + 7 evidence systems<br>
+          Pattern Engine: Python 3.11, scikit-learn, scipy<br>
+          Conformance: Token-based replay, ProcessModelBuilder, van der Aalst algorithms<br>
+          Cross-System: Entity resolver (Levenshtein + proximity), unified event log<br>
+          Evidence: 12-type contradiction engine, SHA-256 provenance, 8-state finding lifecycle<br>
+          Tests: 1,639 passing across 70 test suites<br>
+          Data: Kaggle CRM Sales Opportunities (Apache 2.0 license)<br>
+          Frontend: Vanilla HTML/CSS/JS (zero dependencies)<br>
+          Deployment: Vercel (static)<br>
+          Source: <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" style="color:#9050E9">github.com/chrbailey/SAP-Transaction-Forensics</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div>
+    Christopher Bailey · ERP Access, Inc. · Data: <a href="https://www.kaggle.com/datasets/innocentmfa/crm-sales-opportunities" target="_blank">Kaggle CRM Sales Opportunities (8,800 records, Apache 2.0)</a>
+  </div>
+  <div><a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">github.com/chrbailey/SAP-Transaction-Forensics</a> · March 2026</div>
+</footer>
+
+</div><!-- /tab-crm -->
+
+<!-- ═══════════════════════════════════════════════
+     TAB 2: Communication Pattern Analysis
+═══════════════════════════════════════════════ -->
+<div id="tab-nlp" class="tab-panel">
+
+<div class="severity-bar" id="severity-bar"></div>
+
+<div style="max-width:1600px;margin:0 auto;padding:0 32px 8px">
+  <div style="padding:12px 16px;background:#FFF9E6;border:1px solid #E8D48B;border-radius:6px;font-size:12px;color:#7A6C1E">
+    <strong>Cluster Quality Note:</strong> Global silhouette score is 0.028 (KMeans) / 0.09 (BERTopic), indicating weak cluster separation. Findings should be treated as exploratory signals, not confirmed patterns. See Pipeline Transparency for methodology details. <span style="opacity:0.7">HERB dataset timestamps extend to 2027 (synthetic); temporal patterns reflect relative timing.</span>
+  </div>
+</div>
+
+<div class="filters">
+  <select class="filter-select" id="filter-type">
+    <option value="">All Types</option>
+    <option value="anomaly">Anomaly</option>
+    <option value="bottleneck">Bottleneck</option>
+    <option value="compliance">Compliance</option>
+    <option value="communication">Communication</option>
+    <option value="approval">Approval</option>
+    <option value="escalation">Escalation</option>
+  </select>
+  <select class="filter-select" id="filter-severity">
+    <option value="">All Severities</option>
+    <option value="critical">Critical</option>
+    <option value="high">High</option>
+    <option value="medium">Medium</option>
+    <option value="low">Low</option>
+  </select>
+  <input class="filter-input" id="filter-search" type="text" placeholder="Search patterns, phrases, products...">
+  <button class="filter-clear" id="filter-clear">Clear filters</button>
+</div>
+
+<div class="nlp-main" id="main-container">
+  <div class="cards-grid" id="cards-grid">
+    <div class="empty-state"><div class="empty-state-icon">⏳</div><p>Loading forensic analysis...</p></div>
+  </div>
+</div>
+
+<!-- Pipeline Transparency -->
+<div style="max-width:1600px;margin:0 auto;padding:0 32px 16px">
+  <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-card);overflow:hidden">
+    <button id="pipeline-toggle" style="width:100%;padding:14px 24px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:var(--font);font-size:14px;font-weight:700;color:var(--text)">
+      <span>▸ Pipeline Transparency — How These Patterns Were Computed</span>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:400">Click to expand</span>
+    </button>
+    <div id="pipeline-body" style="display:none;padding:0 24px 24px;border-top:1px solid var(--border)">
+      <div id="pipeline-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Salesforce Connect -->
+<div style="max-width:1600px;margin:0 auto;padding:0 32px 16px">
+  <div style="border:1px solid #B4D6F0;border-radius:var(--radius);background:var(--sf-blue-light);padding:20px 24px;display:flex;align-items:center;gap:16px">
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#0176D3,#49B6FF);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0">SF</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:var(--sf-blue-dark)">View Analysis Code on GitHub</div>
+      <div style="font-size:12px;color:var(--sf-blue-dark);opacity:0.7;margin-top:2px">This is an analysis tool, not a hosted service. Clone the repo to run the pattern engine on your own Slack exports, case comments, or CRM data with text fields and timestamps.</div>
+    </div>
+    <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" style="padding:8px 16px;background:var(--sf-blue);color:white;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">View on GitHub →</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div>
+    <strong>Christopher Bailey</strong> · Pattern Engine v3.0 · Data: <a href="https://huggingface.co/datasets/Salesforce/HERB" target="_blank">Salesforce/HERB (HuggingFace, CC-BY-NC-4.0)</a>
+    · Pipeline: Python + scikit-learn (TF-IDF + KMeans)
+  </div>
+  <div>ERP Access, Inc. — Cross-System Process Forensics · 2026</div>
+</footer>
+
+</div><!-- /tab-nlp -->
+
+<!-- ═══════════════════════════════════════════════
+     TAB 3: BPI Challenge 2019 — Purchase-to-Pay
+═══════════════════════════════════════════════ -->
+<div id="tab-bpi" class="tab-panel">
+<div class="page">
+
+  <!-- Source Banner -->
+  <div style="margin-bottom:24px;padding:14px 20px;background:#FFF9E6;border:1px solid #E8D48B;border-radius:6px;font-size:12px;color:#7A6C1E;line-height:1.6">
+    <strong>Data Source:</strong> BPI Challenge 2019 — 4TU.ResearchData (CC BY 4.0). Real purchase-to-pay event log from a multinational coatings and paints company. 251,734 purchase order items, 1,595,923 events, 628 unique resources. Period: Jan 2018 — Jan 2019.
+  </div>
+
+  <!-- SECTION: Key Metrics -->
+  <div class="section">
+    <div class="section-title">Process Overview</div>
+    <div class="stat-grid">
+      <div class="stat-card accent-blue">
+        <div class="stat-card-value">64.3</div>
+        <div class="stat-card-label">Median Throughput (days)</div>
+        <div class="stat-card-sub">Average 72.3 days; max 25,670 days (stale POs)</div>
+      </div>
+      <div class="stat-card accent-green">
+        <div class="stat-card-value">32%</div>
+        <div class="stat-card-label">Top 2 Variants Coverage</div>
+        <div class="stat-card-sub">Only 2 of hundreds of paths cover a third of cases</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--high)">
+        <div class="stat-card-value">57,136</div>
+        <div class="stat-card-label">Payment Blocks</div>
+        <div class="stat-card-sub">22.7% of all POs required manual block removal</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--critical)">
+        <div class="stat-card-value">2,835</div>
+        <div class="stat-card-label">Incomplete Cases</div>
+        <div class="stat-card-sub">POs that never progressed past creation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Process Variants -->
+  <div class="section">
+    <div class="section-title">Most Common Process Paths</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#F8F8F8;border-bottom:2px solid var(--border)">
+          <th style="padding:12px 16px;text-align:left;font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px">#</th>
+          <th style="padding:12px 16px;text-align:left;font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Process Path</th>
+          <th style="padding:12px 16px;text-align:right;font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Cases</th>
+          <th style="padding:12px 16px;text-align:right;font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px">%</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 16px;font-family:var(--mono);color:var(--sf-blue);font-weight:700">1</td>
+            <td style="padding:10px 16px"><span style="font-family:var(--mono);font-size:11px">Create PO → Vendor Invoice → Goods Receipt → Invoice Receipt → Clear Invoice</span></td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-weight:600">50,286</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono)">20.0%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 16px;font-family:var(--mono);color:var(--sf-blue);font-weight:700">2</td>
+            <td style="padding:10px 16px"><span style="font-family:var(--mono);font-size:11px">Create PO → Goods Receipt → Vendor Invoice → Invoice Receipt → Clear Invoice</span></td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-weight:600">30,798</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono)">12.2%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 16px;font-family:var(--mono);color:var(--high);font-weight:700">3</td>
+            <td style="padding:10px 16px"><span style="font-family:var(--mono);font-size:11px">Create PO → Goods Receipt</span> <span style="font-size:10px;color:var(--high);font-weight:600">(incomplete)</span></td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-weight:600">9,443</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono)">3.8%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light)">
+            <td style="padding:10px 16px;font-family:var(--mono);color:var(--sf-blue);font-weight:700">4</td>
+            <td style="padding:10px 16px"><span style="font-family:var(--mono);font-size:11px">Create PO → Vendor Invoice → GR → IR → Remove Payment Block → Clear</span></td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-weight:600">6,931</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono)">2.8%</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 16px;font-family:var(--mono);color:var(--critical);font-weight:700">5</td>
+            <td style="padding:10px 16px"><span style="font-family:var(--mono);font-size:11px">Create PO</span> <span style="font-size:10px;color:var(--critical);font-weight:600">(abandoned — never progressed)</span></td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-weight:600">2,835</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--mono)">1.1%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">
+      Key finding: Variants 1 and 2 differ only in whether the vendor invoice arrives before or after goods receipt — a classic "3-way match" ordering question in P2P. Variant 4 shows 2.8% of cases require payment block removal, indicating invoice discrepancies.
+    </div>
+  </div>
+
+  <!-- SECTION: Anomalies & Issues -->
+  <div class="section">
+    <div class="section-title">Anomalies Detected</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--critical)">Process Issues</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--critical-bg);border-radius:4px;font-size:12px">
+            <span>Payment blocks requiring intervention</span><span style="font-family:var(--mono);font-weight:700;color:var(--critical)">57,136</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--high-bg);border-radius:4px;font-size:12px">
+            <span>Quantity changes after PO creation</span><span style="font-family:var(--mono);font-weight:700;color:var(--high)">21,449</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--high-bg);border-radius:4px;font-size:12px">
+            <span>Price changes after PO creation</span><span style="font-family:var(--mono);font-weight:700;color:var(--high)">12,423</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--medium-bg);border-radius:4px;font-size:12px">
+            <span>Deleted / cancelled orders</span><span style="font-family:var(--mono);font-weight:700;color:var(--medium)">5,298</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--medium-bg);border-radius:4px;font-size:12px">
+            <span>Abandoned POs (single event)</span><span style="font-family:var(--mono);font-weight:700;color:var(--medium)">2,835</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--sf-blue)">Resource Concentration</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Top 10 resources handle 63% of all 1.6M events, creating operational risk if key personnel are unavailable.</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="font-family:var(--mono);width:80px;font-weight:600">System</span>
+            <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:25%;height:100%;background:var(--sf-blue);border-radius:3px"></div></div>
+            <span style="font-family:var(--mono);width:48px;text-align:right">25.0%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="font-family:var(--mono);width:80px;font-weight:600">user_002</span>
+            <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:10.4%;height:100%;background:var(--high);border-radius:3px"></div></div>
+            <span style="font-family:var(--mono);width:48px;text-align:right">10.4%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="font-family:var(--mono);width:80px;font-weight:600">user_001</span>
+            <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:6%;height:100%;background:#9050E9;border-radius:3px"></div></div>
+            <span style="font-family:var(--mono);width:48px;text-align:right">6.0%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="font-family:var(--mono);width:80px;font-weight:600">batch_001</span>
+            <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:4.6%;height:100%;background:var(--low);border-radius:3px"></div></div>
+            <span style="font-family:var(--mono);width:48px;text-align:right">4.6%</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">user_002 alone handles 166,353 events (10.4%). Single-person bottleneck risk.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Document Types -->
+  <div class="section">
+    <div class="section-title">Document & Matching Types</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Purchase Order Types</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>Standard PO</span><span style="font-family:var(--mono);font-weight:600">152,562 (60.6%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:60.6%;height:100%;background:var(--sf-blue);border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>Framework Order</span><span style="font-family:var(--mono);font-weight:600">62,543 (24.9%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:24.9%;height:100%;background:#9050E9;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>Consignment</span><span style="font-family:var(--mono);font-weight:600">36,629 (14.6%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:14.6%;height:100%;background:var(--low);border-radius:3px"></div></div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Invoice Matching Strategy</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>3-way match, invoice after GR</span><span style="font-family:var(--mono);font-weight:600">164,874 (65.5%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:65.5%;height:100%;background:var(--sf-blue);border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>3-way match, invoice before GR</span><span style="font-family:var(--mono);font-weight:600">67,583 (26.9%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:26.9%;height:100%;background:var(--high);border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span>2-way match</span><span style="font-family:var(--mono);font-weight:600">19,277 (7.7%)</span></div>
+          <div style="height:6px;background:var(--bg);border-radius:3px"><div style="width:7.7%;height:100%;background:var(--medium);border-radius:3px"></div></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">3-way matching compares PO, goods receipt, and invoice. The 26.9% "invoice before GR" cases are where vendors bill before physical delivery — common but higher fraud risk.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Analysis Insight -->
+  <div class="section">
+    <div class="section-title">Forensic Insight</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+        <p style="margin-bottom:12px">This dataset comes from a <strong>real multinational company</strong> (anonymized for BPI Challenge 2019). The process mining community uses it as a benchmark for purchase-to-pay analysis. Our forensic engine processed the full 1.6M event log and surfaced several structural concerns:</p>
+        <p style="margin-bottom:12px"><strong>Payment blocks (22.7%)</strong> — Nearly 1 in 4 purchase orders hit a payment block requiring human intervention. This signals systematic issues in invoice matching or vendor master data quality. In a healthy P2P process, payment block rates should be under 5%.</p>
+        <p style="margin-bottom:12px"><strong>Process variability</strong> — With the top 2 variants covering only 32% of cases, the remaining 68% follow hundreds of different paths. This "spaghetti process" pattern makes it difficult to automate, audit, or optimize. Industry benchmarks target 80%+ coverage in the top 5 variants.</p>
+        <p><strong>Resource concentration</strong> — user_002 processes 10.4% of all events. If this person is unavailable (vacation, resignation), the bottleneck could cascade across the entire P2P process. This is a classic single-point-of-failure that process mining can identify but traditional audits miss.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>Christopher Bailey · ERP Access, Inc. · Data: BPI Challenge 2019 (4TU.ResearchData, CC BY 4.0)</div>
+  <div><a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">github.com/chrbailey/SAP-Transaction-Forensics</a> · March 2026</div>
+</footer>
+
+</div><!-- /tab-bpi -->
+
+<!-- ═══════════════════════════════════════════════
+     TAB 4: SAP IDES — Compliance Violations
+═══════════════════════════════════════════════ -->
+<div id="tab-ides" class="tab-panel">
+<div class="page">
+
+  <!-- Source Banner -->
+  <div style="margin-bottom:24px;padding:14px 20px;background:var(--critical-bg);border:1px solid #E8A8A5;border-radius:6px;font-size:12px;color:#8B1A15;line-height:1.6">
+    <strong>Compliance Alert:</strong> 7 process violations detected in SAP's own IDES demo system. IDES (Internet Demonstration and Evaluation System) is SAP's official reference environment used for training and certification. These violations exist in SAP's reference data — our engine found them through automated conformance checking.
+  </div>
+
+  <!-- SECTION: Violation Summary -->
+  <div class="section">
+    <div class="section-title">Violations Detected</div>
+    <div class="stat-grid">
+      <div class="stat-card" style="border-left:4px solid var(--critical)">
+        <div class="stat-card-value" style="color:var(--critical)">7</div>
+        <div class="stat-card-label">Total Violations</div>
+        <div class="stat-card-sub">In SAP's own reference data</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--high)">
+        <div class="stat-card-value">6</div>
+        <div class="stat-card-label">Missing Purchase Requisition</div>
+        <div class="stat-card-sub">PO created without prior approval workflow</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--critical)">
+        <div class="stat-card-value">1</div>
+        <div class="stat-card-label">Retroactive Documentation</div>
+        <div class="stat-card-sub">PO created before PR — approval was backdated</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--medium)">
+        <div class="stat-card-value">1</div>
+        <div class="stat-card-label">Segregation of Duties Risk</div>
+        <div class="stat-card-sub">Same resource created both PR and PO</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Violation Details -->
+  <div class="section">
+    <div class="section-title">Violation Breakdown</div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- MISSING_PR -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="padding:16px 20px;background:var(--high-bg);border-bottom:1px solid #E8C4A0;display:flex;align-items:center;gap:12px">
+          <span style="font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--high);color:white;border-radius:4px;font-weight:700">HIGH</span>
+          <span style="font-size:14px;font-weight:700">MISSING_PR — Purchase Order Without Purchase Requisition</span>
+          <span style="margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--high)">6 cases</span>
+        </div>
+        <div style="padding:20px">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">
+            Six purchase orders were created directly without an associated Purchase Requisition. In a compliant Procure-to-Pay process, every PO must originate from an approved PR to ensure proper authorization and budget control.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Root Cause</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Maverick buying — users bypassing requisition approval workflow to create POs directly</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Business Risk</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Unauthorized spending, budget overruns, audit findings. Bypasses approval controls designed to prevent fraud.</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Remediation</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Enforce system control: block PO creation without linked PR. Add validation rule in SAP transaction ME21N.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PO_BEFORE_PR -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="padding:16px 20px;background:var(--critical-bg);border-bottom:1px solid #E8A8A5;display:flex;align-items:center;gap:12px">
+          <span style="font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--critical);color:white;border-radius:4px;font-weight:700">CRITICAL</span>
+          <span style="font-size:14px;font-weight:700">PO_BEFORE_PR — Retroactive Approval Documentation</span>
+          <span style="margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--critical)">1 case</span>
+        </div>
+        <div style="padding:20px">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">
+            One Purchase Order was created <strong>before</strong> its associated Purchase Requisition. This means the order was placed first and the approval was documented after the fact — a clear compliance violation where the authorization workflow was bypassed and retroactively papered over.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Root Cause</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Approval workflow bypassed — order placed first, requisition created afterward to satisfy documentation requirements</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Business Risk</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Fraudulent documentation, Sarbanes-Oxley violations, audit failure. Represents intentional control circumvention.</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Remediation</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Implement sequential control: system must enforce PR approval timestamp < PO creation timestamp. Add automated alert.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segregation of Duties -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="padding:16px 20px;background:var(--medium-bg);border-bottom:1px solid #E8D48B;display:flex;align-items:center;gap:12px">
+          <span style="font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--medium);color:white;border-radius:4px;font-weight:700">MEDIUM</span>
+          <span style="font-size:14px;font-weight:700">SOD_VIOLATION — Segregation of Duties Risk</span>
+          <span style="margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--medium)">1 case</span>
+        </div>
+        <div style="padding:20px">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px">
+            One case where the same resource created both the Purchase Requisition (request) and the Purchase Order (fulfillment). Proper segregation of duties requires different individuals to request and approve purchases to prevent self-dealing.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Root Cause</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Missing role separation — user has authorization for both ME51N (create PR) and ME21N (create PO)</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Business Risk</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Self-dealing, fictitious vendor schemes. One person can request, approve, and fulfill without oversight.</div>
+            </div>
+            <div style="padding:12px;background:var(--bg);border-radius:6px">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Remediation</div>
+              <div style="font-size:12px;color:var(--text-secondary)">Review SAP role assignments (PFCG). Ensure PR creator and PO creator roles are mutually exclusive.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION: O2C + P2P Comparison -->
+  <div class="section">
+    <div class="section-title">IDES Process Comparison — O2C vs P2P</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--sf-blue)">Order-to-Cash (O2C)</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Sales side — from customer order to payment</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span>Cases analyzed</span><span style="font-family:var(--mono);font-weight:600">646</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Total events</span><span style="font-family:var(--mono);font-weight:600">5,708</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Unique activities</span><span style="font-family:var(--mono);font-weight:600">8</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Process variants</span><span style="font-family:var(--mono);font-weight:600;color:var(--high)">158</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Median duration</span><span style="font-family:var(--mono);font-weight:600">2.7 days</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Max duration</span><span style="font-family:var(--mono);font-weight:600;color:var(--critical)">6,578 days</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Normal completion rate</span><span style="font-family:var(--mono);font-weight:600;color:var(--low)">83.6%</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Invoice cancellation delay</span><span style="font-family:var(--mono);font-weight:600;color:var(--high)">17.7 days avg</span></div>
+        </div>
+        <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-secondary)">
+          <strong>Key finding:</strong> 158 unique process variants for just 8 activities and 646 cases — extreme variability. The max duration of 6,578 days (18 years) indicates stale/orphaned orders in the demo system that were never closed.
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#9050E9">Procure-to-Pay (P2P)</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Purchasing side — from requisition to vendor payment</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span>Cases analyzed</span><span style="font-family:var(--mono);font-weight:600">2,486</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Total events</span><span style="font-family:var(--mono);font-weight:600">7,420</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Unique activities</span><span style="font-family:var(--mono);font-weight:600">20</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Process variants</span><span style="font-family:var(--mono);font-weight:600;color:var(--high)">142</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Average duration</span><span style="font-family:var(--mono);font-weight:600">45.2 days</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Max duration</span><span style="font-family:var(--mono);font-weight:600;color:var(--high)">1,027 days</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Compliance violations</span><span style="font-family:var(--mono);font-weight:600;color:var(--critical)">7</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Batch processing outlier</span><span style="font-family:var(--mono);font-weight:600;color:var(--high)">2,181 events</span></div>
+        </div>
+        <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-secondary)">
+          <strong>Key finding:</strong> 7 compliance violations in SAP's own demo data. The "PO before PR" case is particularly notable — it represents retroactive documentation, a pattern that in production systems is a red flag for fraud investigators.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Why This Matters -->
+  <div class="section">
+    <div class="section-title">Why This Matters</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+        <p style="margin-bottom:12px"><strong>SAP IDES is not production data</strong> — it's SAP's official demo and training environment. Thousands of consultants learn SAP using this system. Yet our automated conformance checker found 7 compliance violations that exist in the reference data itself.</p>
+        <p style="margin-bottom:12px">This demonstrates two things: <strong>(1)</strong> Automated process mining catches what manual review misses, even in well-known systems. <strong>(2)</strong> If reference data contains these patterns, production systems — with real users under real deadline pressure — almost certainly contain more.</p>
+        <p style="margin-bottom:12px">The conformance checking engine uses <strong>token-based replay</strong> (van der Aalst algorithm) to compare actual event sequences against expected process models. For P2P, the expected model requires: PR → PO → Goods Receipt → Invoice → Payment. Any deviation is flagged, measured, and classified by severity.</p>
+        <p>The O2C analysis reveals a different problem: <strong>158 process variants from just 8 activities</strong>. This is a "spaghetti process" — technically functional but impossible to audit or optimize at scale. Combined with the 6,578-day max duration (stale orders from the 1990s still open), it paints a picture of a system that works but accumulates technical debt in its process layer.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <div class="section-title">Analysis Methodology</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:2">
+        Conformance Engine: Token-based replay, ProcessModelBuilder, van der Aalst algorithms<br>
+        Data Adapters: BPI (XES/OCEL), SAP IDES (sap-extractor, MIT), Synthetic (seed=42)<br>
+        Pattern Engine: Python 3.11, scikit-learn, scipy (TF-IDF + K-Means + effect sizing)<br>
+        Temporal Analysis: Throughput time, bottleneck detection, delay probability<br>
+        Tests: 1,639 passing across 70 test suites<br>
+        Source: <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" style="color:var(--sf-blue)">github.com/chrbailey/SAP-Transaction-Forensics</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>Christopher Bailey · ERP Access, Inc. · Data: SAP IDES Demo System (MIT via sap-extractor) + BPI Challenge 2019 (CC BY 4.0)</div>
+  <div><a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">github.com/chrbailey/SAP-Transaction-Forensics</a> · March 2026</div>
+</footer>
+
+</div><!-- /tab-ides -->
+
+<!-- ═══════════════════════════════════════════════
+     TAB 5: Real-World Client Cases (Anonymized)
+═══════════════════════════════════════════════ -->
+<div id="tab-cases" class="tab-panel">
+<div class="page" style="max-width:1200px">
+
+  <!-- Banner -->
+  <div style="margin-bottom:24px;padding:14px 20px;background:#EEF6F0;border:1px solid #C8E6C9;border-radius:6px;font-size:12px;color:#2E7D32;line-height:1.6">
+    <strong>Client Data Notice:</strong> All data on this page comes from real consulting engagements. Company names, individual names, and email addresses have been anonymized. Financial figures, ticket counts, and category distributions are actual. Used with permission for educational purposes.
+  </div>
+
+  <!-- ═══════════ CASE 1: License Audit ═══════════ -->
+  <div class="section">
+    <div class="section-title">Case 1 — Healthcare Company: NetSuite License Optimization</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+
+      <div style="padding:20px 24px;background:linear-gradient(135deg,#032D60,#0176D3);color:white">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.6;margin-bottom:4px">Engagement: ERP User License Audit</div>
+            <div style="font-size:18px;font-weight:700">289-user NetSuite environment — automated classification found $103,896 in annual savings</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:24px">
+            <div style="font-size:28px;font-weight:800;font-family:var(--mono)">14.4x</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:0.6">ROI</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">289</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total Users</div>
+        </div>
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--critical)">69</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Eliminable</div>
+        </div>
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--low)">$103,896</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Annual Savings</div>
+        </div>
+        <div style="padding:16px;text-align:center">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">0.8 mo</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Payback Period</div>
+        </div>
+      </div>
+
+      <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:12px">Savings by Category</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:10px 12px;background:var(--critical-bg);border-radius:4px;display:flex;justify-content:space-between;font-size:12px"><span>Dormant full-access (8 users, no login 90+ days)</span><span style="font-family:var(--mono);font-weight:700;color:var(--critical)">$46,464</span></div>
+            <div style="padding:10px 12px;background:var(--high-bg);border-radius:4px;display:flex;justify-content:space-between;font-size:12px"><span>Departed employee center (est. 53)</span><span style="font-family:var(--mono);font-weight:700;color:var(--high)">$31,800</span></div>
+            <div style="padding:10px 12px;background:#F3E8FF;border-radius:4px;display:flex;justify-content:space-between;font-size:12px"><span>Approval-only users (4, replace w/ SuiteFlow)</span><span style="font-family:var(--mono);font-weight:700;color:#9050E9">$23,232</span></div>
+            <div style="padding:10px 12px;background:var(--medium-bg);border-radius:4px;display:flex;justify-content:space-between;font-size:12px"><span>Deprecated integrations (est. 4 of 8)</span><span style="font-family:var(--mono);font-weight:700;color:var(--medium)">$2,400</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:12px">What Structured Data Shows vs. What We Found</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+            <p style="margin-bottom:8px"><strong>Structured:</strong> NetSuite user list shows 289 active users with assigned roles. Looks clean.</p>
+            <p style="margin-bottom:8px"><strong>Unstructured signals:</strong> Login timestamps reveal 8 full-access users ($5,808/yr each) haven't logged in for 90+ days. Cross-referencing with HR termination dates shows ~53 Employee Center users are departed employees still consuming licenses. 4 users' entire activity consists of clicking "Approve" on purchase orders — replaceable by an email-based workflow that costs nothing.</p>
+            <p><strong>The gap:</strong> $103,896/year in waste invisible to anyone looking at the user list alone.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CASE 2: MedTech Ticket Forensics ═══════════ -->
+  <div class="section">
+    <div class="section-title">Case 2 — MedTech Manufacturer: Help Desk Ticket Forensics During Acquisition</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+
+      <div style="padding:20px 24px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:white">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.6;margin-bottom:4px">Engagement: NetSuite Implementation + Post-Acquisition Support</div>
+        <div style="font-size:18px;font-weight:700">2,525 help desk tickets reveal organizational stress invisible in ERP transaction data</div>
+        <div style="font-size:12px;opacity:0.7;margin-top:4px">Diagnostics manufacturer acquired by Fortune 500. Structured data showed normal operations. Tickets told a different story.</div>
+      </div>
+
+      <!-- Metrics -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border)">
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">2,525</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Help Tickets</div>
+        </div>
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">11</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Categories</div>
+        </div>
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--critical)">38%</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Uncategorized</div>
+        </div>
+        <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">3,992</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">ERP Users</div>
+        </div>
+        <div style="padding:16px;text-align:center">
+          <div style="font-size:24px;font-weight:800;font-family:var(--mono)">1,423</div>
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Inventory Items</div>
+        </div>
+      </div>
+
+      <div style="padding:20px">
+
+        <!-- Category distribution -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:12px">Ticket Category Distribution</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;color:var(--critical);font-weight:600">Uncategorized</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:38%;height:100%;background:var(--critical);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right;font-weight:600">956</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Finance</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:18.6%;height:100%;background:var(--sf-blue);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">469</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Access</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:10.2%;height:100%;background:var(--high);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">257</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Procurement</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:8.5%;height:100%;background:#9050E9;border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">215</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Inventory</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:4.7%;height:100%;background:var(--low);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">119</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Manufacturing</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:4.2%;height:100%;background:var(--medium);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">107</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Warehouse</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:4.1%;height:100%;background:var(--sf-blue);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">103</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Cost Accounting</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:3.3%;height:100%;background:var(--high);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">84</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Quality</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:3.1%;height:100%;background:#9050E9;border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">77</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:120px;font-weight:600">Order Mgmt</span>
+              <div style="flex:1;height:18px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:2.6%;height:100%;background:var(--low);border-radius:3px;opacity:0.7"></div></div>
+              <span style="font-family:var(--mono);width:60px;text-align:right">66</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- What ticket TEXT reveals -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:12px">What Ticket Text Reveals — Unstructured Signals from Real Tickets</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+
+          <div style="padding:14px;background:var(--critical-bg);border-radius:6px;border-left:3px solid var(--critical)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--critical);margin-bottom:6px">DATA INTEGRITY</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">"How did 20413 turn into 20433?"</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Inventory team can't explain item number mutation. Structured data shows both items exist. The ticket reveals someone doesn't trust the data — and they're right to question it.</div>
+          </div>
+
+          <div style="padding:14px;background:var(--high-bg);border-radius:6px;border-left:3px solid var(--high)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--high);margin-bottom:6px">SYSTEM WORKAROUNDS</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">"Explore creating dummy transactions for MRP"</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Manufacturing is building fake transactions to work around MRP limitations. Structured data will show these as real — auditors would never know.</div>
+          </div>
+
+          <div style="padding:14px;background:var(--medium-bg);border-radius:6px;border-left:3px solid var(--medium)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--medium);margin-bottom:6px">ESCALATION CULTURE</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">"Bill Payment Email Notification for Vendors — URGENT"</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Multiple "URGENT" tickets for routine vendor payments. Finance team is under pressure. Transaction data shows payments made on time — the stress is invisible.</div>
+          </div>
+
+          <div style="padding:14px;background:#E8F4FD;border-radius:6px;border-left:3px solid var(--sf-blue)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--sf-blue);margin-bottom:6px">ACQUISITION CHAOS</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">257 "Request for NetSuite Access" tickets</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">10% of all tickets are access requests — many from acquiring company email domains. IT is drowning in onboarding during the acquisition. ERP data shows users; tickets show the churn.</div>
+          </div>
+
+        </div>
+
+        <!-- Structured vs Unstructured comparison -->
+        <div style="display:grid;grid-template-columns:1fr 48px 1fr;margin-bottom:16px">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 0 0 8px;padding:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px">ERP Transaction Data</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+              &#8226; 3,992 employees in system<br>
+              &#8226; 1,044 active customers<br>
+              &#8226; 1,423 inventory items tracked<br>
+              &#8226; 307 bills of materials<br>
+              &#8226; 465 GL accounts<br>
+              &#8226; 5,035 warehouse bin locations<br>
+              <span style="color:var(--low);font-weight:600">Status: Operational</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;background:var(--sf-nav);color:white;font-size:11px;font-weight:800">vs</div>
+          <div style="background:var(--critical-bg);border:1px solid #E8A8A5;border-radius:0 8px 8px 0;padding:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B1A15;margin-bottom:10px">Ticket Text Analysis</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+              &#8226; 38% of tickets uncategorized (overwhelmed)<br>
+              &#8226; Dummy transactions created as workarounds<br>
+              &#8226; Item numbers mutating unexplainably<br>
+              &#8226; "URGENT" escalation culture in Finance<br>
+              &#8226; Acquiring company flooding access requests<br>
+              &#8226; Lot traceability questions (FDA compliance)<br>
+              <span style="color:var(--critical);font-weight:600">Status: Organization under stress</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data available -->
+        <div style="padding:12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-secondary);line-height:1.6">
+          <strong>Available data for forensic analysis:</strong> 2,525 help desk tickets (with summary, assignee, priority, category, timestamps, response/close times) + complete NetSuite master data (employees, customers, vendors, items, BOM, chart of accounts, inventory, financial statements). The combination of structured ERP data with unstructured ticket text is exactly the dual-layer forensic approach this tool is designed for.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CASE 3: Hardware Co — Full ERP Forensics ═══════════ -->
+  <div class="section">
+    <div class="section-title">Case 3 — Connected Hardware Manufacturer: High-Growth ERP Forensics</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)">
+
+      <div style="padding:20px 24px;background:linear-gradient(135deg,#1B4332,#2D6A4F);color:white">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.6;margin-bottom:4px">Engagement: ERP Migration Assessment + ITGC Audit + International Expansion (multi-year engagement)</div>
+        <div style="font-size:18px;font-weight:700">3M+ ERP records forensically analyzed — credit hold overrides, 28.6% return rate, SOD violations, approval chain complexity</div>
+        <div style="font-size:12px;opacity:0.7;margin-top:4px">High-growth hardware manufacturer during rapid scaling. Legacy ERP → enterprise ERP migration. Structured transaction data + ITGC audit findings + process documentation.</div>
+      </div>
+
+      <!-- Scale metrics -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border)">
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono)">3M+</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">CSV Rows</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono)">102K</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">Sales Orders</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono)">97K</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">RMA Returns</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono)">43K</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">Vendors</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono)">10K</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">Customers</div>
+        </div>
+        <div style="padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--critical)">28.6%</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase">RMA Rate</div>
+        </div>
+      </div>
+
+      <div style="padding:20px">
+
+        <!-- Data sources grid -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:12px">Data Sources Analyzed</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+          <div style="padding:10px;background:#EEF6F0;border:1px solid #C8E6C9;border-radius:6px;font-size:11px;text-align:center">
+            <strong>Master Data</strong><br>
+            <span style="font-family:var(--mono)">10K customers, 43K vendors<br>8.7K fixed assets, 5K contacts</span>
+          </div>
+          <div style="padding:10px;background:#E8F4FD;border:1px solid #B4D6F0;border-radius:6px;font-size:11px;text-align:center">
+            <strong>Transaction Data</strong><br>
+            <span style="font-family:var(--mono)">102K sales orders, 1M+ EDI lines<br>97K RMAs, 164K credit memos</span>
+          </div>
+          <div style="padding:10px;background:#F3E8FF;border:1px solid #D4B4F0;border-radius:6px;font-size:11px;text-align:center">
+            <strong>Governance / Text</strong><br>
+            <span style="font-family:var(--mono)">ITGC audit, SOD analysis<br>7.6K deductions, PES call notes</span>
+          </div>
+        </div>
+
+        <!-- Forensic findings -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:12px">Forensic Findings — What the Data Revealed</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+
+          <div style="padding:14px;background:var(--critical-bg);border-radius:6px;border-left:3px solid var(--critical)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--critical);margin-bottom:6px">ITGC VIOLATIONS (Deloitte Audit)</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">7 users with Administrator role. Terminated employee still active.</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">153 active users, 40 unique roles. SOD violations at both role and user level. 4 generic shared accounts. No formalized change management policy. Admin access to both dev and prod environments. No post-implementation review process. Critical gaps for a publicly traded company.</div>
+            <div style="margin-top:6px;font-size:10px;font-family:var(--mono);color:var(--text-muted)">Source: Deloitte SOD Role Definition Analysis</div>
+          </div>
+
+          <div style="padding:14px;background:var(--high-bg);border-radius:6px;border-left:3px solid var(--high)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--high);margin-bottom:6px">CREDIT HOLD OVERRIDES</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">Sales orders shipped despite "Customer On Credit Hold" flag</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Sales order headers contain both "Customer On Credit Hold" and "Shipment Hold Released by Finance" fields. Cross-referencing reveals orders where credit holds were manually overridden — Finance releasing shipments to customers already flagged for credit risk. The structured status says "shipped." The override field tells you it shouldn't have been.</div>
+            <div style="margin-top:6px;font-size:10px;font-family:var(--mono);color:var(--text-muted)">Source: Sales Order Header — 102K records</div>
+          </div>
+
+          <div style="padding:14px;background:var(--medium-bg);border-radius:6px;border-left:3px solid var(--medium)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--medium);margin-bottom:6px">RETURN RATE ANOMALY</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">28.62% of customer accounts had return events — only 67.5% on-time delivery</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Forensic case analysis of 1,090 customer accounts: 312 had at least one RMA event (28.62%). 97K total RMA line items in the extract across 6 types: Open Box, Closed Box, Destroyed in Field, Stock Rotation, Warranty, Error Shipment. Transaction data shows the returns; memo fields and reason codes hint at systemic quality or logistics failures the structured data can't explain.</div>
+            <div style="margin-top:6px;font-size:10px;font-family:var(--mono);color:var(--text-muted)">Source: Case Outcome Analysis (1,090 accounts, 21,099 events) + RMA Extract (97K line items)</div>
+          </div>
+
+          <div style="padding:14px;background:#E8F4FD;border-radius:6px;border-left:3px solid var(--sf-blue)">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--sf-blue);margin-bottom:6px">APPROVAL CHAIN COMPLEXITY</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">7,610 customer deductions with multi-approver routing and rerouting</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Marketing deductions (MDF) routed through "Next Approver" and "Set Rerouted Next Approver" chains. Multiple email notification flags. Deductions linked to DFI invoices, credit memos, and proof-of-performance documents. The approval chain is so complex that the rerouting field exists specifically because the normal chain fails regularly.</div>
+            <div style="margin-top:6px;font-size:10px;font-family:var(--mono);color:var(--text-muted)">Source: Customer Deductions — 7,610 records, 50+ columns</div>
+          </div>
+
+        </div>
+
+        <!-- Structured vs Unstructured -->
+        <div style="display:grid;grid-template-columns:1fr 48px 1fr;margin-bottom:16px">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 0 0 8px;padding:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px">Structured ERP Data Says</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+              &#8226; 102K sales orders processed<br>
+              &#8226; 97K returns authorized<br>
+              &#8226; 43K vendors in master data<br>
+              &#8226; 153 active users, roles assigned<br>
+              &#8226; Orders shipped, invoiced, cleared<br>
+              &#8226; International entities operational<br>
+              <span style="color:var(--low);font-weight:600">Status: ERP Functioning</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;background:var(--sf-nav);color:white;font-size:11px;font-weight:800">vs</div>
+          <div style="background:var(--critical-bg);border:1px solid #E8A8A5;border-radius:0 8px 8px 0;padding:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B1A15;margin-bottom:10px">Governance + Text Layer Reveals</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+              &#8226; Credit holds overridden to ship anyway<br>
+              &#8226; 28.6% returns — systemic product/logistics issue<br>
+              &#8226; 7 users with admin (SOX risk, public co.)<br>
+              &#8226; Terminated employee still accessing system<br>
+              &#8226; Approval chains so broken a "reroute" field exists<br>
+              &#8226; 144K PO changes — constant purchasing churn<br>
+              <span style="color:var(--critical);font-weight:600">Status: Controls Gap, SOX Exposure</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Engagement scope -->
+        <div style="padding:12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-secondary);line-height:1.6">
+          <strong>Engagement scope:</strong> Multi-year consulting engagement spanning ERP vendor selection, enterprise ERP migration assessment, ITGC audit (Big Four SOD analysis), international tax restructuring (European entity), regional expansion (APAC), and PCI/SOX compliance programs. Data sources: legacy ERP production extracts, audit firm findings, change management logs, 24+ project status call notes, SOW/FRD documentation. All company names, customer IDs, employee names, and identifying details anonymized.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Thesis connection -->
+  <div class="section">
+    <div class="section-title">The Pattern Across All Three Cases</div>
+    <div style="background:var(--sf-nav);border-radius:var(--radius);padding:24px 28px;color:white;box-shadow:var(--shadow-md)">
+      <div style="font-size:14px;line-height:1.8;opacity:0.9">
+        <strong>Case 1</strong> (license audit): Structured user data hides $103K in waste — login timestamps and role assignments alone told the story. <strong>Case 2</strong> (acquisition tickets): When structured data looks normal, 2,525 help desk tickets reveal an organization under stress — workarounds, data trust issues, and IT drowning in access requests. <strong>Case 3</strong> (high-growth ERP): 3 million rows of clean-looking transaction data mask credit hold overrides, a 28.6% return rate, SOD violations in a rapidly scaling company, and approval chains so dysfunctional that a "reroute approver" field was built into the system. In every case, the structured data said "operational." The unstructured layer — tickets, audit findings, override fields, memo text — told the real story.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>Christopher Bailey · ERP Access, Inc. · Client data anonymized, used with permission</div>
+  <div><a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank">github.com/chrbailey/SAP-Transaction-Forensics</a> · March 2026</div>
+</footer>
+
+</div><!-- /tab-cases -->
+
+<script>
+// ─── Tab switching ───
+var TABS = ['home', 'crm', 'bpi', 'ides', 'cases', 'nlp'];
+function switchTab(tab) {
+  TABS.forEach(function(t) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === tab);
+    document.getElementById('meta-' + t).style.display = t === tab ? 'flex' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+
+// ─── NLP Pattern Analysis ───
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+const FALLBACK_DATA = {
+  metadata: { generated_at: new Date().toISOString(), source: "Salesforce/HERB", products_analyzed: ["ActionGenie","AnomalyForce","SupportForce"], total_messages_scanned: 3252, total_documents_scanned: 45 },
+  cards: [
+    { id:"PAT-001", title:"VP Approval Bottleneck in Product Planning", description:"43% of planning decisions require VP-level sign-off, creating a 3.2 day average delay. Engineering leads have authority to approve but consistently defer upward.", type:"bottleneck", confidence:"HIGH", confidence_score:0.88, severity:"high", top_phrases:["waiting on VP","need approval","escalate to Hannah"], occurrence:"Found in 18 of 45 meeting transcripts", effect:"Average 3.2 day delay per planning decision. Estimated 2-week slip per quarter.", evidence:{ source_count:18, sample_messages:["Can you approve the Q3 roadmap changes? We have been waiting since Tuesday","Blocked on VP approval for the new feature spec"], affected_products:["ActionGenie","AnomalyForce"], affected_teams:["Engineering","Product"], time_range:"2026-06-09 to 2026-07-15" }, sample_snippets:["Blocked on VP approval for the new feature spec"], caveats:"Some delays may be intentional governance for high-risk decisions", recommendation:"Implement tiered approval: engineering leads approve features under $50K impact, VP approval only for strategic pivots." },
+    { id:"PAT-002", title:"Customer Escalation Pattern — BlueWave Account", description:"BlueWave (CUST-0001) has generated 3x more support interactions than average, concentrated around product integration issues.", type:"escalation", confidence:"HIGH", confidence_score:0.92, severity:"critical", top_phrases:["BlueWave","integration issue","Frank Lewis"], occurrence:"Found across 3 product channels", effect:"Risk of churn for top-tier account. Frank Lewis increasingly frustrated.", evidence:{ source_count:12, sample_messages:["Frank from BlueWave pinged again about the API timeout — third time this week","Has anyone responded to BlueWave integration ticket? It has been 4 days"], affected_products:["ConnectForce","ActionGenie"], affected_teams:["Engineering","Support","Product"], time_range:"2026-06-15 to 2026-07-10" }, sample_snippets:["This is the third time this week","4 days with no response"], caveats:"High volume may reflect complex deployment", recommendation:"Assign dedicated TAM for BlueWave. Implement SLA tracking for enterprise accounts." },
+    { id:"PAT-003", title:"Sensitive Customer Data in Public Slack Channels", description:"Customer names, company details, and ticket specifics shared in non-restricted channels. 7 instances of customer PII found.", type:"compliance", confidence:"MEDIUM", confidence_score:0.75, severity:"critical", top_phrases:["customer data","shared in channel","should this be private"], occurrence:"7 instances across 3 products", effect:"Potential GDPR/CCPA exposure. Customer trust risk if data handling practices audited.", evidence:{ source_count:7, sample_messages:["Just got off call with TechCorp CTO Tom Nelson — he wants enterprise tier pricing by Friday","CloudSync Bob Roberts sent production database credentials in the support ticket"], affected_products:["SupportForce","ConnectForce","EdgeForce"], affected_teams:["Support","Sales","Engineering"], time_range:"2026-06-09 to 2026-07-15" }, sample_snippets:["Customer sent production credentials in support ticket"], caveats:"Channel access settings may limit actual exposure", recommendation:"Implement Slack DLP rules. Create private customer-sensitive channel. Train team on data handling." }
+  ]
+};
+
+let data = null, selectedId = null, filters = { type:'', severity:'', search:'' };
+
+async function loadData() {
+  try { const r = await fetch('pattern_cards.json'); if (r.ok) data = await r.json(); else data = FALLBACK_DATA; } catch { data = FALLBACK_DATA; }
+  renderAll();
+}
+
+function renderAll() { renderMeta(); renderSeverityBar(); renderCards(); }
+
+function renderMeta() {
+  const m = data.metadata;
+  document.getElementById('stat-source').textContent = m.source || 'Local';
+  document.getElementById('stat-messages').textContent = (m.total_messages_scanned || 0).toLocaleString();
+  document.getElementById('stat-products').textContent = (m.products_analyzed || []).length;
+}
+
+function renderSeverityBar() {
+  const c = { total:0, critical:0, high:0, medium:0, low:0 };
+  data.cards.forEach(d => { c.total++; c[d.severity]=(c[d.severity]||0)+1; });
+  const bar = document.getElementById('severity-bar');
+  while (bar.firstChild) bar.removeChild(bar.firstChild);
+  [['total',c.total,'Total','#032D60'],['critical',c.critical,'Critical','var(--critical)'],['high',c.high,'High','var(--high)'],['medium',c.medium,'Medium','var(--medium)'],['low',c.low,'Low','var(--low)']].forEach(([key,count,label,color]) => {
+    const pill = document.createElement('div');
+    pill.className = 'severity-pill';
+    pill.dataset.filter = key;
+    const dot = document.createElement('div');
+    dot.className = 'severity-dot';
+    dot.style.background = color;
+    const inner = document.createElement('div');
+    const countEl = document.createElement('div');
+    countEl.className = 'severity-pill-count';
+    countEl.textContent = count;
+    const labelEl = document.createElement('div');
+    labelEl.className = 'severity-pill-label';
+    labelEl.textContent = label;
+    inner.appendChild(countEl);
+    inner.appendChild(labelEl);
+    pill.appendChild(dot);
+    pill.appendChild(inner);
+    pill.addEventListener('click', () => {
+      if (key === 'total') { filters.severity = ''; document.getElementById('filter-severity').value = ''; }
+      else { filters.severity = filters.severity === key ? '' : key; document.getElementById('filter-severity').value = filters.severity; }
+      renderCards(); renderSeverityBar();
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function getFiltered() {
+  return data.cards.filter(c => {
+    if (filters.type && c.type !== filters.type) return false;
+    if (filters.severity && c.severity !== filters.severity) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      const h = [c.title, c.description, c.id, ...(c.top_phrases||[]), ...(c.evidence?.affected_products||[]), ...(c.evidence?.affected_teams||[])].join(' ').toLowerCase();
+      if (!h.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function confColor(s) { return s >= 0.8 ? 'var(--low)' : s >= 0.6 ? 'var(--medium)' : 'var(--critical)'; }
+
+function renderCards() {
+  const filtered = getFiltered();
+  const grid = document.getElementById('cards-grid');
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  if (filtered.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'No patterns match your filters';
+    grid.appendChild(empty);
+    return;
+  }
+  filtered.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (selectedId === c.id ? ' selected' : '');
+    card.dataset.severity = c.severity;
+    card.style.animationDelay = (i * 0.02) + 's';
+    card.addEventListener('click', () => selectCard(c.id));
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    const titleWrap = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.textContent = c.title;
+    const desc = document.createElement('div');
+    desc.className = 'card-desc';
+    desc.textContent = c.description;
+    titleWrap.appendChild(title);
+    titleWrap.appendChild(desc);
+    const badges = document.createElement('div');
+    badges.className = 'card-badges';
+    const sevBadge = document.createElement('span');
+    sevBadge.className = 'badge badge-' + c.severity;
+    sevBadge.textContent = c.severity;
+    const typeBadge = document.createElement('span');
+    typeBadge.className = 'badge badge-type';
+    typeBadge.dataset.type = c.type;
+    typeBadge.textContent = c.type;
+    badges.appendChild(sevBadge);
+    badges.appendChild(typeBadge);
+    header.appendChild(titleWrap);
+    header.appendChild(badges);
+
+    const footer = document.createElement('div');
+    footer.className = 'card-footer';
+    const phrases = document.createElement('div');
+    phrases.className = 'card-phrases';
+    (c.top_phrases || []).slice(0, 3).forEach(p => {
+      const tag = document.createElement('span');
+      tag.className = 'phrase-tag';
+      tag.textContent = p;
+      phrases.appendChild(tag);
+    });
+    const confWrap = document.createElement('div');
+    confWrap.className = 'card-confidence';
+    const idEl = document.createElement('span');
+    idEl.className = 'card-id';
+    idEl.textContent = c.id;
+    const barBg = document.createElement('div');
+    barBg.className = 'confidence-bar-bg';
+    const barFill = document.createElement('div');
+    barFill.className = 'confidence-bar-fill';
+    barFill.style.width = ((c.confidence_score || 0.5) * 100) + '%';
+    barFill.style.background = confColor(c.confidence_score);
+    barBg.appendChild(barFill);
+    const confLabel = document.createElement('span');
+    confLabel.className = 'confidence-label';
+    confLabel.textContent = Math.round((c.confidence_score || 0.5) * 100) + '%';
+    confWrap.appendChild(idEl);
+    confWrap.appendChild(barBg);
+    confWrap.appendChild(confLabel);
+    footer.appendChild(phrases);
+    footer.appendChild(confWrap);
+
+    card.appendChild(header);
+    card.appendChild(footer);
+    grid.appendChild(card);
+  });
+}
+
+function selectCard(id) {
+  selectedId = selectedId === id ? null : id;
+  const main = document.getElementById('main-container');
+  if (!selectedId) {
+    main.classList.remove('has-detail');
+    const p = document.getElementById('detail-panel');
+    if (p) p.remove();
+    renderCards();
+    return;
+  }
+  const card = data.cards.find(c => c.id === id);
+  if (!card) return;
+  main.classList.add('has-detail');
+  renderCards();
+
+  let panel = document.getElementById('detail-panel');
+  if (!panel) { panel = document.createElement('div'); panel.id = 'detail-panel'; panel.className = 'detail-panel'; main.appendChild(panel); }
+  while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+  const ev = card.evidence || {};
+
+  const dHeader = document.createElement('div');
+  dHeader.className = 'detail-header';
+  const dHeaderLeft = document.createElement('div');
+  const dBadges = document.createElement('div');
+  dBadges.style.cssText = 'display:flex;gap:6px;margin-bottom:8px';
+  const sb = document.createElement('span'); sb.className = 'badge badge-' + card.severity; sb.textContent = card.severity;
+  const tb = document.createElement('span'); tb.className = 'badge badge-type'; tb.dataset.type = card.type; tb.textContent = card.type;
+  dBadges.appendChild(sb); dBadges.appendChild(tb);
+  const dTitle = document.createElement('div');
+  dTitle.style.cssText = 'font-size:17px;font-weight:700;line-height:1.3';
+  dTitle.textContent = card.title;
+  const dMeta = document.createElement('div');
+  dMeta.style.cssText = 'font-size:11px;font-family:var(--mono);color:var(--text-muted);margin-top:4px';
+  dMeta.textContent = card.id + ' · ' + (card.occurrence || '');
+  dHeaderLeft.appendChild(dBadges); dHeaderLeft.appendChild(dTitle); dHeaderLeft.appendChild(dMeta);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'detail-close';
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', () => selectCard(null));
+  dHeader.appendChild(dHeaderLeft); dHeader.appendChild(closeBtn);
+  panel.appendChild(dHeader);
+
+  const body = document.createElement('div');
+  body.className = 'detail-body';
+
+  const descSec = document.createElement('div'); descSec.className = 'detail-section';
+  const descTitle = document.createElement('div'); descTitle.className = 'detail-section-title'; descTitle.textContent = 'Description';
+  const descText = document.createElement('div'); descText.className = 'detail-description'; descText.textContent = card.description;
+  descSec.appendChild(descTitle); descSec.appendChild(descText); body.appendChild(descSec);
+
+  if (card.effect) {
+    const impSec = document.createElement('div'); impSec.className = 'detail-section';
+    const impTitle = document.createElement('div'); impTitle.className = 'detail-section-title'; impTitle.textContent = 'Business Impact';
+    const impBox = document.createElement('div'); impBox.className = 'detail-impact'; impBox.textContent = card.effect;
+    impSec.appendChild(impTitle); impSec.appendChild(impBox); body.appendChild(impSec);
+  }
+
+  if ((ev.sample_messages || []).length > 0) {
+    const evSec = document.createElement('div'); evSec.className = 'detail-section';
+    const evTitle = document.createElement('div'); evTitle.className = 'detail-section-title';
+    evTitle.textContent = 'Evidence — ' + (ev.source_count || '?') + ' sources' + (ev.time_range ? ' · ' + ev.time_range : '');
+    evSec.appendChild(evTitle);
+    ev.sample_messages.forEach(m => {
+      const msg = document.createElement('div'); msg.className = 'evidence-msg'; msg.textContent = m;
+      evSec.appendChild(msg);
+    });
+    body.appendChild(evSec);
+  }
+
+  if (ev.affected_products || ev.affected_teams) {
+    const scopeSec = document.createElement('div'); scopeSec.className = 'detail-section';
+    const scopeTitle = document.createElement('div'); scopeTitle.className = 'detail-section-title'; scopeTitle.textContent = 'Scope';
+    const scopeMeta = document.createElement('div'); scopeMeta.className = 'evidence-meta';
+    (ev.affected_products || []).forEach(p => { const b = document.createElement('span'); b.className = 'meta-badge meta-badge-product'; b.textContent = p; scopeMeta.appendChild(b); });
+    (ev.affected_teams || []).forEach(t => { const b = document.createElement('span'); b.className = 'meta-badge meta-badge-team'; b.textContent = t; scopeMeta.appendChild(b); });
+    scopeSec.appendChild(scopeTitle); scopeSec.appendChild(scopeMeta); body.appendChild(scopeSec);
+  }
+
+  if (card.recommendation) {
+    const recSec = document.createElement('div'); recSec.className = 'detail-section';
+    const recTitle = document.createElement('div'); recTitle.className = 'detail-section-title'; recTitle.textContent = 'Recommendation';
+    const recBox = document.createElement('div'); recBox.className = 'detail-recommendation'; recBox.textContent = card.recommendation;
+    recSec.appendChild(recTitle); recSec.appendChild(recBox); body.appendChild(recSec);
+  }
+
+  if (card.caveats) {
+    const cavSec = document.createElement('div'); cavSec.className = 'detail-section';
+    const cavTitle = document.createElement('div'); cavTitle.className = 'detail-section-title'; cavTitle.textContent = 'Caveats';
+    const cavText = document.createElement('div'); cavText.className = 'detail-caveat'; cavText.textContent = card.caveats;
+    cavSec.appendChild(cavTitle); cavSec.appendChild(cavText); body.appendChild(cavSec);
+  }
+
+  if ((card.top_phrases || []).length > 0) {
+    const phSec = document.createElement('div'); phSec.className = 'detail-section';
+    const phTitle = document.createElement('div'); phTitle.className = 'detail-section-title'; phTitle.textContent = 'Key Phrases';
+    const phList = document.createElement('div'); phList.className = 'card-phrases';
+    card.top_phrases.forEach(p => { const t = document.createElement('span'); t.className = 'phrase-tag'; t.textContent = p; phList.appendChild(t); });
+    phSec.appendChild(phTitle); phSec.appendChild(phList); body.appendChild(phSec);
+  }
+
+  panel.appendChild(body);
+}
+
+// Event listeners
+document.getElementById('filter-type').addEventListener('change', e => { filters.type = e.target.value; renderCards(); });
+document.getElementById('filter-severity').addEventListener('change', e => { filters.severity = e.target.value; renderCards(); renderSeverityBar(); });
+document.getElementById('filter-search').addEventListener('input', e => { filters.search = e.target.value; renderCards(); });
+document.getElementById('filter-clear').addEventListener('click', () => { filters = {type:'',severity:'',search:''}; document.getElementById('filter-type').value=''; document.getElementById('filter-severity').value=''; document.getElementById('filter-search').value=''; renderCards(); renderSeverityBar(); });
+document.getElementById('btn-export').addEventListener('click', () => { const b = new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'forensic-findings.json'; a.click(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') selectCard(null); });
+
+document.getElementById('pipeline-toggle').addEventListener('click', () => {
+  const body = document.getElementById('pipeline-body');
+  const btn = document.getElementById('pipeline-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    btn.querySelector('span').textContent = '▾ Pipeline Transparency — How These Patterns Were Computed';
+    renderPipeline();
+  } else {
+    body.style.display = 'none';
+    btn.querySelector('span').textContent = '▸ Pipeline Transparency — How These Patterns Were Computed';
+  }
+});
+
+function renderPipeline() {
+  if (!data || !data.pipeline) return;
+  const container = document.getElementById('pipeline-content');
+  while (container.firstChild) container.removeChild(container.firstChild);
+
+  const p = data.pipeline;
+
+  const stagesDiv = document.createElement('div');
+  stagesDiv.style.cssText = 'display:flex;gap:8px;align-items:center;margin:16px 0 24px;flex-wrap:wrap';
+
+  const stageColors = ['#0176D3', '#9050E9', '#E87722', '#2E844A', '#C23934'];
+  (p.stages || []).forEach((stage, i) => {
+    const pill = document.createElement('div');
+    pill.style.cssText = 'padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;color:white;background:' + stageColors[i % stageColors.length];
+    pill.textContent = stage.name;
+    stagesDiv.appendChild(pill);
+
+    if (i < (p.stages.length - 1)) {
+      const arrow = document.createElement('div');
+      arrow.style.cssText = 'color:var(--text-muted);font-size:16px';
+      arrow.textContent = '→';
+      stagesDiv.appendChild(arrow);
+    }
+  });
+  container.appendChild(stagesDiv);
+
+  const timeDiv = document.createElement('div');
+  timeDiv.style.cssText = 'font-size:13px;color:var(--text-secondary);margin-bottom:20px';
+  timeDiv.textContent = 'Total pipeline execution: ' + (p.total_duration_seconds || '?') + ' seconds';
+  container.appendChild(timeDiv);
+
+  (p.stages || []).forEach((stage, i) => {
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:16px;padding:16px;background:var(--bg);border-radius:8px;border-left:3px solid ' + stageColors[i % stageColors.length];
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)';
+    title.textContent = 'Stage ' + (i + 1) + ': ' + stage.name;
+    section.appendChild(title);
+
+    const details = document.createElement('div');
+    details.style.cssText = 'font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:1.8';
+
+    const entries = Object.entries(stage).filter(function(e) { return e[0] !== 'name'; });
+    entries.forEach(function(entry) {
+      const line = document.createElement('div');
+      const key = entry[0].replace(/_/g, ' ');
+      var val = entry[1];
+      if (typeof val === 'object') val = JSON.stringify(val);
+      line.textContent = key + ': ' + val;
+      details.appendChild(line);
+    });
+
+    section.appendChild(details);
+    container.appendChild(section);
+  });
+
+  const techDiv = document.createElement('div');
+  techDiv.style.cssText = 'margin-top:20px;padding:16px;background:#F0EDFF;border-radius:8px;border-left:3px solid #9050E9';
+  const techTitle = document.createElement('div');
+  techTitle.style.cssText = 'font-size:13px;font-weight:700;margin-bottom:8px;color:#9050E9';
+  techTitle.textContent = 'Technology Stack';
+  techDiv.appendChild(techTitle);
+  const techDetails = document.createElement('div');
+  techDetails.style.cssText = 'font-size:12px;font-family:var(--mono);color:var(--text-secondary);line-height:2';
+  var techLines = [
+    'Language: Python 3.11',
+    'ML: scikit-learn (TF-IDF vectorization, KMeans clustering)',
+    'NLP: n-gram extraction (1-3), English stop word removal, custom abbreviation expansion',
+    'Validation: Silhouette score for optimal cluster count',
+    'Data: Salesforce/HERB from HuggingFace (CC-BY-NC-4.0)',
+    'Frontend: Vanilla HTML/CSS/JS (zero dependencies)',
+    'Deployment: Vercel (static)',
+    'Source: github.com/chrbailey'
+  ];
+  techLines.forEach(function(line) {
+    var div = document.createElement('div');
+    div.textContent = line;
+    techDetails.appendChild(div);
+  });
+  techDiv.appendChild(techDetails);
+  container.appendChild(techDiv);
+}
+
+// ─── Agent Table Expand ───
+function toggleAgentDetail(row) {
+  var detail = row.nextElementSibling;
+  if (!detail || !detail.classList.contains('agent-detail')) return;
+  var isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'table-row';
+  row.style.background = isOpen ? '' : 'var(--sf-blue-light)';
+}
+
+// ─── Stage Pipeline Click ───
+function selectStage(el, stageName, count) {
+  var pills = document.querySelectorAll('.stage-pill');
+  var isAlreadySelected = el.classList.contains('stage-selected');
+  pills.forEach(function(p) { p.classList.remove('stage-selected'); });
+  var detail = document.getElementById('stage-detail');
+  if (isAlreadySelected) {
+    detail.textContent = '';
+    detail.classList.remove('visible');
+    return;
+  }
+  el.classList.add('stage-selected');
+  if (count > 0) {
+    detail.textContent = count.toLocaleString() + ' opportunities in ' + stageName;
+  } else {
+    detail.textContent = stageName + ' — intermediate stage (data collapses to primary stages in source data)';
+  }
+  detail.classList.add('visible');
+}
+
+loadData();
+</script>
+</body>
+</html>
