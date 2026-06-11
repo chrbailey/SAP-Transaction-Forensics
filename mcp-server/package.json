@@ -1,6 +1,6 @@
 {
   "name": "transaction-forensics-mcp-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for Transaction Forensics - exposes tools for multi-system document analysis",
   "main": "dist/index.js",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "transaction-forensics-viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web viewer for Transaction Forensics pattern cards",
   "main": "src/server.js",
   "scripts": {

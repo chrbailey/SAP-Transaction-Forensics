@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-06-11
+
+### Fixed
+
+- Made all test targets fail correctly instead of masking failures.
+- Repaired Makefile and CLI pattern-engine invocation and removed fabricated fallback output.
+- Updated the viewer for the current pattern-card schema, configurable output paths, and escaped rendered data.
+- Corrected the MCP Docker build and added a reproducible viewer lockfile.
+- Upgraded MCP dependencies to remove production audit vulnerabilities.
+
+### Changed
+
+- Added synthetic-data and viewer coverage to CI.
+- Validated Node.js 20, 22, and 24 and Python 3.10, 3.11, and 3.12 in CI.
+- Documented the current baseline of 2,048 passing tests and 42 skipped tests.
+- Clarified that 18 analysis/data tools and 9 governance tools are live, while evidence infrastructure MCP definitions remain unregistered.
+- Qualified local-only network claims for opt-in cloud LLM and SaaS integrations.
+
 ## [3.0.0] - 2026-03-26
 
 ### Added

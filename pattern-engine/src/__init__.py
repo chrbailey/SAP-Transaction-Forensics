@@ -5,7 +5,7 @@ This engine ingests MCP tool outputs, discovers text patterns,
 correlates them to outcomes, and generates evidence-backed pattern cards.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Transaction Forensics Team"
 
 from pathlib import Path

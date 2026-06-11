@@ -1,4 +1,4 @@
-# SAP Workflow Mining - Synthetic Data Generator
+# Transaction Forensics - Synthetic Data Generator
 # Python 3.11 base image for generating synthetic SAP SD documents
 
 FROM python:3.11-slim
@@ -40,6 +40,6 @@ USER appuser
 CMD ["python", "src/generate_sd.py", "--count", "10000", "--output-dir", "/app/output"]
 
 # Labels
-LABEL maintainer="SAP Workflow Mining Team" \
+LABEL maintainer="Transaction Forensics Team" \
       version="1.0.0" \
       description="Synthetic data generator for SAP SD documents"
