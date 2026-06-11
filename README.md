@@ -4,6 +4,8 @@
 
 ### **[▶ Open the live demo — no install →](https://chrbailey.github.io/SAP-Transaction-Forensics/)**
 
+[![SAP Transaction Forensics — live demo](demo/preview.svg)](https://chrbailey.github.io/SAP-Transaction-Forensics/)
+
 ## The Problem
 
 Existing forensic tools ship with hardcoded rules. "Flag invoices over $X." "Alert on vendor master changes." These rules miss new patterns and fire on irrelevant ones. Every ERP is different. Every client's fraud signature is different. A static rule engine cannot keep up.

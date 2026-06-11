@@ -38,6 +38,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          # Auto-enable GitHub Pages on first deploy — no manual Settings step
+          enablement: true
 
       - name: Upload demo as Pages artifact
         uses: actions/upload-pages-artifact@v3

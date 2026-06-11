@@ -35,4 +35,7 @@ cd "$ROOT"
   printf ';\n'
 } > demo/findings-data.js
 
+echo "[bake] Rendering README preview banner from findings…"
+"$PYTHON" scripts/make_preview_svg.py
+
 echo "[bake] Done. Open demo/index.html or run: make demo-web"
