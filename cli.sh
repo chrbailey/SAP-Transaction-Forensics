@@ -334,8 +334,6 @@ cmd_run_analysis() {
 
     # Ensure output directory exists
     ensure_directory "${output_dir}"
-    ensure_directory "${output_dir}/reports"
-    ensure_directory "${output_dir}/patterns"
 
     # Install dependencies if needed
     if [[ ! -d ".venv" ]] && [[ ! -d "venv" ]]; then
@@ -348,37 +346,10 @@ cmd_run_analysis() {
     info "Analyzing patterns in: ${input_dir}"
     info "Output directory: ${output_dir}"
 
-    # Check if main.py exists
-    if [[ -f "src/main.py" ]]; then
-        ${python_cmd} -m pattern_engine analyze \
+    PYTHONPATH="${PROJECT_ROOT}/pattern-engine" \
+        ${python_cmd} -m src.main run \
             --input-dir "${input_dir}" \
             --output-dir "${output_dir}"
-    elif [[ -f "src/__main__.py" ]]; then
-        ${python_cmd} -m pattern_engine \
-            --input-dir "${input_dir}" \
-            --output-dir "${output_dir}"
-    else
-        # Fallback: try to run as module
-        PYTHONPATH="${PROJECT_ROOT}/pattern-engine" \
-            ${python_cmd} -c "
-from pathlib import Path
-print('Pattern engine analysis placeholder')
-print(f'Input: ${input_dir}')
-print(f'Output: ${output_dir}')
-# Create placeholder report
-output_path = Path('${output_dir}') / 'reports' / 'pattern_report.json'
-output_path.parent.mkdir(parents=True, exist_ok=True)
-import json
-report = {
-    'status': 'completed',
-    'input_dir': '${input_dir}',
-    'patterns_discovered': 0,
-    'message': 'Analysis complete - implement pattern_engine.main for full functionality'
-}
-output_path.write_text(json.dumps(report, indent=2))
-print(f'Report written to: {output_path}')
-"
-    fi
 
     success "Analysis complete. Results in: ${output_dir}"
 }

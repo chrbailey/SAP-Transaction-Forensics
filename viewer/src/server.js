@@ -1,37 +1,20 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
+const { loadPatternData } = require('./pattern-data');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Path to pattern cards data
-const DATA_PATH = path.join(__dirname, '../../output/pattern_cards.json');
+const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, '../../output');
+const DATA_PATH = process.env.PATTERN_DATA_PATH || path.join(OUTPUT_DIR, 'pattern_cards.json');
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Helper function to load pattern data
-function loadPatternData() {
-    try {
-        const data = fs.readFileSync(DATA_PATH, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error loading pattern data:', error.message);
-        return {
-            metadata: {
-                generated_at: new Date().toISOString(),
-                document_count: 0,
-                error: 'No pattern data available'
-            },
-            patterns: []
-        };
-    }
-}
-
 // API: Get all patterns (summary view)
 app.get('/api/patterns', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
 
     // Return patterns with summary data (excluding full evidence details)
     const summaryPatterns = data.patterns.map(pattern => ({
@@ -54,7 +37,7 @@ app.get('/api/patterns', (req, res) => {
 
 // API: Get single pattern with full evidence
 app.get('/api/patterns/:id', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
     const pattern = data.patterns.find(p => p.id === req.params.id);
 
     if (!pattern) {
@@ -66,7 +49,7 @@ app.get('/api/patterns/:id', (req, res) => {
 
 // API: Get evidence for a specific pattern
 app.get('/api/evidence/:pattern_id', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
     const pattern = data.patterns.find(p => p.id === req.params.pattern_id);
 
     if (!pattern) {
@@ -87,7 +70,7 @@ app.get('/api/evidence/:pattern_id', (req, res) => {
 
 // API: Get available filter options
 app.get('/api/filters', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
 
     // Extract unique filter values from all patterns
     const salesOrgs = new Set();
@@ -137,7 +120,7 @@ app.get('/api/filters', (req, res) => {
 
 // API: Export all patterns as JSON
 app.get('/api/export/json', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
     res.setHeader('Content-Disposition', 'attachment; filename="pattern_cards.json"');
     res.setHeader('Content-Type', 'application/json');
     res.json(data);
@@ -145,7 +128,7 @@ app.get('/api/export/json', (req, res) => {
 
 // API: Export all patterns as Markdown
 app.get('/api/export/markdown', (req, res) => {
-    const data = loadPatternData();
+    const data = loadPatternData(DATA_PATH);
 
     let markdown = `# Transaction Forensics - Pattern Cards\n\n`;
     markdown += `Generated: ${data.metadata?.generated_at || 'Unknown'}\n`;

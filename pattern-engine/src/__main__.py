@@ -1,6 +1,6 @@
 """
 Allow running the pattern engine as a module:
-    python -m pattern_engine
+    python -m src
 """
 
 from .main import main
