@@ -26,7 +26,9 @@ logs/
 
 # Environment
 .env
-.env.local
+.env.*
+!.env.*.example
+.env.rfc
 
 # Coverage
 coverage/
@@ -45,7 +47,9 @@ output/*.svg
 output/*.png
 output/datasphere_analysis/
 output/e2e_test/
+output/*.md
 pattern-engine/csv_test_output/
+pattern-engine/test_output/
 synthetic-data/external_data/
 
 # Downloaded datasets (keep .gitkeep)

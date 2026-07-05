@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # MCP server (TypeScript)
+  - package-ecosystem: "npm"
+    directory: "/mcp-server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+
+  # Web viewer
+  - package-ecosystem: "npm"
+    directory: "/viewer"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Pattern engine (Python)
+  - package-ecosystem: "pip"
+    directory: "/pattern-engine"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Container base images
+  - package-ecosystem: "docker"
+    directory: "/mcp-server"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/pattern-engine"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/viewer"
+    schedule:
+      interval: "weekly"

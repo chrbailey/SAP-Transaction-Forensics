@@ -226,6 +226,60 @@ jobs:
         run: npx tsx ../demos/predict_outcome_demo.ts
 
   # ============================================================================
+  # Security & Supply Chain (non-blocking for now — reports only)
+  # ============================================================================
+  security:
+    name: Security & SBOM
+    runs-on: ubuntu-latest
+    # Do not fail the pipeline yet: surface dependency advisories and produce
+    # SBOMs while the flagged issues are triaged. Flip continue-on-error to
+    # false (and add audit-level gating) once the backlog is clean.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: npm audit (mcp-server, production deps)
+        working-directory: mcp-server
+        run: npm audit --omit=dev || true
+
+      - name: npm audit (viewer, production deps)
+        working-directory: viewer
+        run: npm audit --omit=dev || true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: pip-audit (pattern-engine)
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit -r pattern-engine/requirements.txt || true
+
+      - name: Generate SBOMs (CycloneDX)
+        run: |
+          # Node SBOMs from the committed lockfiles.
+          (cd mcp-server && npm ci --ignore-scripts && npm sbom --sbom-format cyclonedx > ../mcp-server-sbom.cdx.json) || true
+          (cd viewer && npm ci --ignore-scripts && npm sbom --sbom-format cyclonedx > ../viewer-sbom.cdx.json) || true
+          # Python SBOM.
+          python -m pip install cyclonedx-bom || true
+          cyclonedx-py requirements pattern-engine/requirements.txt -o pattern-engine-sbom.cdx.json || true
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms
+          path: '*-sbom.cdx.json'
+          if-no-files-found: warn
+
+  # ============================================================================
   # Build Artifacts
   # ============================================================================
   build-check:
@@ -267,5 +321,5 @@ jobs:
           echo "| Pattern Engine | ✅ Tests Passed |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- MCP Server: 605+ tests" >> $GITHUB_STEP_SUMMARY
+          echo "- MCP Server: see the test job output for the current count" >> $GITHUB_STEP_SUMMARY
           echo "- Pattern Engine: See pytest output" >> $GITHUB_STEP_SUMMARY
