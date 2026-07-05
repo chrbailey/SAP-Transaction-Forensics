@@ -1,7 +1,7 @@
 # Transaction Forensics - Pattern Card Viewer
 # Node.js/Express server for serving pattern analysis results
 
-FROM node:20-alpine
+FROM node:26-alpine
 
 # Set environment variables
 ENV PORT=8080 \
