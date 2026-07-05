@@ -73,6 +73,47 @@ export function verifyReplayHash(
   return { match: expectedHash === currentHash, currentHash };
 }
 
+/**
+ * Deterministic canonical serialization of an arbitrary JSON-like value.
+ *
+ * Unlike `JSON.stringify`, this recursively sorts object keys at every depth,
+ * so two logically-equal values serialize identically regardless of key order,
+ * and — critically — the serialization actually covers every leaf value. (The
+ * previous per-record hasher passed `Object.keys(result)` as JSON.stringify's
+ * replacer array, which for an array-of-rows collapsed every row to `{}`, so
+ * the hash was a function of row count only and did not detect tampering.)
+ *
+ * Canonicalization rules (matching this module's header contract):
+ * - object keys sorted alphabetically at all depths
+ * - null / undefined normalized to ""
+ * - string leaves trimmed of leading/trailing whitespace
+ * - arrays preserve order (order is evidentiary)
+ */
+export function canonicalStringify(value: unknown): string {
+  return JSON.stringify(canonicalize(value));
+}
+
+function canonicalize(value: unknown): unknown {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+  if (typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+      out[key] = canonicalize((value as Record<string, unknown>)[key]);
+    }
+    return out;
+  }
+  // numbers, booleans — leave as-is (stable under JSON.stringify)
+  return value;
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------

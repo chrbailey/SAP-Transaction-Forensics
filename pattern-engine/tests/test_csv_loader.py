@@ -426,6 +426,28 @@ class TestEdgeCases:
         assert loader._clean_value('1234,56') == 1234.56
         assert loader._clean_value('1000') == 1000
 
+    def test_thousands_and_decimal_separators(self):
+        """Regression: grouped amounts must not collapse 1000x (both US and EU).
+
+        The previous _clean_value turned '1.234,56' into 1.23456.
+        """
+        loader = CSVLoader()
+
+        # European: period thousands, comma decimal.
+        assert loader._clean_value('1.234,56') == pytest.approx(1234.56)
+        assert loader._clean_value('1.234.567,89') == pytest.approx(1234567.89)
+
+        # US/standard: comma thousands, period decimal.
+        assert loader._clean_value('1,234.56') == pytest.approx(1234.56)
+        assert loader._clean_value('1,234,567.89') == pytest.approx(1234567.89)
+
+        # Plain decimal, unchanged.
+        assert loader._clean_value('1234.56') == pytest.approx(1234.56)
+
+        # The specific values must be > 1000, not the ~1.2 the old bug produced.
+        assert loader._clean_value('1.234,56') > 1000
+        assert loader._clean_value('1,234.56') > 1000
+
     def test_reproducible_text_generation(self):
         """Test that synthetic text generation is reproducible with same seed."""
         with tempfile.TemporaryDirectory() as tmpdir:
