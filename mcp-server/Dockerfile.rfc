@@ -17,7 +17,7 @@
 # Run:
 #   docker run -p 3000:3000 --env-file .env.rfc sap-workflow-mining-mcp-rfc
 
-FROM node:20-bookworm-slim
+FROM node:26-bookworm-slim
 
 # Set environment variables
 ENV NODE_ENV=production \
