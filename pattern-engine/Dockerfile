@@ -1,7 +1,7 @@
 # Transaction Forensics - Pattern Engine
 # Python 3.11 base image for pattern discovery and correlation
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
