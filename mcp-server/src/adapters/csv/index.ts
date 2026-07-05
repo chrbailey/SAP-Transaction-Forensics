@@ -18,6 +18,7 @@
  */
 
 import { BaseDataAdapter, registerAdapter } from '../adapter-interface.js';
+import { parseSAPNumber } from '../shared/parse-sap-number.js';
 import {
   SearchDocTextParams,
   SearchResult,
@@ -105,45 +106,9 @@ function parseSAPDate(value: string): string {
  * SAP can use comma as decimal separator (1.234,56) or period (1,234.56)
  */
 function parseSAPAmount(value: string): number {
-  if (!value || value.trim() === '') return 0;
-
-  let trimmed = value.trim();
-
-  // Remove currency symbols and whitespace
-  trimmed = trimmed.replace(/[A-Z]{3}\s*/g, '').trim();
-
-  // Handle negative amounts indicated by trailing minus or parentheses
-  let negative = false;
-  if (trimmed.endsWith('-')) {
-    negative = true;
-    trimmed = trimmed.slice(0, -1);
-  }
-  if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
-    negative = true;
-    trimmed = trimmed.slice(1, -1);
-  }
-  if (trimmed.startsWith('-')) {
-    negative = true;
-    trimmed = trimmed.slice(1);
-  }
-
-  // Detect European vs US number format
-  // European: 1.234,56 (period as thousands, comma as decimal)
-  // US/Standard: 1,234.56 (comma as thousands, period as decimal)
-  const lastComma = trimmed.lastIndexOf(',');
-  const lastPeriod = trimmed.lastIndexOf('.');
-
-  let parsed: number;
-  if (lastComma > lastPeriod) {
-    // European format: comma is decimal separator
-    parsed = parseFloat(trimmed.replace(/\./g, '').replace(',', '.'));
-  } else {
-    // US/Standard format: period is decimal separator
-    parsed = parseFloat(trimmed.replace(/,/g, ''));
-  }
-
-  if (isNaN(parsed)) return 0;
-  return negative ? -parsed : parsed;
+  // Shared last-separator-wins parser (handles US 1,234.56 and EU 1.234,56,
+  // trailing-minus, parentheses, and ISO currency codes).
+  return parseSAPNumber(value);
 }
 
 /**

@@ -18,6 +18,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { IDataAdapter } from '../adapters/adapter-interface.js';
 import type { ExtractionRecord, SystemType } from './types.js';
+import { canonicalStringify } from './replay.js';
 
 /**
  * Minimal interface for the provenance database.
@@ -319,23 +320,23 @@ export class ProvenanceLogger {
    * Same inputs always produce the same hash.
    */
   private computeQueryHash(methodName: string, params: Record<string, unknown>): string {
-    const sorted = Object.entries(params)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([k, v]) => [k, String(v ?? '')]);
-
-    const canonical = JSON.stringify({ method: methodName, params: sorted });
+    // Canonicalize recursively so object/array params hash by content rather
+    // than collapsing to "[object Object]" via String().
+    const canonical = canonicalStringify({ method: methodName, params });
     return createHash('sha256').update(canonical).digest('hex');
   }
 
   /**
    * Deterministic hash of a result value.
-   * Same result always produces the same hash.
+   *
+   * Uses the shared canonical serializer so the hash covers every leaf value
+   * at every depth. The prior implementation passed `Object.keys(result)` as
+   * JSON.stringify's replacer array, which serialized array-of-row results as
+   * `[{},{}]` — making the hash a function of row count only and blind to any
+   * data tampering.
    */
   private computeReplayHash(result: unknown): string {
-    const canonical = JSON.stringify(
-      result,
-      Object.keys(typeof result === 'object' && result !== null ? result : {}).sort()
-    );
+    const canonical = canonicalStringify(result);
     return createHash('sha256').update(canonical).digest('hex');
   }
 }

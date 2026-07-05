@@ -17,6 +17,7 @@ import type {
   MasterStub,
   DocTextResult,
 } from '../../types/sap.js';
+import { parseSAPNumber } from '../shared/parse-sap-number.js';
 
 import type {
   SalesDocHeader as RFCSalesDocHeader,
@@ -77,22 +78,13 @@ export function mapSAPTime(sapTime: string): string {
 }
 
 /**
- * Parse SAP number string to JavaScript number
- * Handles SAP's decimal format (comma vs period) and negative notation
+ * Parse SAP number string to JavaScript number.
+ * Delegates to the shared last-separator-wins parser so US (1,234.56) and
+ * European (1.234,56) formats are both handled correctly (the previous blind
+ * comma->period replace collapsed both to 1.234).
  */
 export function mapSAPNumber(sapNum: string | number): number {
-  if (typeof sapNum === 'number') {
-    return sapNum;
-  }
-  if (!sapNum) {
-    return 0;
-  }
-  // SAP sometimes uses comma as decimal separator
-  const normalized = sapNum.replace(/,/g, '.').replace(/\s/g, '');
-  // Handle negative notation (trailing -)
-  const isNegative = normalized.endsWith('-');
-  const numStr = isNegative ? '-' + normalized.slice(0, -1) : normalized;
-  return parseFloat(numStr) || 0;
+  return parseSAPNumber(sapNum);
 }
 
 /**

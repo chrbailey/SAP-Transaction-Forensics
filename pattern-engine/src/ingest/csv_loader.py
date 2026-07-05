@@ -30,6 +30,32 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
+def _parse_sap_float(value: str) -> float:
+    """Parse a SAP amount string using last-separator-wins.
+
+    SAP exports use locale-dependent grouping/decimal separators:
+      - US/standard:  1,234.56  (comma thousands, period decimal)
+      - European:     1.234,56  (period thousands, comma decimal)
+    The right-most of ',' / '.' is treated as the decimal separator; the other
+    is grouping and removed. Raises ValueError on non-numeric input (caller
+    falls back to the raw value).
+
+    Note: a lone grouping like '1,234' (no decimal part) is irreducibly
+    ambiguous and is treated as a decimal (1.234), matching last-separator-wins;
+    callers that know their source locale should normalize upstream.
+    """
+    text = value.strip()
+    last_comma = text.rfind(',')
+    last_period = text.rfind('.')
+    if last_comma > last_period:
+        # European: comma is the decimal separator.
+        text = text.replace('.', '').replace(',', '.')
+    else:
+        # US/standard (or no separators): period is the decimal separator.
+        text = text.replace(',', '')
+    return float(text)
+
+
 # =============================================================================
 # Field Mappings: CSV column headers -> Internal field names
 # =============================================================================
@@ -644,12 +670,10 @@ class CSVLoader:
                 if value.isdigit() or (value.startswith('-') and value[1:].isdigit()):
                     return int(value)
 
-                # Check for float (handle European format with comma decimal)
-                if ',' in value and '.' not in value:
-                    value = value.replace(',', '.')
-
-                float_val = float(value.replace(',', ''))
-                return float_val
+                # Float: last-separator-wins so US (1,234.56) and European
+                # (1.234,56) both parse correctly. The previous logic mishandled
+                # 1.234,56 -> 1.23456 (period kept as decimal, comma stripped).
+                return _parse_sap_float(value)
             except (ValueError, AttributeError):
                 pass
 

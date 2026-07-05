@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pattern-engine"
-version = "0.1.1"
+version = "3.0.1"
 description = "Transaction Forensics Pattern Engine - discovers text patterns and correlates them to outcomes"
 readme = "README.md"
 license = {text = "MIT"}
