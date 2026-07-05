@@ -12,10 +12,20 @@ Transaction Forensics is designed for enterprise security requirements:
 
 - **Read-only access** - No write operations to SAP
 - **Local by default** - Cloud LLM providers and SaaS adapters are opt-in
-- **No telemetry** - No phone-home, no usage tracking
-- **PII protection** - Automatic redaction enabled by default
-- **Audit logging** - Complete request/response logging
-- **Minimal permissions** - Principle of least privilege
+- **No telemetry** - No phone-home, no usage tracking (verified: the only
+  outbound endpoints in the code are the opt-in LLM and SaaS adapters)
+- **PII protection** - Redaction available in the Python pattern engine's
+  shareable-output mode. Note: the MCP server's SAP/SFDC data tools return raw
+  field text and are **not** redacted; treat all tool output as sensitive.
+- **Audit logging** - Tool calls are logged with parameters and result
+  **metadata** (row counts, duration, truncation) — not response bodies.
+- **Minimal permissions** - Principle of least privilege on the SAP side
+
+> **Authentication:** the product itself does not yet provide user
+> authentication or authorization. The MCP server runs over a single-user stdio
+> transport and the web viewer ships without auth or TLS. Deploy both behind
+> your own network controls / reverse proxy. See the roadmap in
+> [docs/GOVERNMENT-READINESS-REVIEW.md](docs/GOVERNMENT-READINESS-REVIEW.md).
 
 ---
 
@@ -50,7 +60,7 @@ Transaction Forensics is designed for enterprise security requirements:
 ||   |   +-------------------+   | HTTP  |            | (4)              |   ||
 ||   |   |    Browser        |<--------->|   +------------------------+  |   ||
 ||   |   | (localhost:8080)  |   | (5)   |   |     Web Viewer         |  |   ||
-||   |   +-------------------+   |       |   |   (localhost only)     |  |   ||
+||   |   +-------------------+   |       |   |   (no built-in auth)   |  |   ||
 ||   |                           |       |   +------------------------+  |   ||
 ||   +---------------------------+       +-------------------------------+   ||
 ||                                                                           ||
@@ -69,7 +79,13 @@ Data Flow Steps:
 (2) Internal processing - text extraction, normalization
 (3) Pattern analysis and redaction
 (4) Results stored locally
-(5) Browser access via localhost only
+(5) Browser access to the viewer. Note: the viewer binds all interfaces and
+    has no built-in authentication or TLS — restrict it to localhost or place
+    it behind an authenticating reverse proxy on deployment.
+
+Note: the MCP server communicates over a stdio transport (not an HTTP port);
+the pattern engine and MCP tools are invoked in-process by the MCP host, not
+over a network socket.
 ```
 
 ---
@@ -91,13 +107,26 @@ Data Flow Steps:
 | KNA1 | Customer Master | Customer attributes | High |
 | MARA | Material Master | Material attributes | Low |
 
+### FI/CO Tables (via CSV import or Read-Only BAPIs)
+
+The FI/CO forensic tools (`analyze_journal_entries`, `analyze_sod`,
+`analyze_gl_balances`, `get_fi_document`, `generate_fi_assessment`) read
+financial-accounting data when an FI/CO source is provided:
+
+| Table | Description | Sensitivity |
+|-------|-------------|-------------|
+| BKPF / BSEG | Accounting document header / line items | High |
+| BSAD | Cleared customer items | Medium |
+| SKA1 / SKAT | G/L account master / texts | Low |
+| T001 | Company codes | Low |
+| CSKS / COEP | Cost centers / CO line items | Medium |
+
 ### Data NOT Accessed
 
-- FI/CO tables (financial accounting)
 - HR/HCM tables (employee data)
 - Pricing conditions (KONV, A-tables)
 - Credit management (KNKK)
-- Bank details (BNKA, KNBK)
+- Bank details (BNKA, KNBK, LFBK) — no vendor-bank reads today
 - Custom Z-tables (unless explicitly configured)
 
 ### BAPIs Used
@@ -171,8 +200,8 @@ Required connections depend on the selected adapters and LLM provider:
 | Source | Destination | Port | Protocol | Purpose |
 |--------|-------------|------|----------|---------|
 | MCP Server | SAP ECC | 33XX | RFC | SAP data access |
-| Browser | Web Viewer | 8080 | HTTP | Results viewing |
-| Pattern Engine | MCP Server | 3000 | HTTP | Tool calls |
+| Browser | Web Viewer | 8080 | HTTP | Results viewing (bind to localhost / proxy) |
+| MCP host | MCP Server | n/a | stdio | Tool calls (in-process, no network port) |
 | MCP Server | Salesforce/NetSuite | 443 | HTTPS | Optional SaaS adapters |
 | MCP Server | OpenAI/Anthropic | 443 | HTTPS | Optional cloud LLM |
 
@@ -297,13 +326,14 @@ Every tool call is logged with:
     "row_count": 47,
     "execution_ms": 234,
     "truncated": false
-  },
-  "user_context": {
-    "session_id": "abc123",
-    "client_ip": "10.0.0.50"
   }
 }
 ```
+
+> Note: the audit log does not currently capture a user/session identity or
+> client IP — the MCP server runs over a single-user stdio transport with no
+> caller identity. Per-user attribution is on the roadmap and is a prerequisite
+> for a full chain-of-custody story.
 
 ### What Is NOT Logged
 
@@ -314,10 +344,13 @@ Every tool call is logged with:
 
 ### Log Retention
 
-Logs are stored locally in `./output/logs/`:
-- Default retention: 90 days
-- Configurable via environment variable
+Logs are written locally by winston with **size-based rotation** (default 5
+files × 10 MB); there is no time-based retention window today. Set the log
+directory via the `LOG_DIR` environment variable.
 - No automatic upload or external shipping
+- Note: the audit log is a plaintext file with no integrity protection
+  (hash-chaining / signing) yet — see the roadmap for the tamper-evident logging
+  work required before it can serve as evidence.
 
 ---
 
@@ -354,6 +387,11 @@ The RFC user should have:
 
 ## Compliance Considerations
 
+> The tables below describe how the product can **support a customer's own
+> compliance program** — they are not claims of independently audited or
+> attested product controls. No SOC 2 report or third-party certification
+> exists for this software today.
+
 ### GDPR
 
 | Requirement | Implementation |
@@ -363,34 +401,34 @@ The RFC user should have:
 | Storage limitation | Local only, configurable retention |
 | Right to erasure | Delete output directory |
 | Data portability | JSON output format |
-| Privacy by design | Redaction enabled by default |
+| Privacy by design | Redaction available in the pattern engine's shareable-output mode (raw MCP tool output is not redacted) |
 
 ### SOC 2
 
-| Control | Implementation |
+| Control | How the product supports it |
 |---------|----------------|
-| Access control | SAP authorization, no shared accounts |
-| Audit logging | Complete request logging |
-| Data encryption | Use TLS for RFC (SNC) |
+| Access control | Enforced on the **SAP side** via display-only authorizations. The product itself has no user auth yet — deploy behind your controls. |
+| Audit logging | Tool-call metadata logging (parameters, row counts, timing) — not response bodies; no tamper-evidence yet |
+| Data encryption | Deploy RFC with SNC and the viewer behind TLS — **not** currently configured by the product (no SNC parameters in the RFC client today) |
 | Change management | Docker image versioning |
 | Incident response | Local logs for investigation |
 
 ### HIPAA (if applicable)
 
-| Safeguard | Implementation |
+| Safeguard | How the product supports it |
 |-----------|----------------|
-| Access controls | SAP authorization |
-| Audit controls | Complete logging |
-| Transmission security | SNC for RFC |
+| Access controls | SAP authorization (product has no user auth of its own yet) |
+| Audit controls | Tool-call metadata logging |
+| Transmission security | SNC for RFC — configure at the OS/SAP layer; not set by the product today |
 | No PHI processing | Verify no healthcare data in SD texts |
 
 ### PCI DSS (if applicable)
 
-| Requirement | Implementation |
+| Requirement | How the product supports it |
 |-------------|----------------|
-| No card data storage | Credit card patterns redacted |
+| No card data storage | Credit-card patterns redacted in the pattern engine's shareable mode (not in raw MCP tool output) |
 | Access restriction | SAP authorization |
-| Audit trails | Complete logging |
+| Audit trails | Tool-call metadata logging |
 | Network security | Outbound access limited to configured providers |
 
 ---
@@ -440,9 +478,12 @@ Before deploying Transaction Forensics:
 
 - [ ] Create dedicated RFC user with minimal permissions
 - [ ] Test authorization with SU53 after failed access
-- [ ] Enable SNC (Secure Network Communications) for RFC
+- [ ] Enable SNC (Secure Network Communications) for RFC at the SAP/OS layer
+      (the product's RFC client does not set SNC parameters itself)
 - [ ] Review SAP authorization trace (ST01)
-- [ ] Configure log retention policy
+- [ ] Restrict the web viewer to localhost or place it behind an
+      authenticating, TLS-terminating reverse proxy (no built-in auth/TLS)
+- [ ] Set `LOG_DIR` and manage log rotation/retention at the OS layer
 - [ ] Restrict outbound access to explicitly configured providers
 - [ ] Document data classification of output
 - [ ] Establish output file handling procedures

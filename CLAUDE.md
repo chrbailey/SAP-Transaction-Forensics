@@ -46,22 +46,26 @@ cd pattern-engine && pytest tests/ -v
 transaction-forensics/
 ├── mcp-server/                 # MCP server with TypeScript
 │   ├── src/
-│   │   ├── index.ts            # Entry point
-│   │   ├── adapters/           # SAP, SFDC, NetSuite, SALT, BPI, CSV adapters
+│   │   ├── index.ts            # Entry point (registers 27 tools; see note below)
+│   │   ├── adapters/           # SAP (ECC RFC + S/4 OData stub), SFDC, SALT, BPI, CSV, synthetic
 │   │   ├── conformance/        # Process conformance checking
-│   │   ├── evidence/           # Provenance graph, extraction registry
+│   │   ├── provenance/         # Provenance graph + replay hashing
+│   │   ├── extraction-registry/# Named extraction paths (incl. NetSuite SuiteQL metadata)
 │   │   ├── contradiction/      # Cross-system contradiction engine
-│   │   ├── schema/             # Schema validator (IDES reference)
+│   │   ├── cross-system/       # Entity resolution across systems
+│   │   ├── schema-validator/   # Schema validator (IDES reference)
 │   │   ├── reality-gap/        # Three-way gap analysis
 │   │   ├── finding-lifecycle/  # 8-state finding manager + SQLite
 │   │   ├── handoff/            # Reviewer handoff packet generator
-│   │   ├── fi-co/              # FI/CO forensic analysis tools
 │   │   ├── governance/         # PromptSpeak integration
 │   │   ├── llm/                # Natural language interface
+│   │   ├── logging/            # Audit logger
 │   │   ├── ocel/               # OCEL 2.0 export
-│   │   ├── policies/           # Business rules
+│   │   ├── policies/           # Business rules / access limits
 │   │   ├── prediction/         # ML predictions
-│   │   ├── tools/              # MCP tool definitions
+│   │   ├── reports/            # FI/CO report generation
+│   │   ├── tools/              # MCP tool definitions (FI/CO tools live here as analyze-*.ts)
+│   │   ├── types/             # Shared TypeScript types (incl. fi-co types)
 │   │   └── visualization/      # Process maps
 ├── pattern-engine/             # Pattern discovery engine (Python)
 │   ├── scripts/                # analyze_sfdc.py, etc.
@@ -120,6 +124,10 @@ transaction-forensics/
 | `generate_fi_assessment` | FI/CO risk assessment report |
 
 ### Evidence Infrastructure Tools
+> Note: these nine tools are implemented and unit-tested but are **not yet
+> registered** on the MCP server (`src/tools/index.ts` exposes 18 analysis + 9
+> governance = 27 tools). Wiring them into the server is tracked in
+> [docs/GOVERNMENT-READINESS-REVIEW.md](docs/GOVERNMENT-READINESS-REVIEW.md).
 | Tool | Purpose |
 |---|---|
 | `query_provenance` | Trace evidence chain for a finding |
@@ -152,14 +160,15 @@ transaction-forensics/
 ## Environment Variables
 ```bash
 # LLM providers (choose one)
-OLLAMA_BASE_URL=http://localhost:11434  # Local, private
+OLLAMA_HOST=http://localhost:11434      # Local, private (default provider)
 OPENAI_API_KEY=sk-...                   # Cloud option
 ANTHROPIC_API_KEY=sk-ant-...            # Cloud option
 
-# SAP RFC (optional)
-SAP_HOST=...
-SAP_SYSNR=...
-SAP_CLIENT=...
-SAP_USER=...
-SAP_PASSWORD=...
+# SAP RFC (optional) — see .env.rfc.example for the full list
+SAP_RFC_ASHOST=...
+SAP_RFC_SYSNR=00
+SAP_RFC_CLIENT=100
+SAP_RFC_USER=...
+SAP_RFC_PASSWD=...
+SAP_RFC_LANG=EN
 ```
