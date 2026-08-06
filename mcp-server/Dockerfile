@@ -1,7 +1,7 @@
 # Transaction Forensics - MCP Server
 # Node.js 20 base image for MCP protocol server
 
-FROM node:20-alpine AS build
+FROM node:25-alpine AS build
 
 # Set environment variables
 ENV NODE_ENV=development
@@ -25,7 +25,7 @@ COPY src/ ./src/
 # Build TypeScript to JavaScript
 RUN npm run build
 
-FROM node:20-alpine AS runtime
+FROM node:25-alpine AS runtime
 
 ENV NODE_ENV=production \
     PORT=3000
