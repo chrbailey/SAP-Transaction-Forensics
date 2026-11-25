@@ -240,7 +240,8 @@ export class SyntheticAdapter extends BaseDataAdapter {
     } catch (error) {
       console.error('Error loading synthetic data:', error);
       throw new Error(
-        `Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error }
       );
     }
   }

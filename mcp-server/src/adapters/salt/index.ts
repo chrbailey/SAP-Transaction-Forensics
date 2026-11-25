@@ -278,10 +278,11 @@ except Exception as e:
         throw new Error(
           'SALT adapter requires Python with datasets package.\n' +
             'Install with: pip install datasets pyarrow\n' +
-            'Then retry initialization.'
+            'Then retry initialization.',
+          { cause: error }
         );
       }
-      throw new Error(`Failed to download SALT dataset: ${err.message}`);
+      throw new Error(`Failed to download SALT dataset: ${err.message}`, { cause: error });
     }
   }
 

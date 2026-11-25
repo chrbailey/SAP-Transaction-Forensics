@@ -180,8 +180,7 @@ export class ContradictionDB {
 
   getFinding(id: string): ContradictionFinding | null {
     const row = this.db.prepare('SELECT * FROM contradiction_findings WHERE id = ?').get(id) as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
 
     if (!row) return null;
     return this.rowToFinding(row);
