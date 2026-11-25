@@ -15,24 +15,19 @@ import {
   getPolicyConfig,
   validateDateRange,
 } from '../policies/limits.js';
-import { OCELLog, createOCELExporter } from '../ocel/index.js';
+import {
+  OCELLog,
+  OCELObject as StandardOCELObject,
+  OCELObjectType as StandardOCELObjectType,
+  OCELEventType as StandardOCELEventType,
+  createOCELExporter,
+} from '../ocel/index.js';
 
 /**
  * OCEL 2.0 Type Definitions (legacy format for O2C)
  */
-interface OCELObjectType {
-  attributes: Array<{
-    name: string;
-    type: string;
-  }>;
-}
-
-interface OCELEventType {
-  attributes: Array<{
-    name: string;
-    type: string;
-  }>;
-}
+type OCELObjectType = Omit<StandardOCELObjectType, 'name'>;
+type OCELEventType = Omit<StandardOCELEventType, 'name'>;
 
 interface OCELObject {
   type: string;
@@ -115,7 +110,7 @@ Supports both process types:
 - **O2C (Order-to-Cash)**: Sales orders → Deliveries → Invoices
 - **P2P (Purchase-to-Pay)**: Purchase orders → Goods receipts → Invoices
 
-Compatible with PM4Py, Celonis, Apromore, and other OCEL 2.0 compliant tools.
+For standards-based import, save the response's ocel field as OCEL 2.0 JSON.
 
 Use this tool to:
 - Extract process mining data for external analysis tools
@@ -127,12 +122,12 @@ Parameters:
 - date_from: Start date filter (YYYY-MM-DD, optional)
 - date_to: End date filter (YYYY-MM-DD, optional)
 - sales_org: Filter by sales/purchasing organization (optional)
-- output_format: 'json' (standard) or 'jsonocel' (OCEL 2.0), default 'json'
+- output_format: For O2C, 'jsonocel' returns OCEL 2.0 and 'json' (default) returns the legacy JSON shape. P2P returns OCEL 2.0 for both values.
 - include_items: Include line item objects and events (default true)
 - include_relationships: Include object-to-object relationships (default true)
 - max_traces: Maximum traces to export, 0 = all (default 0)
 
-Returns OCEL 2.0 structure with:
+Returns process data with:
 **For P2P:**
 - Object types: purchase_order, po_item, goods_receipt, invoice, vendor
 - Event types: Create PO, Record GR, Record Invoice, Clear Invoice, etc.
@@ -158,7 +153,7 @@ Returns OCEL 2.0 structure with:
       output_format: {
         type: 'string',
         enum: ['json', 'jsonocel'],
-        description: 'Output format: json (standard) or jsonocel (OCEL 2.0)',
+        description: 'O2C format: json (legacy) or jsonocel (OCEL 2.0). P2P uses OCEL 2.0.',
       },
       include_items: {
         type: 'boolean',
@@ -342,7 +337,6 @@ export async function executeExportOcel(
       return await executeP2PExport(adapter, input, auditContext);
     }
 
-    // O2C export (legacy)
     return await executeO2CExport(adapter, input, auditContext);
   } catch (error) {
     auditContext.error(error as Error);
@@ -407,7 +401,7 @@ async function executeP2PExport(
 }
 
 /**
- * Execute O2C export (legacy format)
+ * Collect data once for both O2C formats.
  */
 async function executeO2CExport(
   adapter: SAPAdapter,
@@ -709,15 +703,53 @@ async function executeO2CExport(
   const eventCount = Object.keys(ocel.events).length;
   auditContext.success(objectCount + eventCount);
 
+  const stats = {
+    totalEvents: eventCount,
+    totalObjects: objectCount,
+    eventTypes: Object.keys(ocel.eventTypes).length,
+    objectTypes: Object.keys(ocel.objectTypes).length,
+  };
+  if (input.output_format === 'jsonocel') {
+    return {
+      format: 'ocel2',
+      processType: 'O2C',
+      ocel: toStandardOcel(ocel, input.include_relationships),
+      stats,
+    };
+  }
+  return { format: 'legacy', processType: 'O2C', legacy: ocel, stats };
+}
+
+function toStandardOcel(legacy: OCEL2Structure, includeRelationships: boolean): OCELLog {
+  // Static snapshot attributes use the OCEL initial-value timestamp.
+  const initialTime = '1970-01-01T00:00:00Z';
+  const objects = Object.entries(legacy.objects).map(([id, object]): StandardOCELObject => {
+    const result: StandardOCELObject = {
+      id,
+      type: object.type,
+      attributes: object.attributes.map(({ time, ...attribute }) => ({
+        ...attribute,
+        time: time ?? initialTime,
+      })),
+    };
+
+    if (includeRelationships && object.relationships) {
+      // A source item can be outside the export's selected orders.
+      result.relationships = object.relationships.filter(({ objectId }) =>
+        Object.hasOwn(legacy.objects, objectId)
+      );
+    }
+    return result;
+  });
+
   return {
-    format: 'legacy',
-    processType: 'O2C',
-    legacy: ocel,
-    stats: {
-      totalEvents: eventCount,
-      totalObjects: objectCount,
-      eventTypes: Object.keys(ocel.eventTypes).length,
-      objectTypes: Object.keys(ocel.objectTypes).length,
-    },
+    objectTypes: Object.entries(legacy.objectTypes).map(([name, type]) => ({ name, ...type })),
+    eventTypes: Object.entries(legacy.eventTypes).map(([name, type]) => ({ name, ...type })),
+    objects,
+    events: Object.entries(legacy.events).map(([id, event]) => ({
+      ...event,
+      id,
+      attributes: event.attributes ?? [],
+    })),
   };
 }
