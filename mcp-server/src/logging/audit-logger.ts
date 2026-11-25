@@ -57,6 +57,8 @@ const logger = winston.createLogger({
   transports: [
     // Console transport for development
     new winston.transports.Console({
+      // Stdio MCP reserves stdout for JSON-RPC messages.
+      stderrLevels: Object.keys(winston.config.npm.levels),
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.printf(({ timestamp, level, message, ...meta }) => {

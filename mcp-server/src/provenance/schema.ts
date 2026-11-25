@@ -106,8 +106,7 @@ export class ProvenanceDB {
 
   getExtraction(id: string): ExtractionRecord | null {
     const row = this.db.prepare('SELECT * FROM extraction_records WHERE id = ?').get(id) as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
 
     if (!row) return null;
     return this.rowToExtractionRecord(row);

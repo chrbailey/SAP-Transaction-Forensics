@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest --config jest.config.js",
+    "test:stdio": "node --test tests/stdio-smoke.mjs",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write src/",

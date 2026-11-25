@@ -291,11 +291,10 @@ class CompletionTimeModel implements PredictionModel {
 
     // Base estimate: average case takes ~5 days (120 hours)
     const baseTime = 120;
-    let estimatedRemaining = baseTime;
 
     // Adjust based on progress
     const remainingProgress = 1 - features.progressScore;
-    estimatedRemaining = baseTime * remainingProgress;
+    let estimatedRemaining = baseTime * remainingProgress;
 
     factors.push({
       name: 'progress_based_estimate',

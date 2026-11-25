@@ -234,13 +234,14 @@ export class SyntheticAdapter extends BaseDataAdapter {
         materials: this.transformMaterials(materialsRaw),
       };
 
-      console.log(
+      console.error(
         `Loaded synthetic data: ${this.data.salesOrders.length} orders, ${this.data.deliveries.length} deliveries, ${this.data.invoices.length} invoices`
       );
     } catch (error) {
       console.error('Error loading synthetic data:', error);
       throw new Error(
-        `Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to load synthetic data from ${this.dataPath}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error }
       );
     }
   }

@@ -1,6 +1,6 @@
 # Demo Walkthrough — 5 Questions to Ask Claude Code
 
-After `make demo` and opening Claude Code in the repo, paste these five prompts one at a time. Each exercises a different MCP tool. All tool names are verified against `mcp-server/src/tools/index.ts`.
+After following the [Claude Code Quickstart](../QUICKSTART.md), paste these prompts one at a time. Each exercises a different MCP tool. Responses below are illustrative.
 
 ---
 

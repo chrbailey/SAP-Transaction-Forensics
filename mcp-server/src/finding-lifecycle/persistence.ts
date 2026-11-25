@@ -158,8 +158,7 @@ export class FindingLifecycleDB {
 
   getFinding(id: string): UnifiedFinding | null {
     const row = this.db.prepare('SELECT * FROM unified_findings WHERE id = ?').get(id) as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
 
     if (!row) return null;
 

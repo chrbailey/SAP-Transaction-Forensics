@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SAP Transaction Forensics — Live Demo</title>
-<meta name="description" content="Forensic anomaly detection across SAP ERP and Salesforce CRM. Read-only, evidence-graded, MIT licensed.">
+<meta name="description" content="Explore timing gaps between synthetic SAP orders and Salesforce opportunities. Built by Christopher Bailey.">
 <style>
   :root {
     --bg: #05070d;
@@ -193,17 +193,6 @@
   .callout { margin-top: 16px; background: rgba(255,138,61,0.07); border: 1px solid rgba(255,138,61,0.25); border-radius: 12px; padding: 15px 18px; font-size: 14px; }
   .callout b { color: var(--high); }
 
-  /* Evidence terminal */
-  .term { font-family: var(--mono); font-size: 12.5px; background: #04060c; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-  .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 15px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
-  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
-  .term-bar .r { background: #ff5f57; } .term-bar .y { background: #febc2e; } .term-bar .g { background: #28c840; }
-  .term-bar span { color: var(--dim); margin-left: 8px; font-size: 11.5px; }
-  .term-body { padding: 18px 20px; line-height: 1.85; white-space: pre-wrap; min-height: 220px; }
-  .t-key { color: var(--cyan); } .t-sys { color: var(--accent2); } .t-val { color: var(--low); } .t-warn { color: var(--high); } .t-dim { color: var(--dim); }
-  .cursor { display: inline-block; width: 8px; background: var(--low); animation: cur .9s steps(1) infinite; }
-  @keyframes cur { 50% { opacity: 0; } }
-
   /* Case studies */
   .case-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
   .case { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 14px;
@@ -287,7 +276,6 @@
     CROSS_SYSTEM_GAP: "Cross-System Gap", OWNER_SWAP_AT_CLOSE: "Owner Swap At Close",
   };
   const SEV_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
-  const SEV_WEIGHT = { critical: 10, high: 6, medium: 3, low: 1 };
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   const fmtMoney = v => v == null ? "—" : "$" + Number(v).toLocaleString("en-US",{maximumFractionDigits:0});
@@ -328,8 +316,8 @@
     const lines = [
       ["> connecting to synthetic dataset (seed 42)…", false],
       ["> loaded " + d.dataset.opportunities + " opportunities · " + d.dataset.sap_orders + " SAP orders", true],
-      ["> running 10 forensic detectors…", false],
-      ["> " + d.headline.anomaly_instances + " anomaly instances flagged", true],
+      ["> loading planted scenario labels…", false],
+      ["> " + d.headline.anomaly_instances + " planted scenario labels", true],
       ["> correlating SFDC ↔ SAP…", false],
       ["> " + d.headline.cross_system_anomalies + " cross-system contradictions found", true],
       ["> rendering evidence…", false],
@@ -361,7 +349,7 @@
     const h = d.headline;
     const items = [
       { v: h.opportunities_analyzed, lbl: "Opportunities", cls: "" },
-      { v: h.opportunities_flagged, lbl: "Flagged", cls: "alert" },
+      { v: h.opportunities_flagged, lbl: "Labeled", cls: "alert" },
       { v: h.anomaly_instances, lbl: "Anomalies", cls: "alert" },
       { v: h.cross_system_anomalies, lbl: "Cross-System", cls: "crit" },
       { v: h.win_rate_pct, lbl: "Win Rate", cls: "", pct: true },
@@ -373,9 +361,6 @@
   }
 
   function riskScore(d) {
-    let raw = 0;
-    d.anomalies.forEach(a => raw += (SEV_WEIGHT[a.severity]||1) * a.count);
-    raw += d.headline.cross_system_anomalies * 14;
     const flagged = d.headline.opportunities_flagged / Math.max(1,d.headline.opportunities_analyzed);
     const score = Math.max(8, Math.min(98, Math.round(38 + flagged*55 + Math.min(20, d.headline.cross_system_anomalies*6))));
     return score;
@@ -393,14 +378,14 @@
           <circle id="gaugeArc" cx="100" cy="100" r="${R}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"
             stroke-dasharray="${C}" stroke-dashoffset="${C}" style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1); filter:drop-shadow(0 0 8px ${color})" data-off="${off}"/>
         </svg>
-        <div class="center"><div class="score" style="color:${color}" data-score="${score}">0</div><div class="of">RISK INDEX / 100</div></div>
+        <div class="center"><div class="score" style="color:${color}" data-score="${score}">0</div><div class="of">DEMO SCORE / 100</div></div>
       </div>
       <div class="riskcopy">
-        <h4>Composite risk: weighted by severity × frequency</h4>
-        <p>Every detector contributes by severity and count; cross-system contradictions weigh heaviest. This single number is what a controller or auditor would triage first — and it is fully decomposable into the findings below.</p>
+        <h4>Illustrative demo score</h4>
+        <p>The score uses the share of opportunities with planted labels and the count of computed cross-system discrepancies.</p>
         <div class="chips">
           <span class="chip"><b>${d.headline.opportunities_flagged}</b> of ${d.headline.opportunities_analyzed} opps flagged</span>
-          <span class="chip"><b>${d.anomalies.filter(a=>a.severity==='critical').length}</b> critical detectors firing</span>
+          <span class="chip"><b>${d.anomalies.filter(a=>a.severity==='critical').length}</b> critical scenario categories</span>
           <span class="chip"><b>${d.headline.sap_match_rate_pct}%</b> SAP match coverage</span>
         </div>
       </div>
@@ -431,7 +416,7 @@
         </div>
         <span class="chev">▶</span>
       </div>
-      <div class="evidence">${examples || '<div class="ev-none">No instances detected in this dataset.</div>'}</div>
+      <div class="evidence">${examples || '<div class="ev-none">No labeled examples in this dataset.</div>'}</div>
     </div>`;
   }
 
@@ -441,9 +426,8 @@
     return `
     <section class="block" id="anomalies"><div class="wrap">
       <div class="sec-head reveal">
-        <div class="kicker">Detection Layer</div>
-        <h3>10 forensic detectors, every hit traceable</h3>
-        <p>Each instance links to specific records — click any card to inspect the evidence. These counts come straight from the analysis you can reproduce locally with <code>make demo-web</code>.</p>
+        <h3>Planted scenarios</h3>
+        <p>The generator labels these scenarios so you can inspect examples. Open a card to see sample opportunity records.</p>
       </div>
       <div class="anom-grid">${sorted.map(a=>anomalyCard(a,maxCount)).join("")}</div>
     </div></section>`;
@@ -462,7 +446,7 @@
       <div class="sec-head reveal">
         <div class="kicker">Correlation Layer</div>
         <h3>The CRM says one thing. The ERP says another.</h3>
-        <p>Entity resolution matches Salesforce opportunities to SAP sales orders, then flags the contradictions: timing gaps, amount discrepancies, sequence violations, missing handoffs.</p>
+        <p>The demo pairs opportunities and orders using their recorded IDs, then compares the close date and order creation date.</p>
       </div>
       <div class="xsys">
         <div class="xdiagram reveal">${linkDiagram(c)}</div>
@@ -473,7 +457,7 @@
           <div class="stat-row"><span class="k">Matched pairs</span><span class="v">${c.matched_pairs}</span></div>
           <div class="stat-row"><span class="k">Match rate</span><span class="v" style="color:${mr<50?'var(--high)':'var(--low)'}">${mr}%</span></div>
           <div class="stat-row"><span class="k">Avg timing gap</span><span class="v">${c.avg_gap_days} days</span></div>
-          <p style="color:var(--muted);font-size:13px;margin-top:14px">Only <b style="color:var(--text)">${mr}%</b> of CRM opportunities trace to an SAP order. The rest closed in Salesforce with no ERP record — revenue booked in the pipeline that never became a fulfilled order. That gap is exactly where leakage hides.</p>
+          <p style="color:var(--muted);font-size:13px;margin-top:14px">${c.matched_pairs} of ${c.total_sfdc} synthetic opportunities link to SAP orders by a recorded order ID. The remaining opportunities have no link in this dataset.</p>
         </div>
       </div>
       <div class="cross-list">${rows || '<div class="ev-none">No cross-system anomalies in this dataset.</div>'}</div>
@@ -502,13 +486,13 @@
         <path d="M99,116 C99,180 99,180 99,196" stroke="rgba(255,138,61,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
         <rect x="24" y="196" width="150" height="44" rx="10" fill="rgba(255,138,61,0.08)" stroke="rgba(255,138,61,0.4)"/>
         <text x="99" y="214" fill="#ff8a3d" font-size="12" font-weight="700" text-anchor="middle">${gap} unmatched</text>
-        <text x="99" y="230" fill="#c97a45" font-size="10" text-anchor="middle">no ERP record</text>
+        <text x="99" y="230" fill="#c97a45" font-size="10" text-anchor="middle">no link in dataset</text>
       </g>
       <g>
         <path d="M341,116 C341,150 220,150 220,150" stroke="rgba(255,77,77,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
         <rect x="150" y="150" width="140" height="40" rx="10" fill="rgba(255,77,77,0.08)" stroke="rgba(255,77,77,0.4)"/>
         <text x="220" y="168" fill="#ff4d4d" font-size="11.5" font-weight="700" text-anchor="middle">${c.anomaly_count} contradictions</text>
-        <text x="220" y="183" fill="#cc6060" font-size="10" text-anchor="middle">timing · amount · sequence</text>
+        <text x="220" y="183" fill="#cc6060" font-size="10" text-anchor="middle">computed discrepancies</text>
       </g>
     </svg>`;
   }
@@ -532,35 +516,19 @@
   }
 
   function evidenceSection(d) {
-    const ex = (d.cross_system.examples||[])[0] || {};
-    const a = d.anomalies.find(x=>(x.examples||[]).length) || {};
-    const sample = (a.examples||[])[0] || {};
-    const ev = ex.evidence || "";
-    const closeD = (ev.match(/close \(([^)]+)\)/)||[])[1] || sample.close_date || "—";
-    const erdat = (ev.match(/erdat \(([^)]+)\)/)||[])[1] || "—";
-    const gap = (ev.match(/Gap of (\d+ days)/)||[])[1] || "—";
-    const id = sample.id || ex.sfdc_id || "006…";
-    const script =
-`<span class="t-dim">$ forensics trace --finding CROSS_SYSTEM_GAP</span>
-<span class="t-dim">Finding:</span> <span class="t-warn">CROSS_SYSTEM_GAP</span> on Opportunity <span class="t-val">${esc(id)}</span>
-  <span class="t-dim">Evidence:</span>
-    <span class="t-sys">SFDC</span>.Opportunity.<span class="t-key">CloseDate</span> = <span class="t-val">${esc(closeD)}</span>
-    <span class="t-sys">SAP</span>.VBAK.<span class="t-key">ERDAT</span>       = <span class="t-val">${esc(erdat)}</span>
-    <span class="t-dim">Delta:</span> <span class="t-warn">${esc(gap)}</span>  <span class="t-dim">(CRM closed before the ERP order existed)</span>
-  <span class="t-dim">Provenance:</span>
-    Extraction Path : <span class="t-key">sfdc-o2c-opportunity v1.0</span>
-    Replay Hash     : <span class="t-key">sha256:${esc((id+"00000000").slice(-8))}…a7f3b2</span>
-  <span class="t-dim">State:</span> <span class="t-warn">CONFIRMED</span> <span class="t-dim">→ ready for reviewer handoff packet</span>`;
+    const example = (d.cross_system.examples || []).find(row => row.type === "timing_gap");
+    if (!example) return "";
+
     return `
     <section class="block" id="evidence"><div class="wrap">
       <div class="sec-head reveal">
-        <div class="kicker">Evidence Infrastructure</div>
-        <h3>Not a black box — every finding replays</h3>
-        <p>Each finding carries field-level provenance (system, table, record, field, value, timestamp) plus a replay hash, so a reviewer can verify it without ever touching the model.</p>
+        <h3>Inspect a timing gap</h3>
+        <p>This comparison uses the linked Salesforce opportunity and SAP order from the synthetic dataset.</p>
       </div>
-      <div class="term reveal">
-        <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>forensics — evidence chain</span></div>
-        <div class="term-body" data-script="${esc(script)}"></div>
+      <div class="cross high reveal">
+        <div class="ctype">Timing gap</div>
+        <div class="cev">${esc(example.evidence)}</div>
+        <div class="clink">Salesforce ${esc(example.sfdc_id)} · SAP ${esc(example.sap_id)}</div>
       </div>
     </div></section>`;
   }
@@ -569,9 +537,8 @@
     const h = d.headline, ds = d.dataset;
     return `
     <div class="hero"><div class="wrap">
-      <div class="eyebrow"><span class="dot"></span> Live findings · generated by the analysis pipeline</div>
-      <h2>Find the anomalies your<br><span class="grad">rule engine can't see</span></h2>
-      <p class="lede">A read-only forensic pass over ${ds.opportunities} Salesforce opportunities and ${ds.sap_orders} linked SAP orders surfaced <b>${h.anomaly_instances} anomaly instances</b> across <b>${h.anomaly_categories} categories</b> — and <b>${h.cross_system_anomalies}</b> contradictions between what CRM and ERP claim happened.</p>
+      <h2>Compare what Salesforce and SAP <span class="grad">recorded</span></h2>
+      <p class="lede">Explore ${ds.opportunities} synthetic Salesforce opportunities and ${ds.sap_orders} linked SAP orders. The dashboard shows <b>${h.cross_system_anomalies} computed cross-system discrepancies</b> and <b>${h.anomaly_instances} planted scenario labels</b> across ${h.anomaly_categories} categories.</p>
       <div class="badges">
         <span class="badge">🔒 <b>Read-only</b></span>
         <span class="badge">🧪 Synthetic · <b>seed ${ds.seed}</b></span>
@@ -629,7 +596,7 @@
       <div class="sec-head reveal">
         <div class="kicker">Proven In The Field</div>
         <h3>Three real engagements behind the method</h3>
-        <p>The synthetic demo above shows the detectors firing on generated data. These are the actual consulting engagements that motivated them — anonymized, but the figures are real. <a href="https://github.com/chrbailey/SAP-Transaction-Forensics/blob/main/docs/CASE_STUDIES.md" target="_blank" rel="noopener">Full write-ups →</a></p>
+        <p>These anonymized consulting engagements informed the toolkit. <a href="https://github.com/chrbailey/SAP-Transaction-Forensics/blob/main/docs/CASE_STUDIES.md" target="_blank" rel="noopener">Full write-ups →</a></p>
       </div>
       <div class="case-grid">${cards}</div>
       <p class="case-note reveal">Company, individual, and email identifiers removed. Financial figures, ticket counts, and category distributions are actual. Used with permission for educational purposes.</p>
@@ -639,26 +606,11 @@
   function cta() {
     return `
     <section class="block"><div class="wrap"><div class="cta reveal">
-      <h3>Run this on your own machine in 60 seconds</h3>
+      <h3>Run this on your own machine</h3>
       <p>No SAP access required. Synthetic data is generated deterministically (seed 42), analyzed, and rendered into the exact dashboard you're looking at — all locally, all read-only.</p>
-      <div class="code"><span class="cm"># clone, then:</span><br><span class="p">make</span> demo-web<br><span class="cm"># → generates data · runs forensics · opens this dashboard</span></div>
+      <div class="code"><span class="cm"># after cloning and installing <a href="https://github.com/chrbailey/SAP-Transaction-Forensics#run-the-same-dashboard-locally">the Python dependencies</a></span><br><span class="p">make</span> demo-web</div>
       <p style="margin-top:24px"><a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">★ Star on GitHub ↗</a></p>
     </div></div></section>`;
-  }
-
-  function typeTerminal(el) {
-    const full = el.getAttribute("data-script");
-    el.removeAttribute("data-script");
-    const tmp = document.createElement("div"); tmp.innerHTML = full;
-    const nodes = Array.from(tmp.childNodes);
-    let i = 0;
-    const cur = document.createElement("span"); cur.className = "cursor"; cur.innerHTML = "&nbsp;";
-    el.appendChild(cur);
-    (function add(){
-      if (i >= nodes.length) { return; }
-      el.insertBefore(nodes[i].cloneNode(true), cur);
-      i++; setTimeout(add, nodes[i-1].textContent.length>1 ? 90 : 30);
-    })();
   }
 
   function activate(app) {
@@ -675,8 +627,6 @@
         el.querySelectorAll && el.querySelectorAll(".qbar .fill").forEach(f=>f.style.height=f.dataset.h+"%");
         const arc = el.querySelector && el.querySelector("#gaugeArc");
         if(arc){ arc.style.strokeDashoffset = arc.dataset.off; const sc=el.querySelector(".score"); animateCount(sc, parseInt(sc.dataset.score),false,false); }
-        const term = el.querySelector && el.querySelector(".term-body[data-script]");
-        if(term) typeTerminal(term);
         io.unobserve(el);
       });
     }, { threshold: 0.18 });
@@ -689,7 +639,7 @@
     const app = document.getElementById("app");
     app.innerHTML = hero(d) +
       `<section class="block"><div class="wrap">${riskBand(d)}</div></section>` +
-      anomaliesSection(d) + crossSection(d) + quarterSection(d) + evidenceSection(d) + casesSection() + cta(d);
+      anomaliesSection(d) + crossSection(d) + quarterSection(d) + evidenceSection(d) + casesSection() + cta();
     const foot = document.createElement("footer"); foot.className="site";
     foot.innerHTML = `<div class="wrap">Generated ${esc((d.generated_at||"").slice(0,10))} · ${d.dataset.opportunities} opportunities · ${d.dataset.event_log_records} event-log records · seed ${d.dataset.seed}. Built by <a href="https://github.com/chrbailey" target="_blank" rel="noopener">Christopher Bailey</a> · MIT · <a href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">source</a></div>`;
     document.body.appendChild(foot);

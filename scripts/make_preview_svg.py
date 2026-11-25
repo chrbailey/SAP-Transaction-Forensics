@@ -34,8 +34,8 @@ def main() -> None:
 
     kpis = [
         (str(h["opportunities_analyzed"]), "OPPORTUNITIES", "#e2e8f0"),
-        (str(h["opportunities_flagged"]), "FLAGGED", "#f97316"),
-        (str(h["anomaly_instances"]), "ANOMALIES", "#f97316"),
+        (str(h["opportunities_flagged"]), "LABELED OPPS", "#f97316"),
+        (str(h["anomaly_instances"]), "SCENARIO LABELS", "#f97316"),
         (str(h["cross_system_anomalies"]), "CROSS-SYSTEM", "#ef4444"),
         (f"{h['win_rate_pct']}%", "WIN RATE", "#e2e8f0"),
         (fmt_money(h["avg_deal_size"]), "AVG DEAL", "#e2e8f0"),
@@ -62,8 +62,7 @@ def main() -> None:
         '<text x="48" y="62" font-size="26" font-weight="800" fill="#e2e8f0">'
         'SAP Transaction Forensics</text>',
         '<text x="48" y="88" font-size="14" fill="#94a3b8">'
-        'Cross-system anomaly detection · SFDC ↔ SAP · read-only · '
-        'generated from the analysis pipeline (seed 42)</text>',
+        'Compare Salesforce opportunities and SAP orders · synthetic data (seed 42)</text>',
         '<rect x="980" y="40" width="252" height="30" rx="15" fill="rgba(34,197,94,0.08)" '
         'stroke="rgba(34,197,94,0.35)"/>',
         '<circle cx="1000" cy="55" r="4" fill="#22c55e"/>',

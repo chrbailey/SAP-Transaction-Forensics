@@ -5,7 +5,60 @@
  * Uses Jest with ESM support.
  */
 
-import { ExportOcelSchema, exportOcelTool } from '../tools/export_ocel.js';
+import { SyntheticAdapter } from '../adapters/synthetic/index.js';
+import { executeExportOcel, ExportOcelSchema, exportOcelTool } from '../tools/export_ocel.js';
+
+describe('O2C export formats', () => {
+  const adapter = new SyntheticAdapter();
+
+  beforeAll(async () => {
+    await adapter.initialize();
+  });
+
+  afterAll(async () => {
+    await adapter.shutdown();
+  });
+
+  it('returns an OCEL 2.0 log for jsonocel and preserves the default JSON contract', async () => {
+    const standard = await executeExportOcel(adapter, { output_format: 'jsonocel' });
+    const legacy = await executeExportOcel(adapter, {});
+    const log = standard.ocel!;
+
+    expect(legacy).toMatchObject({ format: 'legacy', processType: 'O2C' });
+    expect(legacy.legacy?.objects).toMatchObject({ [log.objects[0]!.id]: { type: 'order' } });
+    expect(standard).toMatchObject({ format: 'ocel2', processType: 'O2C', stats: legacy.stats });
+    expect(log.objectTypes).toContainEqual(
+      expect.objectContaining({ name: 'order', attributes: expect.any(Array) })
+    );
+    expect(log.eventTypes).toContainEqual(
+      expect.objectContaining({ name: 'order_created', attributes: expect.any(Array) })
+    );
+    expect(log.objects[0]?.attributes[0]?.time).toBe('1970-01-01T00:00:00Z');
+    expect(log.events[0]).toMatchObject({
+      id: 'event:1',
+      relationships: [{ objectId: log.objects[0]!.id, qualifier: 'order' }],
+    });
+    const objectIds = new Set(log.objects.map(({ id }) => id));
+    expect(log.objects.some(object => (object.relationships?.length ?? 0) > 0)).toBe(true);
+    expect(
+      [...log.objects, ...log.events].every(node =>
+        (node.relationships ?? []).every(({ objectId }) => objectIds.has(objectId))
+      )
+    ).toBe(true);
+  });
+
+  it('can omit line items and object links while retaining event links', async () => {
+    const result = await executeExportOcel(adapter, {
+      output_format: 'jsonocel',
+      include_items: false,
+      include_relationships: false,
+    });
+    const log = result.ocel!;
+    expect(log.objectTypes.map(({ name }) => name)).toEqual(['order', 'delivery', 'invoice']);
+    expect(log.objects.every(object => object.relationships === undefined)).toBe(true);
+    expect(log.events[0]?.relationships).toHaveLength(1);
+  });
+});
 
 describe('ExportOcelSchema', () => {
   describe('input validation', () => {
