@@ -177,12 +177,15 @@ app.get('/api/export/markdown', (req, res) => {
 });
 
 // Fallback to index.html for SPA routing
-app.get('*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Transaction Forensics Viewer running at http://localhost:${PORT}`);
-    console.log(`Data source: ${DATA_PATH}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Transaction Forensics Viewer running at http://localhost:${PORT}`);
+        console.log(`Data source: ${DATA_PATH}`);
+    });
+}
+
+module.exports = app;
