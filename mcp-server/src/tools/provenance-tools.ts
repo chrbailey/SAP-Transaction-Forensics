@@ -152,7 +152,7 @@ export async function executeListExtractionPaths(
 
 export const RunExtractionSchema = z.object({
   path_id: z.string().min(1, 'path_id is required'),
-  parameters: z.record(z.string()),
+  parameters: z.record(z.string(), z.string()),
   dry_run: z.boolean().default(false),
 });
 

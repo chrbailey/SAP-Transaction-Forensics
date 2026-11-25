@@ -81,14 +81,14 @@ const ComparisonPairSchema = z.object({
     system: z.string(),
     table: z.string(),
     recordId: z.string(),
-    fields: z.record(z.string()),
+    fields: z.record(z.string(), z.string()),
     extractionId: z.string(),
   }),
   right: z.object({
     system: z.string(),
     table: z.string(),
     recordId: z.string(),
-    fields: z.record(z.string()),
+    fields: z.record(z.string(), z.string()),
     extractionId: z.string(),
   }),
 });
@@ -301,9 +301,11 @@ export const ValidateSchemaSchema = z.object({
     clientId: z.string(),
     systemType: z.string(),
     tables: z.record(
+      z.string(),
       z.object({
         name: z.string(),
         fields: z.record(
+          z.string(),
           z.object({
             name: z.string(),
             dataType: z.string(),
