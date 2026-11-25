@@ -1,7 +1,7 @@
 # Transaction Forensics - Pattern Engine
-# Python 3.11 base image for pattern discovery and correlation
+# Python 3.15 base image for pattern discovery and correlation
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -22,10 +22,10 @@ COPY pyproject.toml ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir \
-    scikit-learn>=1.3.0 \
-    numpy>=1.24.0 \
-    pandas>=2.0.0 \
-    click>=8.1.0
+    'scikit-learn>=1.3.0' \
+    'numpy>=1.24.0' \
+    'pandas>=2.0.0' \
+    'click>=8.1.0'
 
 # Optional: Install sentence-transformers for better embeddings
 # Uncomment if needed (adds significant image size)
