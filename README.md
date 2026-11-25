@@ -71,12 +71,12 @@ open `demo/index.html` in a browser — the findings are baked in.
 ### Drive it from Claude Code (the full toolset)
 
 ```bash
-make demo                              # generates synthetic data + runs analysis
-cd mcp-server && npm install && npm run build && cd ..
-claude                                 # opens Claude Code with 27 registered tools
+(cd mcp-server && npm ci && npm run build)
+claude                                  # run from the repository root
 ```
 
-Then ask Claude: *"Run a conformance check against the o2c-simple reference model."*
+Approve the project MCP server when prompted. It uses the bundled synthetic data.
+Try asking Claude to look up sales order `0000000001` with `get_sales_doc_header`.
 
 Full walkthrough: **[QUICKSTART.md](QUICKSTART.md)** · Five-question demo: **[scripts/demo-walkthrough.md](scripts/demo-walkthrough.md)** · Pattern discovery: **[pattern-discovery/README.md](pattern-discovery/README.md)**
 

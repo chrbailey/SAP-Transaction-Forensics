@@ -174,7 +174,7 @@ export class HoldManager {
 
     this.holds.set(holdId, holdRequest);
 
-    console.log(
+    console.error(
       `[HoldManager] Created hold ${holdId} for ${request.tool}: ${reason} (${severity})`
     );
 
@@ -238,7 +238,7 @@ export class HoldManager {
       decidedAt: Date.now(),
     };
 
-    console.log(`[HoldManager] Approved hold ${holdId} by ${approvedBy}`);
+    console.error(`[HoldManager] Approved hold ${holdId} by ${approvedBy}`);
 
     return decision;
   }
@@ -263,7 +263,7 @@ export class HoldManager {
       decidedAt: Date.now(),
     };
 
-    console.log(`[HoldManager] Rejected hold ${holdId} by ${rejectedBy}: ${reason}`);
+    console.error(`[HoldManager] Rejected hold ${holdId} by ${rejectedBy}: ${reason}`);
 
     return decision;
   }

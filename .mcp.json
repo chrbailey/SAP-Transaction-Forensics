@@ -2,10 +2,9 @@
   "mcpServers": {
     "transaction-forensics": {
       "command": "node",
-      "args": ["${workspaceFolder}/mcp-server/dist/index.js"],
+      "args": ["./mcp-server/dist/index.js"],
       "env": {
         "SAP_ADAPTER": "synthetic",
-        "SYNTHETIC_DATA_PATH": "${workspaceFolder}/synthetic-data/sample_output",
         "LOG_LEVEL": "info"
       }
     }

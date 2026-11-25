@@ -146,7 +146,7 @@ export class CircuitBreaker {
     }
 
     // Log transition
-    console.log(
+    console.error(
       `[CircuitBreaker] Agent ${agentId}: ${previousState} → ${newState}` +
         (reason ? ` (${reason})` : '')
     );

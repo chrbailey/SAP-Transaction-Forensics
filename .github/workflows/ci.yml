@@ -54,6 +54,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Smoke test project MCP configuration
+        run: npm run test:stdio
+
       - name: Run tests
         run: npm test -- --coverage
 

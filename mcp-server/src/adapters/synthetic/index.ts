@@ -234,7 +234,7 @@ export class SyntheticAdapter extends BaseDataAdapter {
         materials: this.transformMaterials(materialsRaw),
       };
 
-      console.log(
+      console.error(
         `Loaded synthetic data: ${this.data.salesOrders.length} orders, ${this.data.deliveries.length} deliveries, ${this.data.invoices.length} invoices`
       );
     } catch (error) {
