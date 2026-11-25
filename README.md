@@ -45,11 +45,11 @@ The detection layer finds things you know to look for. The discovery layer finds
 
 The seed-42 demo contains **214 synthetic Salesforce opportunities** and **33
 SAP sales orders**. The cross-system check computes **two timing gaps** using
-explicit record links. Follow either pair of IDs to see the dates behind the
-result. The dashboard also displays **117 planted scenario labels across 10
+explicit record links. The dashboard displays each pair of IDs and the dates
+behind the result. It also displays **117 planted scenario labels across 10
 categories** as examples for exploration.
 
-### Run the same dashboard locally (≈60 seconds)
+### Run the same dashboard locally
 
 No SAP access required. Synthetic data included.
 
@@ -430,7 +430,9 @@ with `pm4py.read_ocel2_json("orders.jsonocel")`.
 Order-to-cash logs include order, delivery and invoice objects and optional line
 items. Object attributes are snapshots. Their initial-value timestamp is the
 OCEL epoch. The default order-to-cash response still uses the legacy `legacy`
-field for existing callers. BPI purchase-to-pay returns `ocel` with either option.
+field for existing callers. Order-to-cash selects unique orders from up to 200
+document text search hits. BPI purchase-to-pay returns `ocel` with either option
+and supports `max_traces`.
 
 ### Conformance Checking
 

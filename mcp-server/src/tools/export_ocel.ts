@@ -125,7 +125,9 @@ Parameters:
 - output_format: For O2C, 'jsonocel' returns OCEL 2.0 and 'json' (default) returns the legacy JSON shape. P2P returns OCEL 2.0 for both values.
 - include_items: Include line item objects and events (default true)
 - include_relationships: Include object-to-object relationships (default true)
-- max_traces: Maximum traces to export, 0 = all (default 0)
+- max_traces: Maximum BPI purchase-to-pay traces; 0 means all (default 0)
+
+Order-to-cash selects unique orders from up to 200 document text search hits.
 
 Returns process data with:
 **For P2P:**
@@ -165,7 +167,7 @@ Returns process data with:
       },
       max_traces: {
         type: 'number',
-        description: 'Maximum traces to export, 0 = all (default 0)',
+        description: 'Maximum BPI purchase-to-pay traces; 0 means all (default 0)',
       },
     },
     required: [],

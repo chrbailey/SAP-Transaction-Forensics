@@ -446,7 +446,7 @@
       <div class="sec-head reveal">
         <div class="kicker">Correlation Layer</div>
         <h3>The CRM says one thing. The ERP says another.</h3>
-        <p>Entity resolution matches Salesforce opportunities to SAP sales orders, then flags the contradictions: timing gaps, amount discrepancies, sequence violations, missing handoffs.</p>
+        <p>The demo pairs opportunities and orders using their recorded IDs, then compares the close date and order creation date.</p>
       </div>
       <div class="xsys">
         <div class="xdiagram reveal">${linkDiagram(c)}</div>
@@ -457,7 +457,7 @@
           <div class="stat-row"><span class="k">Matched pairs</span><span class="v">${c.matched_pairs}</span></div>
           <div class="stat-row"><span class="k">Match rate</span><span class="v" style="color:${mr<50?'var(--high)':'var(--low)'}">${mr}%</span></div>
           <div class="stat-row"><span class="k">Avg timing gap</span><span class="v">${c.avg_gap_days} days</span></div>
-          <p style="color:var(--muted);font-size:13px;margin-top:14px">Only <b style="color:var(--text)">${mr}%</b> of CRM opportunities trace to an SAP order. The rest closed in Salesforce with no ERP record — revenue booked in the pipeline that never became a fulfilled order. That gap is exactly where leakage hides.</p>
+          <p style="color:var(--muted);font-size:13px;margin-top:14px">${c.matched_pairs} of ${c.total_sfdc} synthetic opportunities link to SAP orders by a recorded order ID. The remaining opportunities have no link in this dataset.</p>
         </div>
       </div>
       <div class="cross-list">${rows || '<div class="ev-none">No cross-system anomalies in this dataset.</div>'}</div>
@@ -486,13 +486,13 @@
         <path d="M99,116 C99,180 99,180 99,196" stroke="rgba(255,138,61,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
         <rect x="24" y="196" width="150" height="44" rx="10" fill="rgba(255,138,61,0.08)" stroke="rgba(255,138,61,0.4)"/>
         <text x="99" y="214" fill="#ff8a3d" font-size="12" font-weight="700" text-anchor="middle">${gap} unmatched</text>
-        <text x="99" y="230" fill="#c97a45" font-size="10" text-anchor="middle">no ERP record</text>
+        <text x="99" y="230" fill="#c97a45" font-size="10" text-anchor="middle">no link in dataset</text>
       </g>
       <g>
         <path d="M341,116 C341,150 220,150 220,150" stroke="rgba(255,77,77,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
         <rect x="150" y="150" width="140" height="40" rx="10" fill="rgba(255,77,77,0.08)" stroke="rgba(255,77,77,0.4)"/>
         <text x="220" y="168" fill="#ff4d4d" font-size="11.5" font-weight="700" text-anchor="middle">${c.anomaly_count} contradictions</text>
-        <text x="220" y="183" fill="#cc6060" font-size="10" text-anchor="middle">timing · amount · sequence</text>
+        <text x="220" y="183" fill="#cc6060" font-size="10" text-anchor="middle">computed discrepancies</text>
       </g>
     </svg>`;
   }
@@ -606,9 +606,9 @@
   function cta() {
     return `
     <section class="block"><div class="wrap"><div class="cta reveal">
-      <h3>Run this on your own machine in 60 seconds</h3>
+      <h3>Run this on your own machine</h3>
       <p>No SAP access required. Synthetic data is generated deterministically (seed 42), analyzed, and rendered into the exact dashboard you're looking at — all locally, all read-only.</p>
-      <div class="code"><span class="cm"># clone, then:</span><br><span class="p">make</span> demo-web<br><span class="cm"># → generates data · runs forensics · opens this dashboard</span></div>
+      <div class="code"><span class="cm"># after cloning and installing <a href="https://github.com/chrbailey/SAP-Transaction-Forensics#run-the-same-dashboard-locally">the Python dependencies</a></span><br><span class="p">make</span> demo-web</div>
       <p style="margin-top:24px"><a class="gh-btn" href="https://github.com/chrbailey/SAP-Transaction-Forensics" target="_blank" rel="noopener">★ Star on GitHub ↗</a></p>
     </div></div></section>`;
   }
