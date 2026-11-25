@@ -18,6 +18,7 @@ export default {
           module: 'NodeNext',
           moduleResolution: 'NodeNext',
           target: 'ES2022',
+          types: ['node', 'jest'],
           isolatedModules: true,
         },
       },

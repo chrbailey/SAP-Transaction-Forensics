@@ -129,7 +129,7 @@ const WorkflowRuleSchema = z.object({
     'field_validation',
     'routing_rule',
   ]),
-  parameters: z.record(z.union([z.string(), z.number()])),
+  parameters: z.record(z.string(), z.union([z.string(), z.number()])),
   extractionPathId: z.string().optional(),
   active: z.boolean(),
 });
@@ -334,7 +334,7 @@ export const ManageFindingSchema = z.object({
       riskScore: z.number().optional(),
       assignee: z.string().optional(),
       relatedFindingIds: z.array(z.string()).optional(),
-      metadata: z.record(z.unknown()).optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
       // transition params
       to_state: z
         .enum([

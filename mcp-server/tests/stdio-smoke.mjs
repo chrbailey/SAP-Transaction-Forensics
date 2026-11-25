@@ -30,6 +30,15 @@ test('project MCP config serves bundled synthetic data over clean stdio', { time
     assert.equal(order.AUART, 'OR');
     assert.equal(order.VKORG, '3000');
 
+    const invalid = await client.callTool({
+      name: 'get_sales_doc_header',
+      arguments: { vbeln: 1 },
+    });
+    assert.equal(invalid.isError, true);
+    const validation = JSON.parse(invalid.content[0].text);
+    assert.equal(validation.code, 'VALIDATION_ERROR');
+    assert.deepEqual(validation.issues[0].path, ['vbeln']);
+
     const halted = await client.callTool({
       name: 'ps_halt_agent',
       arguments: { agent_id: 'stdio-smoke-test', reason: 'test process only' },

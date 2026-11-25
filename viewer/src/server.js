@@ -1,4 +1,5 @@
 const express = require('express');
+const { readFileSync } = require('node:fs');
 const path = require('path');
 const { loadPatternData } = require('./pattern-data');
 
@@ -9,8 +10,9 @@ const PORT = process.env.PORT || 8080;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, '../../output');
 const DATA_PATH = process.env.PATTERN_DATA_PATH || path.join(OUTPUT_DIR, 'pattern_cards.json');
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, '../public')));
+const publicDirectory = path.join(__dirname, '../public');
+const indexPage = readFileSync(path.join(publicDirectory, 'index.html'));
+app.use(express.static(publicDirectory));
 
 // API: Get all patterns (summary view)
 app.get('/api/patterns', (req, res) => {
@@ -177,12 +179,15 @@ app.get('/api/export/markdown', (req, res) => {
 });
 
 // Fallback to index.html for SPA routing
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+app.get('/{*splat}', (req, res) => {
+    res.type('html').send(indexPage);
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Transaction Forensics Viewer running at http://localhost:${PORT}`);
-    console.log(`Data source: ${DATA_PATH}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Transaction Forensics Viewer running at http://localhost:${PORT}`);
+        console.log(`Data source: ${DATA_PATH}`);
+    });
+}
+
+module.exports = app;
