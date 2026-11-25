@@ -3,7 +3,7 @@
 <rect width="1280" height="400" rx="14" fill="url(#bg)"/>
 <rect width="1280" height="4" fill="url(#accent)"/>
 <text x="48" y="62" font-size="26" font-weight="800" fill="#e2e8f0">SAP Transaction Forensics</text>
-<text x="48" y="88" font-size="14" fill="#94a3b8">Cross-system anomaly detection · SFDC ↔ SAP · read-only · generated from the analysis pipeline (seed 42)</text>
+<text x="48" y="88" font-size="14" fill="#94a3b8">Compare Salesforce opportunities and SAP orders · synthetic data (seed 42)</text>
 <rect x="980" y="40" width="252" height="30" rx="15" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.35)"/>
 <circle cx="1000" cy="55" r="4" fill="#22c55e"/>
 <text x="1012" y="60" font-size="12" fill="#22c55e" font-family="monospace">LIVE DEMO · ZERO INSTALL</text>
@@ -14,11 +14,11 @@
 <rect x="246" y="116" width="182" height="92" rx="10" fill="#111827" stroke="#1e2d45"/>
 <rect x="246" y="116" width="182" height="3" rx="1.5" fill="url(#accent)"/>
 <text x="337.0" y="168" font-size="30" font-weight="800" fill="#f97316" text-anchor="middle">97</text>
-<text x="337.0" y="192" font-size="10.5" letter-spacing="1" fill="#64748b" text-anchor="middle">FLAGGED</text>
+<text x="337.0" y="192" font-size="10.5" letter-spacing="1" fill="#64748b" text-anchor="middle">LABELED OPPS</text>
 <rect x="444" y="116" width="182" height="92" rx="10" fill="#111827" stroke="#1e2d45"/>
 <rect x="444" y="116" width="182" height="3" rx="1.5" fill="url(#accent)"/>
 <text x="535.0" y="168" font-size="30" font-weight="800" fill="#f97316" text-anchor="middle">117</text>
-<text x="535.0" y="192" font-size="10.5" letter-spacing="1" fill="#64748b" text-anchor="middle">ANOMALIES</text>
+<text x="535.0" y="192" font-size="10.5" letter-spacing="1" fill="#64748b" text-anchor="middle">SCENARIO LABELS</text>
 <rect x="642" y="116" width="182" height="92" rx="10" fill="#111827" stroke="#1e2d45"/>
 <rect x="642" y="116" width="182" height="3" rx="1.5" fill="url(#accent)"/>
 <text x="733.0" y="168" font-size="30" font-weight="800" fill="#ef4444" text-anchor="middle">2</text>
